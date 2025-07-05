@@ -5,12 +5,12 @@ std::string WifiTypeConfigurator::configure(TerminalTypeEnum& terminalType) {
     switch (terminalType)
     {
     case TerminalTypeEnum::WiFiClient:
-        setupWifi();
+        setupWifi(); // use this standalone setup for now
         return std::string(WiFi.localIP().toString().c_str());
 
     case TerminalTypeEnum::WiFiAp: {
         WiFi.mode(WIFI_AP);
-        WiFi.softAP("buspirate", "averylongpass");
+        WiFi.softAP("buspirate", "averylongpassword");
         return std::string(WiFi.softAPIP().toString().c_str());
     }
     default:

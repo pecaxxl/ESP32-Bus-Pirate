@@ -103,13 +103,13 @@ uint8_t UtilityController::getModeNumber() {
 
     while (true) {
         char c = terminalInput.handler();
-
         if (c == '\r' || c == '\n') {
             terminalView.println("");
             break;
         }
-
+        
         if (std::isdigit(c)) {
+            terminalView.print(std::string(1, c));
             inputDigit += c;
         }
 
