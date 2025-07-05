@@ -306,7 +306,7 @@ void I2cController::handleHelp() {
     terminalView.println("  read <addr> <reg>");
     terminalView.println("  write <addr> <reg> <val>");
     terminalView.println("  config");
-    terminalView.println("  raw instructions, e.g: [0xA0] [0x01 r:8]");
+    terminalView.println("  raw instructions, e.g: [0x13 0x4B r:8]");
 }
 
 std::string I2cController::getUserInput() {
