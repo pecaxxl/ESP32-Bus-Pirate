@@ -1,0 +1,22 @@
+#pragma once
+
+#include <Arduino.h>
+#include <string>
+#include <Views/ITerminalView.h>
+#include <States/GlobalState.h>
+#include <Enums/TerminalTypeEnum.h>
+
+class SerialTerminalView : public ITerminalView {
+public:
+
+    void initialize() override;
+    void welcome(TerminalTypeEnum& terminalType, std::string& terminalInfos) override;
+    void print(const std::string& text) override;
+    void println(const std::string& text) override;
+    void printPrompt(const std::string& mode = "HIZ") override;
+    void clear() override;
+    void setBaudrate(unsigned long baudrate);
+    
+private:
+    unsigned long baudrate = 1152200;
+};

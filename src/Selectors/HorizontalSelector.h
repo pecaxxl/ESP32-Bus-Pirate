@@ -1,0 +1,23 @@
+#pragma once
+
+#include <string>
+#include <vector>
+#include "Views/IDeviceView.h"
+#include "Inputs/IInput.h"
+#include "Inputs/CardputerInput.h"
+
+class HorizontalSelector {
+public:
+    HorizontalSelector(IDeviceView& display, IInput& input);
+
+    int select(
+        const std::string& title,
+        const std::vector<std::string>& options,
+        const std::string& description1 = "",
+        const std::string& description2 = ""
+    );
+
+private:
+    IDeviceView& display;
+    IInput& input;
+};
