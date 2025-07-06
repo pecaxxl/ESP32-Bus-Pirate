@@ -48,8 +48,12 @@ function sendCommand() {
   pendingEchoLines = cmd.length;
 
   input.value = "";
-  output.value += cmd;
-  addToHistory(cmd);
+
+  // Don't save the cmd if  it just a number
+  if (!/^\d+$/.test(cmd)) {
+    output.value += cmd;
+    addToHistory(cmd);
+  }
 }
 
 // Bind Enter to sendCommand

@@ -91,7 +91,6 @@ bool UserInputManager::readYesNo(const std::string& label, bool def) {
 }
 
 uint8_t UserInputManager::readModeNumber() {
-    std::string inputStr;
     std::string inputDigit;
 
     while (true) {
@@ -105,18 +104,6 @@ uint8_t UserInputManager::readModeNumber() {
             terminalView.print(std::string(1, c));
             inputDigit += c;
         }
-
-        inputStr += c;
-    }
-
-    if (inputStr.empty()) {
-        return -1;
-    }
-
-    // Try to parse by name
-    ModeEnum mode = ModeEnumMapper::fromString(inputStr);
-    if (mode != ModeEnum::None) {
-        return static_cast<uint8_t>(mode) + 1;
     }
 
     if (inputDigit.empty()) {
