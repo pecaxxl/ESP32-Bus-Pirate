@@ -80,6 +80,7 @@ void UsbController::handleMouseClick() {
     usbService.mouseClick(1);
     delay(100);
     usbService.mouseRelease(1);
+    terminalView.println("USB Mouse: Click sent.");
 }
 
 /*
@@ -112,6 +113,7 @@ void UsbController::handleGamepad(const TerminalCommand& cmd)  {
 Stick
 */
 void UsbController::handleUsbStick() {
+    terminalView.println("USB Stick: Starting... USB Drive can take 30sec to appear");
     usbService.storageBegin(state.getSdCardCSPin(), state.getSdCardCLKPin(), 
                             state.getSdCardMISOPin(), state.getSdCardMOSIPin());
 }
@@ -138,7 +140,6 @@ void UsbController::handleConfig() {
     state.setSdCardMOSIPin(mosi);
 
     terminalView.println("USB Configured.");
-
     terminalView.println("\n[WARNING] If you're using USB Serial terminal mode,");
     terminalView.println("          using USB commands may interrupt the session.");
     terminalView.println("          Use Web UI or restart if connection is lost.\n");
@@ -150,7 +151,7 @@ Reset
 */
 void UsbController::handleReset() {
     usbService.reset();
-    terminalView.println("USB mode: Resetting");
+    terminalView.println("USB Reset: Resetting...");
 }
 
 /*

@@ -209,10 +209,10 @@ void UsbService::setupStorageEvent() {
             auto* data = reinterpret_cast<arduino_usb_event_data_t*>(event_data);
             switch (event_id) {
                 case ARDUINO_USB_STARTED_EVENT:
-                    M5.Lcd.fillRoundRect(54, 60, 5, 30, 5, GREEN);
+                    // Started
                     break;
                 case ARDUINO_USB_STOPPED_EVENT:
-                    M5.Lcd.fillRoundRect(54, 60, 5, 30, 5, RED);
+                    // Stopped
                     break;
                 case ARDUINO_USB_SUSPEND_EVENT:
                     // Display a message or icon
@@ -231,8 +231,8 @@ void UsbService::reset() {
     if (initialized) {
         keyboard.releaseAll(); // si clavier actif
         msc.end();             // si stockage actif
-        USB.~ESPUSB();         // force la destruction de l'instance USB
-        USB.enableDFU();       // réinitialise le contrôleur USB (important)
+        // USB.~ESPUSB();         // force la destruction de l'instance USB
+        // USB.enableDFU();       // réinitialise le contrôleur USB (important)
         initialized = false;
         keyboardActive = false;
         storageActive = false;
