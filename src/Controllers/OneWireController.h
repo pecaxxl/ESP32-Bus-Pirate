@@ -54,10 +54,10 @@ private:
     void handleHelp();
 
     // Read and display a device's ROM ID
-    void handleIdRead();
+    bool handleIdRead();
 
     // Read device scratchpad memory
-    void handleScratchpadRead();
+    bool handleScratchpadRead();
 
     // Write raw data to the bus
     void handleWrite(const TerminalCommand& command);

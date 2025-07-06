@@ -101,21 +101,39 @@ void OneWireController::handlePing() {
 Read
 */
 void OneWireController::handleRead() {
-    handleIdRead();
-    handleScratchpadRead();
+    terminalView.println("OneWire Read: press ENTER to stop.\n");
+
+    while (true) {
+        auto key = terminalInput.readChar();
+        if (key == '\r' || key == '\n') {
+            terminalView.println("");
+            terminalView.println("OneWire Read: Stopped by user.");
+            break;
+        }
+
+        auto idReaded = handleIdRead();
+        auto spReaded = handleScratchpadRead();
+
+        if (idReaded && spReaded) {
+            terminalView.println("OneWire Read: Complete.");
+            terminalView.println("");
+            break;
+        }
+        delay(100);
+    }
 }
+
 
 /*
 ID Read
 */
-void OneWireController::handleIdRead() {
+bool OneWireController::handleIdRead() {
     uint8_t buffer[8];
 
-        terminalView.println("OneWire Read: in progress.");
     if (!oneWireService.reset()) {
-        terminalView.println("OneWire Read: No device found.");
-        return;
+        return false;
     }
+    terminalView.println("OneWire Read: in progress.");
 
     oneWireService.write(0x33);  // Read ROM
     oneWireService.readBytes(buffer, 8);
@@ -133,16 +151,17 @@ void OneWireController::handleIdRead() {
     if (crc != buffer[7]) {
         terminalView.println("OneWire Read:: CRC error on ROM ID.");
     }
+
+    return true;
 }
 
 /*
 Scratchpad Read
 */
-void OneWireController::handleScratchpadRead() {
+bool OneWireController::handleScratchpadRead() {
     uint8_t scratchpad[8];
     if (!oneWireService.reset()) {
-        terminalView.println("OneWire Read: No device found.");
-        return;
+        return false;
     }
 
     oneWireService.write(0xAA);  // Read Scratchpad
@@ -161,6 +180,8 @@ void OneWireController::handleScratchpadRead() {
     if (crc != scratchpad[8]) {
         terminalView.println("CRC error on scratchpad.");
     }
+
+    return true;
 }
 
 /*
@@ -202,13 +223,56 @@ void OneWireController::handleWrite(const TerminalCommand& cmd) {
 ID Write
 */
 void OneWireController::handleIdWrite(std::vector<uint8_t> idBytes) {
-    if (!oneWireService.reset()) {
-        terminalView.println("OneWire Write: No device found.");
-        return;
+    const int maxRetries = 3;
+    int attempt = 0;
+    bool success = false;
+
+    terminalView.println("OneWire ID Write: waiting for device...");
+
+    // Attente jusqu'à détection
+    while (!oneWireService.reset()) {
+        delay(100);
+        if (terminalInput.readChar() == '\n') {
+            terminalView.println("Aborted by user.");
+            return;
+        }
     }
 
-    oneWireService.writeRw1990(state.getOneWirePin(), idBytes.data(), idBytes.size());
-    terminalView.println("OneWire Write: ID write completed.");
+    while (attempt < maxRetries && !success) {
+        attempt++;
+        terminalView.println("Attempt " + std::to_string(attempt) + "...");
+
+        // Écriture
+        oneWireService.writeRw1990(state.getOneWirePin(), idBytes.data(), idBytes.size());
+
+        delay(100);
+        // Lecture de l'ID pour vérifier
+        uint8_t buffer[8];
+        if (!oneWireService.reset()) continue;
+        oneWireService.write(0x33); // Read ROM
+        oneWireService.readBytes(buffer, 8);
+
+        // Read is not equal to writted sequence
+        if (memcmp(buffer, idBytes.data(), 7) != 0) {
+            terminalView.println("Mismatch in ROM ID bytes.");
+            continue;
+        }
+
+        // CRC
+        uint8_t crc = oneWireService.crc8(buffer, 7);
+        if (crc != buffer[7]) {
+            terminalView.println("CRC error after write.");
+            continue;
+        }
+
+        success = true;
+    }
+
+    if (success) {
+        terminalView.println("OneWire Write: ID write successful.");
+    } else {
+        terminalView.println("OneWire Write: Failed after 3 attempts.");
+    }
 }
 
 /*

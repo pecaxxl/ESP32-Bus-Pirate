@@ -123,7 +123,7 @@ void ActionDispatcher::dispatchCommand(const TerminalCommand& cmd) {
     }
 
    // Config was handled in specific mode, we need to rerender the pinout view
-   if (cmd.getRoot() == "config" || "setprotocol") {
+   if (cmd.getRoot() == "config" || cmd.getRoot() == "setprotocol") {
         setCurrentMode(state.getCurrentMode());
    } 
 }
