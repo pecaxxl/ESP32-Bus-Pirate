@@ -251,6 +251,22 @@ bool BluetoothService::spoofMacAddress(const std::string& macStr) {
     return err == ESP_OK;
 }
 
+void BluetoothService::clearBondedDevices() {
+    int dev_num = esp_ble_get_bond_device_num();
+    if (dev_num == 0) return;
+
+    esp_ble_bond_dev_t* bonded = (esp_ble_bond_dev_t*)malloc(sizeof(esp_ble_bond_dev_t) * dev_num);
+    if (!bonded) return;
+
+    if (esp_ble_get_bond_device_list(&dev_num, bonded) == ESP_OK) {
+        for (int i = 0; i < dev_num; ++i) {
+            esp_ble_remove_bond_device(bonded[i].bd_addr);
+        }
+    }
+
+    free(bonded);
+}
+
 const uint8_t BluetoothService::HID_REPORT_MAP[] = {
     // Mouse report
     0x05, 0x01,        // Usage Page (Generic Desktop)

@@ -60,6 +60,7 @@ public:
     bool spoofMacAddress(const std::string& macStr);
     std::string getMacAddress();
     BluetoothMode getMode();
+    void clearBondedDevices();
 
     std::vector<ScannedDevice> scanDevices(int seconds = 10);
     std::vector<std::string> connectTo(const std::string& addr);
