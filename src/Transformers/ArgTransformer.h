@@ -21,5 +21,5 @@ public:
     uint8_t toUint8(const std::string& input);
     uint32_t toUint32(const std::string& input);
     std::string toLower(const std::string& input);
-
+    std::string filterPrintable(const std::string& input);
 };

@@ -129,3 +129,12 @@ std::string ArgTransformer::toLower(const std::string& input) {
     return result;
 }
 
+std::string ArgTransformer::filterPrintable(const std::string& input) {
+    std::string result;
+    for (char c : input) {
+        if (std::isprint(static_cast<unsigned char>(c)) || c == '\n' || c == '\r' || c == '\t') {
+            result += c;
+        }
+    }
+    return result;
+}
