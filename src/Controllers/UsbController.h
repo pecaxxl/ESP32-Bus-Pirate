@@ -8,11 +8,12 @@
 #include "Models/ByteCode.h"
 #include "States/GlobalState.h"
 #include "Transformers/ArgTransformer.h"
+#include "Managers/UserInputManager.h"
 
 class UsbController {
 public:
     // Constructor
-    UsbController(ITerminalView& terminalView, IInput& terminalInput, UsbService& usbService, ArgTransformer& argTransformer);
+    UsbController(ITerminalView& terminalView, IInput& terminalInput, UsbService& usbService, ArgTransformer& argTransformer, UserInputManager& userInputManager);
 
     // Entry point for handle raw terminal command
     void handleCommand(const TerminalCommand& cmd);
@@ -57,4 +58,5 @@ private:
     UsbService& usbService;
     ArgTransformer& argTransformer;
     GlobalState& state = GlobalState::getInstance();
+    UserInputManager& userInputManager;
 };

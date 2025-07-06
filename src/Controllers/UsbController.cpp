@@ -3,8 +3,9 @@
 /*
 Constructor
 */
-UsbController::UsbController(ITerminalView& terminalView, IInput& terminalInput, UsbService& usbService, ArgTransformer& argTransformer)
-    : terminalView(terminalView), terminalInput(terminalInput), usbService(usbService), argTransformer(argTransformer) {}
+UsbController::UsbController(ITerminalView& terminalView, IInput& terminalInput, 
+                             UsbService& usbService, ArgTransformer& argTransformer, UserInputManager& userInputManager)
+    : terminalView(terminalView), terminalInput(terminalInput), usbService(usbService), argTransformer(argTransformer), userInputManager(userInputManager) {}
 
 /*
 Entry point for command
@@ -122,24 +123,18 @@ void UsbController::handleConfig() {
     terminalView.println("");
     terminalView.println("USB Configuration:");
 
-    terminalView.print("SD Card CS pin [" + std::to_string(state.getSdCardCSPin()) + "]: ");
-    std::string csInput = getUserInput();
-    uint8_t cs = csInput.empty() ? state.getSdCardCSPin() : static_cast<uint8_t>(std::stoi(csInput));
+    GlobalState& state = GlobalState::getInstance();
+
+    uint8_t cs = userInputManager.readValidatedUint8("SD Card CS pin", state.getSdCardCSPin());
     state.setSdCardCSPin(cs);
 
-    terminalView.print("SD Card CLK pin [" + std::to_string(state.getSdCardCLKPin()) + "]: ");
-    std::string clkInput = getUserInput();
-    uint8_t clk = clkInput.empty() ? state.getSdCardCLKPin() : static_cast<uint8_t>(std::stoi(clkInput));
+    uint8_t clk = userInputManager.readValidatedUint8("SD Card CLK pin", state.getSdCardCLKPin());
     state.setSdCardCLKPin(clk);
 
-    terminalView.print("SD Card MISO pin [" + std::to_string(state.getSdCardMISOPin()) + "]: ");
-    std::string misoInput = getUserInput();
-    uint8_t miso = misoInput.empty() ? state.getSdCardMISOPin() : static_cast<uint8_t>(std::stoi(misoInput));
+    uint8_t miso = userInputManager.readValidatedUint8("SD Card MISO pin", state.getSdCardMISOPin());
     state.setSdCardMISOPin(miso);
 
-    terminalView.print("SD Card MOSI pin [" + std::to_string(state.getSdCardMOSIPin()) + "]: ");
-    std::string mosiInput = getUserInput();
-    uint8_t mosi = mosiInput.empty() ? state.getSdCardMOSIPin() : static_cast<uint8_t>(std::stoi(mosiInput));
+    uint8_t mosi = userInputManager.readValidatedUint8("SD Card MOSI pin", state.getSdCardMOSIPin());
     state.setSdCardMOSIPin(mosi);
 
     terminalView.println("USB Configured.");
@@ -148,6 +143,7 @@ void UsbController::handleConfig() {
     terminalView.println("          using USB commands may interrupt the session.");
     terminalView.println("          Use Web UI or restart if connection is lost.\n");
 }
+
 
 /*
 Reset
@@ -170,20 +166,6 @@ void UsbController::handleHelp() {
     terminalView.println("  gamepad <key>, eg. A, B, LEFT...");
     terminalView.println("  reset");
     terminalView.println("  config");
-}
-
-std::string UsbController::getUserInput() {
-    std::string inputStr;
-    while (true) {
-        char c = terminalInput.handler();
-        if (c == '\r' || c == '\n') {
-            terminalView.println("");
-            break;
-        }
-        inputStr += c;
-        terminalView.print(std::string(1, c));
-    }
-    return inputStr;
 }
 
 void UsbController::ensureConfigured() {

@@ -237,28 +237,19 @@ void OneWireController::handleConfig() {
     terminalView.println("");
     terminalView.println("OneWire Configuration:");
 
-    GlobalState& state = GlobalState::getInstance();
-    uint8_t pin = state.getOneWirePin();
+    uint8_t currentPin = state.getOneWirePin();
 
-    while (true) {
-        terminalView.print("Data pin [" + std::to_string(pin) + "]: ");
-        std::string pinInput = userInputManager.getLine();
-        if (pinInput.empty()) break;
-
-        if (argTransformer.isValidNumber(pinInput)) {
-            pin = argTransformer.toUint8(pinInput);
-            break;
-        } else {
-            terminalView.println("Invalid value. Please enter a valid number.");
-        }
-    }
-
+    terminalView.print("Data pin [" + std::to_string(currentPin) + "]: ");
+    std::string input = userInputManager.getLine();
+    uint8_t pin = input.empty() ? currentPin : argTransformer.toUint8(input);
+    
     state.setOneWirePin(pin);
     oneWireService.configure(pin);
 
     terminalView.println("OneWire configured.");
     terminalView.println("");
 }
+
 
 /*
 Sniff

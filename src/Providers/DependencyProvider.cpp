@@ -30,7 +30,7 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       i2cController(terminalView, terminalInput, i2cService, argTransformer, userInputManager),
       oneWireController(terminalView, terminalInput, oneWireService, argTransformer, userInputManager),
       infraredController(terminalView, terminalInput, infraredService, argTransformer, userInputManager),
-      usbController(terminalView, terminalInput, usbService, argTransformer),
+      usbController(terminalView, terminalInput, usbService, argTransformer, userInputManager),
       utilityController(terminalView, terminalInput, pinService, userInputManager),
       hdUartController(terminalView, terminalInput, deviceInput, hdUartService, argTransformer, userInputManager),
       spiController(terminalView, terminalInput, spiService, argTransformer, userInputManager),
