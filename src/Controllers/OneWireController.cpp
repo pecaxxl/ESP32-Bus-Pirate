@@ -1,4 +1,3 @@
-// OneWireController.cpp
 #include "OneWireController.h"
 
 /*
@@ -255,7 +254,7 @@ void OneWireController::handleConfig() {
 Sniff
 */
 void OneWireController::handleSniff() {
-    terminalView.println("OneWire Sniff Mode: observing data line.");
+    terminalView.println("OneWire Sniff: observing data line.");
     terminalView.println("Press ENTER to stop.\n");
 
     uint8_t pin = state.getOneWirePin();
@@ -284,7 +283,7 @@ void OneWireController::handleSniff() {
         }
     }
     terminalView.println("");
-    terminalView.println("OneWire Sniff Mode: Exited");
+    terminalView.println("OneWire Sniff: Exited");
 }
 
 /*

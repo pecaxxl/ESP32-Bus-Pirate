@@ -254,9 +254,7 @@ Config
 void UartController::handleConfig() {
     terminalView.println("");
     terminalView.println("UART Configuration:");
-
-    GlobalState& state = GlobalState::getInstance();
-
+    
     uint8_t rxPin = userInputManager.readValidatedUint8("RX pin number", state.getUartRxPin());
     state.setUartRxPin(rxPin);
 

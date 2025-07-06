@@ -306,7 +306,6 @@ void UtilityController::handleHelp() {
     terminalView.println("  ap <ssid> <password> - Set a Wi-Fi access point");
     terminalView.println("  webui                - Show the web UI IP");
     terminalView.println("  reset                - Reset Wi-Fi interface");
-    terminalView.println("  config               - Configure Wi-Fi settings");
 
     terminalView.println("");
     terminalView.println(" 15. JTAG:");
