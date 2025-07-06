@@ -12,7 +12,6 @@ public:
     bool reset();
     void write(uint8_t data);
     void writeBytes(const uint8_t* data, uint8_t len);
-    void writeByteRw1990(uint8_t pin, uint8_t data);
     void writeRw1990(uint8_t pin, uint8_t* data, size_t len);
     uint8_t read();
     void readBytes(uint8_t* buffer, uint8_t length);

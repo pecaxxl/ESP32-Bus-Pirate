@@ -227,13 +227,13 @@ void OneWireController::handleIdWrite(std::vector<uint8_t> idBytes) {
     int attempt = 0;
     bool success = false;
 
-    terminalView.println("OneWire ID Write: waiting for device...");
+    terminalView.println("OneWire ID Write: Waiting for device... Press ENTER to stop");
 
     // Wait detection
     while (!oneWireService.reset()) {
-        delay(100);
+        delay(1);
         if (terminalInput.readChar() == '\n') {
-            terminalView.println("Aborted by user.");
+            terminalView.println("OneWire Write: Aborted by user.");
             return;
         }
     }
@@ -245,8 +245,8 @@ void OneWireController::handleIdWrite(std::vector<uint8_t> idBytes) {
 
         // Ecriture
         oneWireService.writeRw1990(state.getOneWirePin(), idBytes.data(), idBytes.size());
+        delay(50);
 
-        delay(100);
         // Read ID
         uint8_t buffer[8];
         if (!oneWireService.reset()) continue;
@@ -280,18 +280,66 @@ void OneWireController::handleIdWrite(std::vector<uint8_t> idBytes) {
 Scratchpad Write
 */
 void OneWireController::handleScratchpadWrite(std::vector<uint8_t> scratchpadBytes) {
-    if (!oneWireService.reset()) {
-        terminalView.println("OneWire Write: No device found.");
-        return;
+    const int maxRetries = 3;
+    int attempt = 0;
+    bool success = false;
+
+    terminalView.println("OneWire Write: Waiting for device... Press ENTER to stop");
+
+    // Wait for device presence
+    while (!oneWireService.reset()) {
+        delay(1);
+        auto c = terminalInput.readChar();
+        if (c == '\n' || c == '\r') {
+            terminalView.println("Aborted by user.");
+            return;
+        }
     }
 
-    oneWireService.skip();
-    oneWireService.write(0x0F); // Scratchpad write command
-    delayMicroseconds(20);
-    oneWireService.writeBytes(scratchpadBytes.data(), 8);
-    oneWireService.reset();
+    // Try up to 3 times
+    while (attempt < maxRetries && !success) {
+        attempt++;
+        terminalView.println("Attempt " + std::to_string(attempt) + "...");
 
-    terminalView.println("OneWire Write: Scratchpad write completed.");
+        if (!oneWireService.reset()) continue;
+
+        oneWireService.skip();
+        oneWireService.write(0x0F); // Scratchpad write command
+        delayMicroseconds(20);
+        oneWireService.writeBytes(scratchpadBytes.data(), 8);
+        delay(50);
+
+        // Verify by reading back
+        if (!oneWireService.reset()) continue;
+
+        oneWireService.skip();
+        oneWireService.write(0xAA); // Read Scratchpad
+        delayMicroseconds(20);
+
+        uint8_t readback[8];
+        oneWireService.readBytes(readback, 8);
+
+        // Missmatch
+        if (memcmp(readback, scratchpadBytes.data(), 8) != 0) {
+            terminalView.println("Mismatch in scratchpad data.");
+            continue;
+        }
+        
+        // CRC error
+        uint8_t crc = oneWireService.crc8(readback, 8);
+        if (crc != readback[7]) {
+            terminalView.println("CRC error on scratchpad.");
+            continue;
+        }
+
+        success = true;
+    }
+
+    if (success) {
+        terminalView.println("OneWire Write: Scratchpad write successful.");
+    } else {
+        terminalView.println("OneWire Write: Failed after 3 attempts.");
+    }
 }
 
 /*

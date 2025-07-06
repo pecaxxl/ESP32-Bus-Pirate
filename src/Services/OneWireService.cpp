@@ -1,5 +1,3 @@
-// OneWireService.cpp
-
 #include "OneWireService.h"
 
 OneWireService::OneWireService() {}
@@ -25,72 +23,23 @@ void OneWireService::writeBytes(const uint8_t* data, uint8_t len) {
     if (oneWire) oneWire->write_bytes(data, len);
 }
 
-void OneWireService::writeByteRw1990(uint8_t pin, uint8_t data) {
-    int data_bit;
-    for (data_bit = 0; data_bit < 8; data_bit++) {
-        if (data & 1) {
-            digitalWrite(pin, LOW);
-            pinMode(pin, OUTPUT);
-            delayMicroseconds(60);
-            pinMode(pin, INPUT);
-            digitalWrite(pin, HIGH);
-        } else {
-            digitalWrite(pin, LOW);
-            pinMode(pin, OUTPUT);
-            pinMode(pin, INPUT);
-            digitalWrite(pin, HIGH);
-        }
-        delay(10);
-        data = data >> 1;
-    }
-}
-
 void OneWireService::writeRw1990(uint8_t pin, uint8_t* data, size_t len) {
-    if (!reset()) return;
-
-    // Prepare
-    oneWire->skip();
+    // Reset + Write Serial
     oneWire->reset();
-    oneWire->write(0x33); // Read ROM
+    oneWire->write(0xD5);
 
-    // Write mode
-    oneWire->skip();
-    oneWire->reset();
-    oneWire->write(0x3C); // Set write mode for some models
-    delay(50);
-
-    // Write Command ?
-    oneWire->skip();
-    oneWire->reset();
-    oneWire->write(0xD1); // Write command
-    delay(50);
-
-    // Write don't work without this code
-    digitalWrite(pin, LOW);
-    pinMode(pin, OUTPUT);
-    delayMicroseconds(60);
-    pinMode(pin, INPUT);
-    digitalWrite(pin, HIGH);
-    delay(10);
-
-    oneWire->skip();
-    oneWire->reset();
-    oneWire->write(0xD5); // Enter write mode
-    delay(50);
-
-    // Write
-    for (size_t i = 0; i < len; ++i) {
-        writeByteRw1990(pin, data[i]);
-        delayMicroseconds(25);
+    // Write each byte with 10ms delay to power the eeprom
+    for (uint8_t i = 0; i < 8; i++) {
+        uint8_t b = data[i];
+        for (uint8_t bit = 0; bit < 8; bit++) {
+            bool v = b & 0x01;
+            oneWire->write(v ? 0xFF : 0x00);
+            delay(10);
+            b >>= 1;
+        }
     }
 
-    oneWire->reset(); // Reset bus
-    oneWire->skip();
-
-    // Finalise
-    oneWire->write(0xD1); // End of write command
-    delayMicroseconds(16);
-    oneWire->reset(); // Reset bus
+    oneWire->reset();
 }
 
 uint8_t OneWireService::read() {
