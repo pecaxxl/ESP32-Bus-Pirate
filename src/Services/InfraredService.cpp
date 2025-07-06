@@ -124,12 +124,18 @@ InfraredCommand InfraredService::receiveInfraredCommand() {
             return InfraredCommand();
     }
 
-    // Extraction device et subdevice selon protocole
+    // Panasonic and derived
     if (data.protocol == PANASONIC || data.protocol == KASEIKYO || data.protocol == KASEIKYO_JVC ||
         data.protocol == KASEIKYO_SHARP || data.protocol == KASEIKYO_MITSUBISHI || data.protocol == KASEIKYO_DENON) {
         // PANASONIC: 16 bits = 8b subdevice + 8b device
         command.setDevice((data.address >> 8) & 0xFF);
         command.setSubdevice(data.address & 0xFF);
+        
+    // Samsung
+    } else if (data.protocol == SAMSUNG || data.protocol == SAMSUNGLG) {
+        command.setDevice(data.address & 0xFF);
+        command.setSubdevice((data.address >> 8) & 0xFF);
+
     } else {
         // que l'adresse
         int device = data.address & 0xFF;

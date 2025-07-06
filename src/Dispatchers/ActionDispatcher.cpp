@@ -123,7 +123,7 @@ void ActionDispatcher::dispatchCommand(const TerminalCommand& cmd) {
     }
 
    // Config was handled in specific mode, we need to rerender the pinout view
-   if (cmd.getRoot() == "config") {
+   if (cmd.getRoot() == "config" || "setprotocol") {
         setCurrentMode(state.getCurrentMode());
    } 
 }
@@ -293,6 +293,7 @@ void ActionDispatcher::setCurrentMode(ModeEnum newMode) {
 
     PinoutConfig config;
     config.setMode(ModeEnumMapper::toString(newMode));
+    auto proto = InfraredProtocolMapper::toString(state.getInfraredProtocol());
 
     switch (newMode) {
         case ModeEnum::OneWire:
@@ -311,7 +312,9 @@ void ActionDispatcher::setCurrentMode(ModeEnum newMode) {
         case ModeEnum::HDUART:
             config.setMappings({
                 "RX/TX GPIO " + std::to_string(state.getHdUartPin()),
-                "BAUD " + std::to_string(state.getHdUartBaudRate())
+                "BAUD " + std::to_string(state.getHdUartBaudRate()),
+                "BITS " + std::to_string(state.getHdUartDataBits()),
+                "PARITY " + state.getHdUartParity(),
             });
             provider.getHdUartController().ensureConfigured();
             break;
@@ -347,7 +350,8 @@ void ActionDispatcher::setCurrentMode(ModeEnum newMode) {
             provider.getInfraredController().ensureConfigured();
             config.setMappings(
                 {"IR TX GPIO " + std::to_string(state.getInfraredTxPin()),
-                 "IR RX GPIO " + std::to_string(state.getInfraredRxPin())
+                 "IR RX GPIO " + std::to_string(state.getInfraredRxPin()),
+                  proto
             });
             break;
         case ModeEnum::USB:

@@ -7,6 +7,9 @@
 inline const std::vector<InfraredCommand> deviceBgoneCommands = {
     {NECX2, 7, 7, 2},
     {NECX2, 7, -1, 2},
+    {SAMSUNG32, 7, 7, 2},
+    {SAMSUNG20, 7, -1, 2},
+    {SAMSUNG36, 7, 7, 2},
     {NECX2, 4, -1, 8},
     {_RC5, 0, 0, 12},
     {SONY20, 1, 0, 21},
@@ -96,6 +99,7 @@ inline const std::vector<InfraredCommand> deviceBgoneCommands = {
     { _NEC, 0, -1, 57 },
     { _NEC, 0, -1, 135 }, 
     { F12, 0, -1, 128 },
+
 
     // NEC‑based universal power codes
     { _NEC2,        0,  -1, 16 },   // NEC generic power

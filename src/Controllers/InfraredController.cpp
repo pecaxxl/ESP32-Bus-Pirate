@@ -60,7 +60,10 @@ void InfraredController::handleSend(const TerminalCommand& command) {
     infraredCommand.setFunction(function);
     infraredCommand.setProtocol(state.getInfraredProtocol());
 
-    infraredService.sendInfraredCommand(infraredCommand);
+    for (int i = 0; i < 3; ++i) {
+        infraredService.sendInfraredCommand(infraredCommand);
+        delay(150);
+    }
 
     terminalView.println("IR command sent with protocol " + InfraredProtocolMapper::toString(state.getInfraredProtocol()));
 }
@@ -91,7 +94,6 @@ void InfraredController::handleReceive() {
             terminalView.println("  Command  : " + std::to_string(cmd.getFunction()));
             terminalView.println("");
             terminalView.println("INFRARED Receive: Waiting for next signal or press ENTER to exit.");
-            delay(200);
         }
     }
 }
@@ -100,17 +102,27 @@ void InfraredController::handleReceive() {
 DeviceBgone
 */
 void InfraredController::handleDeviceBgone() {
-    terminalView.println("Sending Device-B-Gone commands...");
+    terminalView.println("Sending Device-B-Gone commands... Press ENTER to stop");
 
     for (const auto& cmd : deviceBgoneCommands) {
-        infraredService.sendInfraredCommand(cmd);
+
+        char c = terminalInput.readChar();
+        if (c == '\r' || c == '\n') {
+            terminalView.println("Infrared Devicebgone: Interrupted by user.");
+            return;
+        }
+
+        for (int i = 0; i < 2; ++i) { // send 2x per command
+            infraredService.sendInfraredCommand(cmd);
+            delay(150);
+        }
+
         terminalView.println(
             "Sent On/Off to protocol=" + InfraredProtocolMapper::toString(cmd.getProtocol()) +
             " device=" + std::to_string(cmd.getDevice()) +
             " sub=" + std::to_string(cmd.getSubdevice()) +
             " cmd=" + std::to_string(cmd.getFunction())
         );
-        delay(40); // small delay between signals
     }
 
     terminalView.println("Device-B-Gone sequence completed.");
