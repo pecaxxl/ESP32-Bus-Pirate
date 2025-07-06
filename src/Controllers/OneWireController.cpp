@@ -319,36 +319,71 @@ void OneWireController::handleConfig() {
 Sniff
 */
 void OneWireController::handleSniff() {
-    terminalView.println("OneWire Sniff: observing data line.");
-    terminalView.println("Press ENTER to stop.\n");
+    terminalView.println("OneWire Sniff: Oberserving data line... Press ENTER to stop.\n");
 
+    // Init the pin to read passively
     uint8_t pin = state.getOneWirePin();
     pinMode(pin, INPUT);
 
-    uint8_t bitCount = 0;
-    uint8_t currentByte = 0;
-    int lastState = 0;
-    unsigned long lastTransition = micros();
+    // Read initial state of pin
+    int prev = digitalRead(pin);
+    unsigned long lastFall = micros();
 
     while (true) {
-        char c = terminalInput.readChar();
-        if (c == '\r' || c == '\n') break;
+        // Enter press
+        auto c = terminalInput.readChar();
+        if (c == '\r' || c == '\n' ) break;
+        
+        // Read current state of pin
+        int current = digitalRead(pin);
+        unsigned long now = micros();
 
-        int state = digitalRead(pin);
-        if (state != lastState) {
-            unsigned long now = micros();
-            unsigned long duration = now - lastTransition;
-            lastTransition = now;
-
-            std::stringstream ss;
-            ss << "Transition to " << state << " after " << duration << " us";
-            terminalView.println(ss.str());
-
-            lastState = state;
+        // Detect a falling edge
+        if (prev == HIGH && current == LOW) {
+            lastFall = now;
         }
+
+        // Detect a rising edge (end of a LOW pulse)
+        if (prev == LOW && current == HIGH) {
+            // Calculate duration of the LOW pulse
+            unsigned long duration = now - lastFall;
+            
+            // Too long, not mean anything
+            if (duration >= 3000) {
+                terminalView.println("[Non-Standard Pulse] " + std::to_string(duration) + " µs");
+            }
+            // Most likely a reset pulse
+            else if (duration >= 480) {
+                terminalView.println("[Reset] LOW for " + std::to_string(duration) + " µs");
+
+            // Most likely a presence pulse
+            } else if (duration >= 60 && duration <= 240) {
+                terminalView.println("[Presence] LOW for " + std::to_string(duration) + " µs");
+            
+            // Most likely a bit transmission
+            } else if (duration >= 10 && duration <= 70) {
+                // Want to sample ~15 µs after the falling edge
+                // which is the standard sampling time in the 1-Wire protocol
+                long elapsed = now - lastFall;
+                if (elapsed < 15) {
+                    delayMicroseconds(15 - elapsed);
+                }
+                
+                // Read the bit
+                int sample = digitalRead(pin);
+                terminalView.println("[Bit] LOW " + std::to_string(duration) +
+                                     " µs, Sample = " + std::to_string(sample));
+
+            // Unrecognized or noisy signal
+            } else {
+                terminalView.println("[Noise] LOW for " + std::to_string(duration) + " µs");
+            }
+        }
+
+        // Update
+        prev = current;
     }
-    terminalView.println("");
-    terminalView.println("OneWire Sniff: Exited");
+    terminalView.println("\n\nOneWire Sniff: Stopped by user.");
 }
 
 /*
