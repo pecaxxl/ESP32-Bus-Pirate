@@ -101,7 +101,7 @@ void OneWireController::handlePing() {
 Read
 */
 void OneWireController::handleRead() {
-    terminalView.println("OneWire Read: press ENTER to stop.\n");
+    terminalView.println("OneWire Read: Press ENTER to stop.\n");
 
     while (true) {
         auto key = terminalInput.readChar();

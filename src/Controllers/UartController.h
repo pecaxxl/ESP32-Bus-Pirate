@@ -38,9 +38,6 @@ public:
     // Perform a simple read
     void handleRead();
     
-    // Probe known devices
-    void handleScan();
-    
     // Send simple ping command
     void handlePing();
     
@@ -58,6 +55,27 @@ public:
 
     // Encode UART config bits
     uint32_t buildUartConfig(uint8_t dataBits, char parity, uint8_t stopBits);
+
+    // Scan to find the right baudrate
+    void handleScan();
+
+    // Scan a baudrate
+    bool scanAtBaudrate(int baud);
+
+    // Check Enter press
+    bool checkScanCancelled();
+
+    // Send next probe to get a UART response
+    void sendNextProbe(size_t& probeIndex);
+
+    // Update rolling buffer
+    void updateResponse(std::string& response, size_t& asciiCount, size_t maxSize);
+
+    // Check if data response is a valid UART data
+    bool isValidResponse(const std::string& response, size_t asciiCount);
+    
+    // Check entropy to determine if a response is a valid UART response
+    float computeEntropy(const std::string& data);
 
     ITerminalView& terminalView;
     IInput& terminalInput;
@@ -86,4 +104,39 @@ public:
         "help\r\n", "?\r\n", "\r\n",
         "\x1B", "\x03", "\x04", "\x1A", "\x11", "\x13"  // ESC, Ctrl+C/Z/D, XON/XOFF
     };
+
+    std::vector<int> baudrates = {
+        // Les plus standards
+        9600,
+        115200,
+        19200,
+        57600,
+        38400,
+
+        // Baudrates spécifiques
+        4800,
+        2400,
+        14400,
+        28800,
+        76800,
+        128000,
+
+        // Haut débit
+        230400,
+        250000,
+        460800,
+
+        // Tres haut débit
+        921600,
+        1000000,
+        1500000,
+        2000000,
+        3000000,
+
+        // legacy
+        1200,
+        600,
+        300
+    };
+
 };
