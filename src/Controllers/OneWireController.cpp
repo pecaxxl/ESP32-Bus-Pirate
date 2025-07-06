@@ -229,7 +229,7 @@ void OneWireController::handleIdWrite(std::vector<uint8_t> idBytes) {
 
     terminalView.println("OneWire ID Write: waiting for device...");
 
-    // Attente jusqu'à détection
+    // Wait detection
     while (!oneWireService.reset()) {
         delay(100);
         if (terminalInput.readChar() == '\n') {
@@ -237,28 +237,29 @@ void OneWireController::handleIdWrite(std::vector<uint8_t> idBytes) {
             return;
         }
     }
-
+    
+    // Try to write and verify 3 times
     while (attempt < maxRetries && !success) {
         attempt++;
         terminalView.println("Attempt " + std::to_string(attempt) + "...");
 
-        // Écriture
+        // Ecriture
         oneWireService.writeRw1990(state.getOneWirePin(), idBytes.data(), idBytes.size());
 
         delay(100);
-        // Lecture de l'ID pour vérifier
+        // Read ID
         uint8_t buffer[8];
         if (!oneWireService.reset()) continue;
         oneWireService.write(0x33); // Read ROM
         oneWireService.readBytes(buffer, 8);
 
-        // Read is not equal to writted sequence
+        // Read is not equal to given one
         if (memcmp(buffer, idBytes.data(), 7) != 0) {
             terminalView.println("Mismatch in ROM ID bytes.");
             continue;
         }
 
-        // CRC
+        // CRC error
         uint8_t crc = oneWireService.crc8(buffer, 7);
         if (crc != buffer[7]) {
             terminalView.println("CRC error after write.");
