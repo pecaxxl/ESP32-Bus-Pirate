@@ -18,8 +18,8 @@ Run loop
 */
 void ActionDispatcher::run() {
     while (true) {
-        auto protocol = ModeEnumMapper::toString(state.getCurrentMode());
-        provider.getTerminalView().printPrompt(protocol);
+        auto mode = ModeEnumMapper::toString(state.getCurrentMode());
+        provider.getTerminalView().printPrompt(mode);
         std::string action = getUserAction();
         if (action.empty()) {
             continue;

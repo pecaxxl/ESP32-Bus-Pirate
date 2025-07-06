@@ -198,8 +198,8 @@ Spoof
 */
 void BluetoothController::handleSpoof(const TerminalCommand& cmd) {
     std::string mac = cmd.getSubcommand();
-    if (bluetoothService.isConnected()) {
-        terminalView.println("Bluetooth Spoof: You can't spoof mac after bluetooth init");
+    if (bluetoothService.isConnected() || bluetoothService.getMode() != BluetoothMode::NONE) {
+        terminalView.println("Bluetooth Spoof: You must set the address before init Bluetooth. Use 'reset' command");
         return;
     }
 

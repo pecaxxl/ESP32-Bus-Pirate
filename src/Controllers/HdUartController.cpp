@@ -48,15 +48,6 @@ void HdUartController::handleBridge() {
 }
 
 /*
-Help
-*/
-void HdUartController::handleHelp() {
-    terminalView.println("\nHDUART Commands:\n"
-                         "  bridge       Interactive mode\n"
-                         "  config       Set TX/RX pin, baud etc.\n");
-}
-
-/*
 Config
 */
 void HdUartController::handleConfig() {
@@ -86,6 +77,15 @@ void HdUartController::handleConfig() {
     hdUartService.configure(baud, config, pin, inverted);
 
     terminalView.println("HDUART configuration applied.\n");
+}
+
+/*
+Help
+*/
+void HdUartController::handleHelp() {
+    terminalView.println("\nHDUART Commands:\n"
+                         "  bridge       Interactive mode\n"
+                         "  config       Set TX/RX pin, baud etc.\n");
 }
 
 uint32_t HdUartController::buildUartConfig(uint8_t bits, char parity, uint8_t stop) {
