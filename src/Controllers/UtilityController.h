@@ -11,11 +11,13 @@
 #include "States/GlobalState.h"
 #include "Enums/ModeEnum.h"
 #include "Services/PinService.h"
+#include "Managers/UserInputManager.h"
 
 class UtilityController {
 public:
     // Constructor
-    UtilityController(ITerminalView& terminalView, IInput& terminalInput, PinService& pinService);
+    UtilityController(ITerminalView& terminalView, IInput& terminalInput, 
+                      PinService& pinService, UserInputManager& userInputManager);
 
     // Entry point for global utility commands
     void handleCommand(const TerminalCommand& cmd);
@@ -39,11 +41,9 @@ private:
     // Disable internal pull-up resistors
     void handleDisablePullups();
 
-    // Prompt and validate mode selection from user
-    uint8_t getModeNumber();
-
     ITerminalView& terminalView;
     IInput& terminalInput;
     PinService& pinService;
+    UserInputManager& userInputManager;
     GlobalState& state = GlobalState::getInstance();
 };

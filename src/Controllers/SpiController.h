@@ -9,12 +9,13 @@
 #include "Models/TerminalCommand.h"
 #include "Models/ByteCode.h"
 #include "Transformers/ArgTransformer.h"
+#include "Managers/UserInputManager.h"
 #include "States/GlobalState.h"
 
 class SpiController {
 public:
     // Constructor
-    SpiController(ITerminalView& terminalView, IInput& terminalInput, SpiService& service, ArgTransformer& argTransformer); 
+    SpiController(ITerminalView& terminalView, IInput& terminalInput, SpiService& service, ArgTransformer& argTransformer, UserInputManager& userInputManager); 
 
     // Entry point for handle raw user command
     void handleCommand(const TerminalCommand& cmd);
@@ -30,8 +31,8 @@ private:
     IInput& terminalInput;
     SpiService& spiService;
     ArgTransformer& argTransformer;
+    UserInputManager& userInputManager;
     GlobalState& state = GlobalState::getInstance();
-
     bool configured = false;
 
     // Passive bus monitor
@@ -52,6 +53,4 @@ private:
     // Configure SPI bus parameters
     void handleConfig();
 
-    // Read input from user
-    std::string getUserInput();
 };

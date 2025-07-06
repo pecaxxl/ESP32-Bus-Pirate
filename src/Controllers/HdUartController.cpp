@@ -4,9 +4,9 @@
 Constructor
 */
 HdUartController::HdUartController(ITerminalView& terminalView, IInput& terminalInput, IInput& deviceInput,
-                                   HdUartService& hdUartService, ArgTransformer& argTransformer)
+                                   HdUartService& hdUartService, ArgTransformer& argTransformer, UserInputManager& userInputManager)
     : terminalView(terminalView), terminalInput(terminalInput), deviceInput(deviceInput),
-      hdUartService(hdUartService), argTransformer(argTransformer) {}
+      hdUartService(hdUartService), argTransformer(argTransformer), userInputManager(userInputManager) {}
 
 /*
 Entry point for HDUART commands
@@ -53,22 +53,22 @@ Config
 void HdUartController::handleConfig() {
     terminalView.println("\nHDUART Configuration:");
 
-    uint8_t pin = readValidatedUint8("Shared TX/RX pin", state.getHdUartPin());
+    uint8_t pin = userInputManager.readValidatedUint8("Shared TX/RX pin", state.getHdUartPin());
     state.setHdUartPin(pin);
 
-    uint32_t baud = readValidatedUint32("Baud rate", state.getHdUartBaudRate());
+    uint32_t baud = userInputManager.readValidatedUint32("Baud rate", state.getHdUartBaudRate());
     state.setHdUartBaudRate(baud);
 
-    uint8_t dataBits = readValidatedUint8("Data bits (5-8)", state.getHdUartDataBits(), 5, 8);
+    uint8_t dataBits = userInputManager.readValidatedUint8("Data bits (5-8)", state.getHdUartDataBits(), 5, 8);
     state.setHdUartDataBits(dataBits);
 
-    char parity = readCharChoice("Parity (N/E/O)", 'N', {'N', 'E', 'O'});
+    char parity = userInputManager.readCharChoice("Parity (N/E/O)", 'N', {'N', 'E', 'O'});
     state.setHdUartParity(std::string(1, parity));
 
-    uint8_t stopBits = readValidatedUint8("Stop bits (1 or 2)", state.getHdUartStopBits(), 1, 2);
+    uint8_t stopBits = userInputManager.readValidatedUint8("Stop bits (1 or 2)", state.getHdUartStopBits(), 1, 2);
     state.setHdUartStopBits(stopBits);
 
-    bool inverted = readYesNo("Inverted?", state.isHdUartInverted());
+    bool inverted = userInputManager.readYesNo("Inverted?", state.isHdUartInverted());
     state.setHdUartInverted(inverted);
 
     uint32_t config = buildUartConfig(dataBits, parity, stopBits);
@@ -86,65 +86,6 @@ void HdUartController::handleHelp() {
     terminalView.println("\nHDUART Commands:\n"
                          "  bridge       Interactive mode\n"
                          "  config       Set TX/RX pin, baud etc.\n");
-}
-
-std::string HdUartController::getUserInput() {
-    std::string input;
-    while (true) {
-        char c = terminalInput.handler();
-        if (c == '\r' || c == '\n') break;
-        terminalView.print(std::string(1, c));
-        input += c;
-    }
-    terminalView.println("");
-    return input;
-}
-
-uint8_t HdUartController::readValidatedUint8(const std::string& label, uint8_t def, uint8_t min, uint8_t max) {
-    while (true) {
-        terminalView.print(label + " [" + std::to_string(def) + "]: ");
-        std::string input = getUserInput();
-        if (input.empty()) return def;
-        if (argTransformer.isValidNumber(input)) {
-            uint8_t val = argTransformer.toUint8(input);
-            if (val >= min && val <= max) return val;
-        }
-        terminalView.println("Invalid input. Must be " + std::to_string(min) + "-" + std::to_string(max));
-    }
-}
-
-uint32_t HdUartController::readValidatedUint32(const std::string& label, uint32_t def) {
-    while (true) {
-        terminalView.print(label + " [" + std::to_string(def) + "]: ");
-        std::string input = getUserInput();
-        if (input.empty()) return def;
-        if (argTransformer.isValidNumber(input))
-            return argTransformer.toUint32(input);
-        terminalView.println("Invalid number.");
-    }
-}
-
-char HdUartController::readCharChoice(const std::string& label, char def, const std::vector<char>& allowed) {
-    while (true) {
-        terminalView.print(label + " [" + def + "]: ");
-        std::string input = getUserInput();
-        if (input.empty()) return def;
-        char c = toupper(input[0]);
-        if (std::find(allowed.begin(), allowed.end(), c) != allowed.end()) return c;
-        terminalView.println("Invalid choice.");
-    }
-}
-
-bool HdUartController::readYesNo(const std::string& label, bool def) {
-    while (true) {
-        terminalView.print(label + " [" + (def ? "y" : "n") + "]: ");
-        std::string input = getUserInput();
-        if (input.empty()) return def;
-        char c = tolower(input[0]);
-        if (c == 'y') return true;
-        if (c == 'n') return false;
-        terminalView.println("Please answer y or n.");
-    }
 }
 
 uint32_t HdUartController::buildUartConfig(uint8_t bits, char parity, uint8_t stop) {

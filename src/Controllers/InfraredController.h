@@ -11,12 +11,15 @@
 #include "Services/InfraredService.h"
 #include "Models/TerminalCommand.h"
 #include "Transformers/ArgTransformer.h"
+#include "Managers/UserInputManager.h"
 #include "States/GlobalState.h"
 
 class InfraredController {
 public:
     // Constructor
-    InfraredController(ITerminalView& view, IInput& terminalInput, InfraredService& service, ArgTransformer& ArgTransformer);
+    InfraredController(ITerminalView& view, IInput& terminalInput, 
+                       InfraredService& service, ArgTransformer& ArgTransformer,
+                       UserInputManager& userInputManager);
 
     // Entry point for Infraredcommand dispatch
     void handleCommand(const TerminalCommand& command);
@@ -30,6 +33,7 @@ private:
     InfraredService& infraredService;
     GlobalState& state = GlobalState::getInstance();
     ArgTransformer& argTransformer;
+    UserInputManager& userInputManager;
     bool configured = false;
 
     // Configure IR settings
@@ -49,7 +53,4 @@ private:
 
     // Show help text
     void handleHelp();
-
-    // Read a line of user input
-    std::string getUserInput();
 };

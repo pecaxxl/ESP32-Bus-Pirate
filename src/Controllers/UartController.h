@@ -10,6 +10,7 @@
 #include "Inputs/IInput.h"
 #include "States/GlobalState.h"
 #include "Transformers/ArgTransformer.h"
+#include "Managers/UserInputManager.h"
 
 class UartController {
 public:
@@ -18,7 +19,8 @@ public:
                    IInput& terminalInput,
                    IInput& deviceInput,
                    UartService& uartService, 
-                   ArgTransformer& argTransformer);
+                   ArgTransformer& argTransformer,
+                   UserInputManager& userInputManager);
     
     // Entry pooint for UART command
     void handleCommand(const TerminalCommand& cmd);
@@ -54,32 +56,15 @@ public:
     // Send glitch pattern over uart
     void handleGlitch();
 
-    // Read validated uint8 with default
-    uint8_t readValidatedUint8(const std::string& label, uint8_t defaultVal);
-    
-    // Read validated uint8 within range
-    uint8_t readValidatedUint8(const std::string& label, uint8_t defaultVal, uint8_t min, uint8_t max);
-
-    // Read validated uint32 with default
-    uint32_t readValidatedUint32(const std::string& label, uint32_t defaultVal);
-
-    // Read single char among allowed values
-    char readCharChoice(const std::string& label, char defaultVal, const std::vector<char>& allowed);
-
-    // Read boolean yes/no input
-    bool readYesNo(const std::string& label, bool defaultVal);
-
     // Encode UART config bits
     uint32_t buildUartConfig(uint8_t dataBits, char parity, uint8_t stopBits);
-
-    // Get full user input string
-    std::string getUserInput();
 
     ITerminalView& terminalView;
     IInput& terminalInput;
     IInput& deviceInput;
     UartService& uartService;
     ArgTransformer& argTransformer;
+    UserInputManager& userInputManager;
     GlobalState& state = GlobalState::getInstance();
     bool configured = false;
 

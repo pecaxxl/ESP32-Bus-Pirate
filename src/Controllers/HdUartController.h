@@ -7,12 +7,12 @@
 #include "Services/HdUartService.h"
 #include "Transformers/ArgTransformer.h"
 #include "States/GlobalState.h"
-
+#include "Managers/UserInputManager.h"
 
 class HdUartController {
 public:
     HdUartController(ITerminalView& terminalView, IInput& terminalInput, IInput& deviceInput,
-                     HdUartService& hdUartService, ArgTransformer& argTransformer);
+                     HdUartService& hdUartService, ArgTransformer& argTransformer, UserInputManager& userInputManager);
     
     // Entry point for HDUART command
     void handleCommand(const TerminalCommand& cmd);
@@ -29,6 +29,7 @@ private:
     IInput& deviceInput;
     HdUartService& hdUartService;
     ArgTransformer& argTransformer;
+    UserInputManager& userInputManager;
     GlobalState& state = GlobalState::getInstance();
     
     bool configured = false;
@@ -42,10 +43,6 @@ private:
     // HDURT Available commands
     void handleHelp();
 
-    std::string getUserInput();
-    uint8_t readValidatedUint8(const std::string& label, uint8_t defaultVal, uint8_t min = 0, uint8_t max = 255);
-    uint32_t readValidatedUint32(const std::string& label, uint32_t defaultVal);
-    char readCharChoice(const std::string& label, char defaultVal, const std::vector<char>& allowed);
-    bool readYesNo(const std::string& label, bool defaultVal);
+    // Package configuration
     uint32_t buildUartConfig(uint8_t dataBits, char parity, uint8_t stopBits);
 };

@@ -1,7 +1,9 @@
 #include "I2cController.h"
 
-I2cController::I2cController(ITerminalView& terminalView, IInput& terminalInput, I2cService& i2cService, ArgTransformer& argTransformer)
-    : terminalView(terminalView), terminalInput(terminalInput), i2cService(i2cService), argTransformer(argTransformer) {}
+I2cController::I2cController(ITerminalView& terminalView, IInput& terminalInput, 
+                             I2cService& i2cService, ArgTransformer& argTransformer, 
+                             UserInputManager& userInputManager)
+    : terminalView(terminalView), terminalInput(terminalInput), i2cService(i2cService), argTransformer(argTransformer), userInputManager(userInputManager) {}
 
 /*
 Entry point to handle I2C command
@@ -237,62 +239,20 @@ void I2cController::handleRead(const TerminalCommand& cmd) {
 Config
 */
 void I2cController::handleConfig() {
-    terminalView.println("");
-    terminalView.println("I2C Configuration:");
+    terminalView.println("\nI2C Configuration:");
 
-    GlobalState& state = GlobalState::getInstance();
-
-    // SDA
-    uint8_t sda = state.getI2cSdaPin();
-    while (true) {
-        terminalView.print("SDA pin [" + std::to_string(sda) + "]: ");
-        std::string sdaInput = getUserInput();
-        if (sdaInput.empty()) break;
-
-        if (argTransformer.isValidNumber(sdaInput)) {
-            sda = argTransformer.toUint8(sdaInput);
-            break;
-        } else {
-            terminalView.println("Invalid value. Please enter a valid number.");
-        }
-    }
+    uint8_t sda = userInputManager.readValidatedUint8("SDA pin", state.getI2cSdaPin());
     state.setI2cSdaPin(sda);
 
-    // SCL
-    uint8_t scl = state.getI2cSclPin();
-    while (true) {
-        terminalView.print("SCL pin [" + std::to_string(scl) + "]: ");
-        std::string sclInput = getUserInput();
-        if (sclInput.empty()) break;
-
-        if (argTransformer.isValidNumber(sclInput)) {
-            scl = argTransformer.toUint8(sclInput);
-            break;
-        } else {
-            terminalView.println("Invalid value. Please enter a valid number.");
-        }
-    }
+    uint8_t scl = userInputManager.readValidatedUint8("SCL pin", state.getI2cSclPin());
     state.setI2cSclPin(scl);
 
-    // Frequency
-    uint32_t freq = state.getI2cFrequency();
-    while (true) {
-        terminalView.print("Frequency [" + std::to_string(freq) + "]: ");
-        std::string freqInput = getUserInput();
-        if (freqInput.empty()) break;
-
-        if (argTransformer.isValidNumber(freqInput)) {
-            freq = argTransformer.toUint32(freqInput);
-            break;
-        } else {
-            terminalView.println("Invalid value. Please enter a valid number.");
-        }
-    }
+    uint32_t freq = userInputManager.readValidatedUint32("Frequency", state.getI2cFrequency());
     state.setI2cFrequency(freq);
 
     i2cService.configure(sda, scl, freq);
-    terminalView.println("I2C configured.");
-    terminalView.println("");
+
+    terminalView.println("I2C configured.\n");
 }
 
 /*
@@ -309,18 +269,9 @@ void I2cController::handleHelp() {
     terminalView.println("  raw instructions, e.g: [0x13 0x4B r:8]");
 }
 
-std::string I2cController::getUserInput() {
-    std::string result;
-    while (true) {
-        char c = terminalInput.handler();
-        if (c == '\r' || c == '\n') break;
-        result += c;
-        terminalView.print(std::string(1, c));
-    }
-    terminalView.println("");
-    return result;
-}
-
+/*
+Config
+*/
 void I2cController::ensureConfigured() {
     if (!configured) {
         handleConfig();

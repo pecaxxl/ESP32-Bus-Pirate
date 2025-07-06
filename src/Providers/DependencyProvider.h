@@ -42,6 +42,7 @@ and injecting shared instances of core components
 #include "Transformers/ArgTransformer.h"
 #include "Transformers/WebRequestTransformer.h"
 #include "Managers/CommandHistoryManager.h"
+#include "Managers/UserInputManager.h"
 #include "Config/TerminalTypeConfigurator.h"
 
 
@@ -97,6 +98,7 @@ public:
 
     // Managers
     CommandHistoryManager& getCommandHistoryManager();
+    UserInputManager& getUserInputManager();
 
     // Selectors
     HorizontalSelector& getHorizontalSelector();
@@ -151,6 +153,7 @@ private:
 
     // Managers
     CommandHistoryManager commandHistoryManager;
+    UserInputManager userInputManager;
 
     // Selectors
     HorizontalSelector horizontalSelector;

@@ -1,7 +1,9 @@
 #include "SpiController.h"
 
-SpiController::SpiController(ITerminalView& terminalIiew, IInput& terminalInput, SpiService& service, ArgTransformer& argTransformer)
-    : terminalView(terminalView), terminalInput(terminalInput), spiService(service), argTransformer(argTransformer) {}
+SpiController::SpiController(ITerminalView& terminalIiew, IInput& terminalInput, 
+                             SpiService& service, ArgTransformer& argTransformer,
+                             UserInputManager& userInputManager)
+    : terminalView(terminalView), terminalInput(terminalInput), spiService(service), argTransformer(argTransformer), userInputManager(userInputManager) {}
 
 /*
 Entry point for command
@@ -91,18 +93,6 @@ Config
 */
 void SpiController::handleConfig() {
     terminalView.println("SPI config [NYI]");
-}
-
-std::string SpiController::getUserInput() {
-    std::string result;
-    while (true) {
-        char c = terminalInput.handler();
-        if (c == '\r' || c == '\n') break;
-        result += c;
-        terminalView.print(std::string(1, c));
-    }
-    terminalView.println("");
-    return result;
 }
 
 void SpiController::ensureConfigured() {

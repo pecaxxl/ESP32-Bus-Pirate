@@ -3,8 +3,8 @@
 /*
 Constructor
 */
-UtilityController::UtilityController(ITerminalView& terminalView, IInput& terminalInput, PinService& pinService)
-    : terminalView(terminalView), terminalInput(terminalInput), pinService(pinService) {}
+UtilityController::UtilityController(ITerminalView& terminalView, IInput& terminalInput, PinService& pinService, UserInputManager& userInputManager)
+    : terminalView(terminalView), terminalInput(terminalInput), pinService(pinService), userInputManager(userInputManager) {}
 
 /*
 Entry point for command
@@ -70,7 +70,7 @@ ModeEnum UtilityController::handleModeSelect() {
 
     terminalView.println("");
     terminalView.print("Mode Number > ");
-    auto modeNumber = getModeNumber();
+    auto modeNumber = userInputManager.readModeNumber();
 
     if (modeNumber == -1) {
         terminalView.println("");
@@ -92,45 +92,6 @@ ModeEnum UtilityController::handleModeSelect() {
         terminalView.println("");
         return ModeEnum::None;
     }
-}
-
-/*
-Input Mode Number
-*/
-uint8_t UtilityController::getModeNumber() {
-    std::string inputStr;
-    std::string inputDigit;
-
-    while (true) {
-        char c = terminalInput.handler();
-        if (c == '\r' || c == '\n') {
-            terminalView.println("");
-            break;
-        }
-        
-        if (std::isdigit(c)) {
-            terminalView.print(std::string(1, c));
-            inputDigit += c;
-        }
-
-        inputStr += c;
-    }
-
-    if (inputStr.empty()) {
-        return -1;
-    }
-
-    // try mode name
-    ModeEnum mode = ModeEnumMapper::fromString(inputStr);
-    if (mode != ModeEnum::None) {
-        return static_cast<uint8_t>(mode) + 1;
-    }
-
-    if (inputDigit.empty()) {
-        return -1;
-    }
-
-    return std::stoi(inputDigit);
 }
 
 /*

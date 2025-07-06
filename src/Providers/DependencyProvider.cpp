@@ -23,16 +23,17 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       argTransformer(),
       webRequestTransformer(),
       commandHistoryManager(),
+      userInputManager(terminalView, terminalInput, argTransformer),
       horizontalSelector(deviceView, deviceInput),
       terminalTypeConfigurator(horizontalSelector),
-      uartController(terminalView, terminalInput, deviceInput, uartService, argTransformer),
-      i2cController(terminalView, terminalInput, i2cService, argTransformer),
-      oneWireController(terminalView, terminalInput, oneWireService, argTransformer),
-      infraredController(terminalView, terminalInput, infraredService, argTransformer),
+      uartController(terminalView, terminalInput, deviceInput, uartService, argTransformer, userInputManager),
+      i2cController(terminalView, terminalInput, i2cService, argTransformer, userInputManager),
+      oneWireController(terminalView, terminalInput, oneWireService, argTransformer, userInputManager),
+      infraredController(terminalView, terminalInput, infraredService, argTransformer, userInputManager),
       usbController(terminalView, terminalInput, usbService, argTransformer),
-      utilityController(terminalView, terminalInput, pinService),
-      hdUartController(terminalView, terminalInput, deviceInput, hdUartService, argTransformer),
-      spiController(terminalView, terminalInput, spiService, argTransformer),
+      utilityController(terminalView, terminalInput, pinService, userInputManager),
+      hdUartController(terminalView, terminalInput, deviceInput, hdUartService, argTransformer, userInputManager),
+      spiController(terminalView, terminalInput, spiService, argTransformer, userInputManager),
       jtagController(terminalView, terminalInput),
       twoWireController(terminalView, terminalInput),
       threeWireController(terminalView, terminalInput),
@@ -89,6 +90,7 @@ WebRequestTransformer& DependencyProvider::getWebRequestTransformer() {return we
 
 // Managers
 CommandHistoryManager& DependencyProvider::getCommandHistoryManager() { return commandHistoryManager ;}
+UserInputManager& DependencyProvider::getUserInputManager() { return userInputManager; }
 
 // Selectors
 HorizontalSelector& DependencyProvider::getHorizontalSelector() { return horizontalSelector ;}

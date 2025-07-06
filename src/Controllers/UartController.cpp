@@ -3,8 +3,9 @@
 /*
 Constructor
 */
-UartController::UartController(ITerminalView& terminalView, IInput& terminalInput, IInput& deviceInput, UartService& uartService, ArgTransformer& argTransformer)
-    : terminalView(terminalView), terminalInput(terminalInput), deviceInput(deviceInput), uartService(uartService), argTransformer(argTransformer) {}
+UartController::UartController(ITerminalView& terminalView, IInput& terminalInput, IInput& deviceInput, 
+                               UartService& uartService, ArgTransformer& argTransformer, UserInputManager& userInputManager)
+    : terminalView(terminalView), terminalInput(terminalInput), deviceInput(deviceInput), uartService(uartService), argTransformer(argTransformer), userInputManager(userInputManager) {}
 
 
 /*
@@ -256,26 +257,26 @@ void UartController::handleConfig() {
 
     GlobalState& state = GlobalState::getInstance();
 
-    uint8_t rxPin = readValidatedUint8("RX pin number", state.getUartRxPin());
+    uint8_t rxPin = userInputManager.readValidatedUint8("RX pin number", state.getUartRxPin());
     state.setUartRxPin(rxPin);
 
-    uint8_t txPin = readValidatedUint8("TX pin number", state.getUartTxPin());
+    uint8_t txPin = userInputManager.readValidatedUint8("TX pin number", state.getUartTxPin());
     state.setUartTxPin(txPin);
 
-    uint32_t baud = readValidatedUint32("Baud rate", state.getUartBaudRate());
+    uint32_t baud = userInputManager.readValidatedUint32("Baud rate", state.getUartBaudRate());
     state.setUartBaudRate(baud);
 
-    uint8_t dataBits = readValidatedUint8("Data bits (5-8)", state.getUartDataBits(), 5, 8);
+    uint8_t dataBits = userInputManager.readValidatedUint8("Data bits (5-8)", state.getUartDataBits(), 5, 8);
     state.setUartDataBits(dataBits);
 
     char defaultParity = state.getUartParity().empty() ? 'N' : state.getUartParity()[0];
-    char parityChar = readCharChoice("Parity (N/E/O)", defaultParity, {'N', 'E', 'O'});
+    char parityChar = userInputManager.readCharChoice("Parity (N/E/O)", defaultParity, {'N', 'E', 'O'});
     state.setUartParity(std::string(1, parityChar));
 
-    uint8_t stopBits = readValidatedUint8("Stop bits (1 or 2)", state.getUartStopBits(), 1, 2);
+    uint8_t stopBits = userInputManager.readValidatedUint8("Stop bits (1 or 2)", state.getUartStopBits(), 1, 2);
     state.setUartStopBits(stopBits);
 
-    bool inverted = readYesNo("Inverted?", state.isUartInverted());
+    bool inverted = userInputManager.readYesNo("Inverted?", state.isUartInverted());
     state.setUartInverted(inverted);
 
     uint32_t config = buildUartConfig(dataBits, parityChar, stopBits);
@@ -311,18 +312,10 @@ void UartController::handleGlitch() {
     terminalView.println("Uart Glicher: Not Yet Implemented");
 }
 
-std::string UartController::getUserInput() {
-    std::string result;
-    while (true) {
-        char c = terminalInput.handler();
-        if (c == '\r' || c == '\n') break;
-        result += c;
-        terminalView.print(std::string(1, c));
-    }
-    terminalView.println("");
-    return result;
-}
 
+/*
+Ensure Config
+*/
 void UartController::ensureConfigured() {
     if (!configured) {
         handleConfig();
@@ -333,58 +326,6 @@ void UartController::ensureConfigured() {
 /*
 Utils
 */
-uint8_t UartController::readValidatedUint8(const std::string& label, uint8_t defaultVal, uint8_t min, uint8_t max) {
-    while (true) {
-        terminalView.print(label + " [" + std::to_string(defaultVal) + "]: ");
-        std::string input = getUserInput();
-        if (input.empty()) return defaultVal;
-        if (argTransformer.isValidNumber(input)) {
-            uint8_t value = argTransformer.toUint8(input);
-            if (value >= min && value <= max) return value;
-        }
-        terminalView.println("Invalid value. Must be between " + std::to_string(min) + " and " + std::to_string(max));
-    }
-}
-
-uint8_t UartController::readValidatedUint8(const std::string& label, uint8_t defaultVal) {
-    return readValidatedUint8(label, defaultVal, 0, 255);
-}
-
-uint32_t UartController::readValidatedUint32(const std::string& label, uint32_t defaultVal) {
-    while (true) {
-        terminalView.print(label + " [" + std::to_string(defaultVal) + "]: ");
-        std::string input = getUserInput();
-        if (input.empty()) return defaultVal;
-        if (argTransformer.isValidNumber(input)) {
-            return argTransformer.toUint32(input);
-        }
-        terminalView.println("Invalid number.");
-    }
-}
-
-char UartController::readCharChoice(const std::string& label, char defaultVal, const std::vector<char>& allowed) {
-    while (true) {
-        terminalView.print(label + " [" + std::string(1, defaultVal) + "]: ");
-        std::string input = getUserInput();
-        if (input.empty()) return defaultVal;
-        char c = std::toupper(input[0]);
-        if (std::find(allowed.begin(), allowed.end(), c) != allowed.end()) return c;
-        terminalView.println("Invalid choice.");
-    }
-}
-
-bool UartController::readYesNo(const std::string& label, bool defaultVal) {
-    while (true) {
-        terminalView.print(label + " [" + std::string(defaultVal ? "y" : "n") + "]: ");
-        std::string input = getUserInput();
-        if (input.empty()) return defaultVal;
-        char c = std::tolower(input[0]);
-        if (c == 'y') return true;
-        if (c == 'n') return false;
-        terminalView.println("Please answer y or n.");
-    }
-}
-
 uint32_t UartController::buildUartConfig(uint8_t dataBits, char parity, uint8_t stopBits) {
     uint32_t config = SERIAL_8N1;
     if (dataBits == 5) config = (stopBits == 2) ? SERIAL_5N2 : SERIAL_5N1;

@@ -4,8 +4,10 @@
 /*
 Constructor
 */
-OneWireController::OneWireController(ITerminalView& terminalView, IInput& terminalInput, OneWireService& service, ArgTransformer& argTransformer)
-    : terminalView(terminalView), terminalInput(terminalInput), oneWireService(service), argTransformer(argTransformer) {
+OneWireController::OneWireController(ITerminalView& terminalView, IInput& terminalInput, 
+                                    OneWireService& service, ArgTransformer& argTransformer,
+                                    UserInputManager& userInputManager)
+    : terminalView(terminalView), terminalInput(terminalInput), oneWireService(service), argTransformer(argTransformer), userInputManager(userInputManager) {
 }
 
 /*
@@ -240,7 +242,7 @@ void OneWireController::handleConfig() {
 
     while (true) {
         terminalView.print("Data pin [" + std::to_string(pin) + "]: ");
-        std::string pinInput = getUserInput();
+        std::string pinInput = userInputManager.getLine();
         if (pinInput.empty()) break;
 
         if (argTransformer.isValidNumber(pinInput)) {
@@ -307,19 +309,6 @@ void OneWireController::handleHelp() {
     terminalView.println("  write sp <8 bytes>");
     terminalView.println("  config");
     terminalView.println("  raw instructions, [0X33 r:8] ...");
-}
-
-
-std::string OneWireController::getUserInput() {
-    std::string result;
-    while (true) {
-        char c = terminalInput.handler();
-        if (c == '\r' || c == '\n') break;
-        result += c;
-        terminalView.print(std::string(1, c));
-    }
-    terminalView.println("");
-    return result;
 }
 
 void OneWireController::ensureConfigured() {

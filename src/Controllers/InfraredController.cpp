@@ -1,7 +1,7 @@
 #include "InfraredController.h"
 
-InfraredController::InfraredController(ITerminalView& view, IInput& terminalInput, InfraredService& service, ArgTransformer& argTransformer)
-    : terminalView(view), terminalInput(terminalInput), infraredService(service), argTransformer(argTransformer) {}
+InfraredController::InfraredController(ITerminalView& view, IInput& terminalInput, InfraredService& service, ArgTransformer& argTransformer, UserInputManager& userInputManager)
+    : terminalView(view), terminalInput(terminalInput), infraredService(service), argTransformer(argTransformer), userInputManager(userInputManager) {}
 
 /*
 Entry point to handle Infrared command
@@ -177,47 +177,16 @@ void InfraredController::handleSetProtocol() {
 Config
 */
 void InfraredController::handleConfig() {
-    terminalView.println("");
-    terminalView.println("Infrared Configuration:");
+    terminalView.println("\nInfrared Configuration:");
 
-    GlobalState& state = GlobalState::getInstance();
-    uint8_t txPin = state.getInfraredTxPin();
-    uint8_t rxPin = state.getInfraredRxPin();
-
-    // TX
-    while (true) {
-        terminalView.print("Infrared TX pin [" + std::to_string(txPin) + "]: ");
-        std::string txStr = getUserInput();
-
-        if (txStr.empty()) break;
-        if (argTransformer.isValidNumber(txStr)) {
-            txPin = argTransformer.toUint8(txStr);
-            break;
-        } else {
-            terminalView.println("Invalid pin value. Please enter a valid number.");
-        }
-    }
-
-    // RX
-    while (true) {
-        terminalView.print("Infrared RX pin [" + std::to_string(rxPin) + "]: ");
-        std::string rxStr = getUserInput();
-
-        if (rxStr.empty()) break;
-        if (argTransformer.isValidNumber(rxStr)) {
-            rxPin = argTransformer.toUint8(rxStr);
-            break;
-        } else {
-            terminalView.println("Invalid pin value. Please enter a valid number.");
-        }
-    }
+    uint8_t txPin = userInputManager.readValidatedUint8("Infrared TX pin", state.getInfraredTxPin());
+    uint8_t rxPin = userInputManager.readValidatedUint8("Infrared RX pin", state.getInfraredRxPin());
 
     state.setInfraredTxPin(txPin);
     state.setInfraredRxPin(rxPin);
     infraredService.configure(txPin, rxPin);
 
-    terminalView.println("Infrared configured.");
-    terminalView.println("");
+    terminalView.println("Infrared configured.\n");
 }
 
 /*
@@ -230,18 +199,6 @@ void InfraredController::handleHelp() {
     terminalView.println("  setprotocol");
     terminalView.println("  devicebgone");
     terminalView.println("  config");
-}
-
-std::string InfraredController::getUserInput() {
-    std::string result;
-    while (true) {
-        char c = terminalInput.handler();
-        if (c == '\r' || c == '\n') break;
-        result += c;
-        terminalView.print(std::string(1, c));
-    }
-    terminalView.println("");
-    return result;
 }
 
 void InfraredController::ensureConfigured() {

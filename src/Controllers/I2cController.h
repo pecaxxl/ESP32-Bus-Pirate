@@ -10,11 +10,12 @@
 #include "Models/ByteCode.h"
 #include "States/GlobalState.h"
 #include "Transformers/ArgTransformer.h"
+#include "Managers/UserInputManager.h"
 
 class I2cController {
 public:
     // Constructor
-    I2cController(ITerminalView& terminalView, IInput& terminalInput, I2cService& i2cService, ArgTransformer& argTransformer);
+    I2cController(ITerminalView& terminalView, IInput& terminalInput, I2cService& i2cService, ArgTransformer& argTransformer, UserInputManager& userInputManager);
 
     // Entry point for I2C command
     void handleCommand(const TerminalCommand& cmd);
@@ -30,8 +31,9 @@ private:
     IInput& terminalInput;
     I2cService& i2cService;
     ArgTransformer& argTransformer;
-    bool configured = false;
+    UserInputManager& userInputManager;
     GlobalState& state = GlobalState::getInstance();
+    bool configured = false;
     
     // Ping an I2C address
     void handlePing(const TerminalCommand& cmd);

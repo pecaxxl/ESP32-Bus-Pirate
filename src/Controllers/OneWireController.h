@@ -8,11 +8,14 @@
 #include "Models/TerminalCommand.h"
 #include "States/GlobalState.h"
 #include "Transformers/ArgTransformer.h"
+#include "Managers/UserInputManager.h"
 
 class OneWireController {
 public:
     // Constructor
-    OneWireController(ITerminalView& terminalView, IInput& terminalInput, OneWireService& service, ArgTransformer& argTransformer);
+    OneWireController(ITerminalView& terminalView, IInput& terminalInput, 
+                      OneWireService& service, ArgTransformer& argTransformer,
+                      UserInputManager& userInputManager);
 
     // Entry point for handle command
     void handleCommand(const TerminalCommand& cmd);
@@ -28,8 +31,9 @@ private:
     IInput& terminalInput;
     OneWireService& oneWireService;
     ArgTransformer& argTransformer;
-    bool configured = false;
+    UserInputManager& userInputManager;
     GlobalState& state = GlobalState::getInstance();
+    bool configured = false;
 
   // Configure 1-Wire bus parameters
     void handleConfig();
@@ -63,7 +67,4 @@ private:
 
     // Write to scratchpad memory
     void handleScratchpadWrite(std::vector<uint8_t> scratchpadBytes);
-
-    // Get user input from the terminal
-    std::string getUserInput();
 };
