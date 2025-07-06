@@ -59,7 +59,7 @@ void DioController::handleReadPin(const TerminalCommand& cmd) {
 Set
 */
 void DioController::handleSetPin(const TerminalCommand& cmd) {
-    if (cmd.getSubcommand().empty()) {
+    if (cmd.getSubcommand().empty() || !argTransformer.isValidNumber(cmd.getSubcommand())) {
         terminalView.println("Usage: set <pin> <IN/OUT/HI/LOW>");
         return;
     }
@@ -103,7 +103,7 @@ void DioController::handleSetPin(const TerminalCommand& cmd) {
 Pullup
 */
 void DioController::handlePullup(const TerminalCommand& cmd) {
-    if (cmd.getSubcommand().empty()) {
+    if (cmd.getSubcommand().empty() || !argTransformer.isValidNumber(cmd.getSubcommand())) {
         terminalView.println("Usage: pullup <pin>");
         return;
     }
@@ -118,7 +118,7 @@ void DioController::handlePullup(const TerminalCommand& cmd) {
 Sniff
 */
 void DioController::handleSniff(const TerminalCommand& cmd) {
-    if (cmd.getSubcommand().empty()) {
+    if (cmd.getSubcommand().empty() || !argTransformer.isValidNumber(cmd.getSubcommand())) {
         terminalView.println("Usage: sniff <pin>");
         return;
     }
