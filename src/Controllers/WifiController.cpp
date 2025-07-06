@@ -181,10 +181,15 @@ Web Interface
 */
 void WifiController::handleWebUi(const TerminalCommand&) {
     if (wifiService.isConnected()) {
-        auto ip = wifiService.getCurrentIP();
-        terminalView.println("WiFi: http://" + ip);
+        auto ip = wifiService.getLocalIP();
+        terminalView.println("");
+        terminalView.println("[WARNING] If you're connected via serial,");
+        terminalView.println("          the web UI will not be active.");
+        terminalView.println("          Reset the device and choose WiFi Web.");
+        terminalView.println("");
+        terminalView.println("WiFi Web UI: http://" + ip);
     } else {
-        terminalView.println("WiFi: Not connected. Connect first to see Web UI address.");
+        terminalView.println("WiFi Web UI: Not connected. Connect first to see address.");
     }
 }
 
