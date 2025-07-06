@@ -50,11 +50,17 @@ void I2cController::handleInstruction(const std::vector<ByteCode>& bytecodes) {
 }
 
 void I2cController::handleScan() {
-    terminalView.println("I2C Scan: Scanning I2C bus...");
+    terminalView.println("I2C Scan: Scanning I2C bus... Press ENTER to stop");
     terminalView.println("");
     bool found = false;
 
     for (uint8_t addr = 1; addr < 127; ++addr) {
+        char key = terminalInput.readChar();
+        if (key == '\r' || key == '\n') {
+            terminalView.println("I2C Scan: Cancelled by user.");
+            return;
+        }
+        
         i2cService.beginTransmission(addr);
         if (i2cService.endTransmission() == 0) {
             std::stringstream ss;
