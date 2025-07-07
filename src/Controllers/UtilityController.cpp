@@ -258,7 +258,7 @@ void UtilityController::handleHelp() {
 
     terminalView.println("");
     terminalView.println(" 10. LED:");
-    terminalView.println("  write <i> r <g> b    - Set color of LED i (RGB, 0-255) [NYI]");
+    terminalView.println("  write i <r> <g> <b>  - Set color of LED i (RGB, 0-255) [NYI]");
     terminalView.println("  setprotocol          - Select LED type (WS2801, APA102, SK6812...) [NYI]");
     terminalView.println("  test                 - Animate test sequence on LEDs [NYI]");
     terminalView.println("  config               - Configure LED settings [NYI]");
@@ -285,7 +285,7 @@ void UtilityController::handleHelp() {
     terminalView.println("");
     terminalView.println(" 13. BLUETOOTH:");
     terminalView.println("  scan                 - Scan for nearby devices and explore services");
-    terminalView.println("  pair <addr>           - Pair with a device and explore services");
+    terminalView.println("  pair <addr>          - Pair with a device and explore services");
     terminalView.println("  sniff                - Sniff Bluetooth data on server [NYI]");
     terminalView.println("  spoof <addr>         - Set the Bluetooth mac address (before init)");
     terminalView.println("  status               - Show current Bluetooth status");

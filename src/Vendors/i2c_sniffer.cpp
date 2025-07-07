@@ -36,7 +36,7 @@ static uint8_t sniffer_sda_pin = 2;
 static volatile byte i2cStatus = I2C_IDLE;
 static uint32_t lastStartMillis = 0;
 static volatile byte dataBuffer[9600];
-extern volatile uint16_t bufferPoiW = 0;
+static volatile uint16_t bufferPoiW = 0;
 static uint16_t bufferPoiR = 0;
 static volatile byte bitCount = 0;
 static volatile uint16_t byteCount = 0;
