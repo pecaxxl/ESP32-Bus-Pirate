@@ -54,7 +54,6 @@ main {
   overflow-x: hidden;
   white-space: pre-wrap;
   word-break: break-word;
-  white-space: pre;
   caret-color: transparent;
 }
 
