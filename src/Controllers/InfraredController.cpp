@@ -108,7 +108,7 @@ void InfraredController::handleDeviceBgone() {
 
         char c = terminalInput.readChar();
         if (c == '\r' || c == '\n') {
-            terminalView.println("Infrared Devicebgone: Interrupted by user.");
+            terminalView.println("Infrared Device-B-Gone: Interrupted by user.");
             return;
         }
 

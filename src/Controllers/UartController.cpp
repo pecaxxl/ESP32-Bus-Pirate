@@ -67,7 +67,7 @@ void UartController::handleInstruction(const std::vector<ByteCode>& bytecodes) {
 Bridge
 */
 void UartController::handleBridge() {
-    terminalView.println("Uart Bridge: in progress... Press Cardputer key to stop");
+    terminalView.println("Uart Bridge: in progress... Press Cardputer key to stop\n");
     while (true) {
         // Read from UART and print to terminal
         if (uartService.available()) {
@@ -88,7 +88,7 @@ void UartController::handleBridge() {
         // Read from device input and stop bridge if any
         c = deviceInput.readChar();
         if (c != KEY_NONE) {  
-            terminalView.println("Uart Bridge: Stopped by user.");
+            terminalView.println("\nUart Bridge: Stopped by user.");
             break;
         }
     }
@@ -134,7 +134,7 @@ void UartController::handlePing() {
     unsigned long start = millis();
     size_t probeIndex = 0;
 
-    terminalView.println("UART Ping: probing for 5 seconds...");
+    terminalView.println("UART Ping: Probing for 5 seconds...");
     uartService.clearUartBuffer();
 
     while (millis() - start < 5000) {
