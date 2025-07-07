@@ -258,11 +258,11 @@ void UtilityController::handleHelp() {
 
     terminalView.println("");
     terminalView.println(" 10. LED:");
-    terminalView.println("  write <i> <r> <g> <b>      - Set color of LED i (RGB, 0-255) [NYI]");
-    terminalView.println("  setprotocol                - Select LED type (WS2801, APA102, SK6812...) [NYI]");
-    terminalView.println("  test                       - Animate test sequence on LEDs [NYI]");
-    terminalView.println("  config                     - Configure LED settings [NYI]");
-    terminalView.println("  reset                      - Turn off all LEDs (0,0,0) [NYI]");
+    terminalView.println("  write <i> r <g> b    - Set color of LED i (RGB, 0-255) [NYI]");
+    terminalView.println("  setprotocol          - Select LED type (WS2801, APA102, SK6812...) [NYI]");
+    terminalView.println("  test                 - Animate test sequence on LEDs [NYI]");
+    terminalView.println("  config               - Configure LED settings [NYI]");
+    terminalView.println("  reset                - Turn off all LEDs (0,0,0) [NYI]");
 
     terminalView.println("");
     terminalView.println(" 11. INFRARED:");
