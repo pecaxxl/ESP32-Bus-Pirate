@@ -71,7 +71,7 @@ public:
     // Update rolling buffer
     void updateResponse(std::string& response, size_t& asciiCount, size_t maxSize);
 
-    // Check if data response is a valid UART data
+    // Check if data response is a valid UART
     bool isValidResponse(const std::string& response, size_t asciiCount);
     
     // Check entropy to determine if a response is a valid UART response
@@ -85,6 +85,7 @@ public:
     UserInputManager& userInputManager;
     GlobalState& state = GlobalState::getInstance();
     bool configured = false;
+    bool scanCancelled = false;
 
     // Predefined probe commands for scan()
     std::vector<std::string> probes = {

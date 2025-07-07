@@ -188,8 +188,10 @@ void UartController::handleScan() {
     terminalView.println("");
 
     uartService.clearUartBuffer();
+    scanCancelled = false;
 
     for (int baud : baudrates) {
+        if (scanCancelled) return;
         if (scanAtBaudrate(baud)) {
             state.setUartBaudRate(baud);
             uartService.switchBaudrate(baud);
@@ -240,6 +242,7 @@ bool UartController::checkScanCancelled() {
     char key = terminalInput.readChar();
     if (key == '\r' || key == '\n') {
         terminalView.println("UART Scan: Cancelled by user.");
+        scanCancelled = true;
         return true;
     }
     return false;
