@@ -26,7 +26,6 @@ String inputText(const String& prompt, int x, int y) {
         M5Cardputer.update();
         if (M5Cardputer.Keyboard.isChange()) {
             if (M5Cardputer.Keyboard.isPressed()) {
-                M5Cardputer.Speaker.tone(1437, 20);
                 Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
                 for (auto i : status.word) {
                     data += i;
@@ -87,7 +86,6 @@ String selectWifiNetwork(int numNetworks) {
         M5Cardputer.update();
         if (M5Cardputer.Keyboard.isChange()) {
             if (M5Cardputer.Keyboard.isPressed()) {
-                M5Cardputer.Speaker.tone(1437, 20);
                 M5Cardputer.Display.fillRect(0, 11, 20, 75, BLACK);
                 Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
 

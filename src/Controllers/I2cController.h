@@ -11,6 +11,9 @@
 #include "States/GlobalState.h"
 #include "Transformers/ArgTransformer.h"
 #include "Managers/UserInputManager.h"
+#include "Vendors/i2c_sniffer.h"
+
+struct I2cSniffState;
 
 class I2cController {
 public:
@@ -41,7 +44,7 @@ private:
     // Scan the I2C bus for devices
     void handleScan();
 
-    // Start sniffing I2C traffic
+    // Start sniffing I2C traffic passively
     void handleSniff();
 
     // Read data from an I2C device

@@ -78,55 +78,35 @@ void I2cController::handleScan() {
 
 /*
 Sniff
-*/
+*/    
 void I2cController::handleSniff() {
-    terminalView.println("I2C Sniff Mode: capturing raw bytes.");
-    terminalView.println("Press ENTER to stop.\n");
-    terminalView.println("");
+    terminalView.println("I2C Sniffer: Listening... Press ENTER to stop.\n");
+    i2c_sniffer_begin(state.getI2cSclPin(), state.getI2cSdaPin()); // dont need freq to work
+    i2c_sniffer_setup();
 
-    uint8_t sclPin = state.getI2cSclPin();
-    uint8_t sdaPin = state.getI2cSdaPin();
-    uint32_t freq = state.getI2cFrequency();
-    uint32_t delayUs = 500000 / freq;
-    if (delayUs < 1) delayUs = 1;
-
-    uint8_t bitCount = 0;
-    uint8_t currentByte = 0;
-    int lastSCL = digitalRead(sclPin);
-
-    unsigned long lastCharCheck = millis();
+    std::string line;
 
     while (true) {
+        char key = terminalInput.readChar();
+        if (key == '\r' || key == '\n') break;
 
-        lastCharCheck = millis();
-        char c = terminalInput.readChar();
-        if (c == '\r' || c == '\n') break;
+        while (i2c_sniffer_available()) {
+            char c = i2c_sniffer_read();
 
-        int scl = digitalRead(sclPin);
-        int sda = digitalRead(sdaPin);
-
-        // Detect rising edge on SCL
-        if (lastSCL == LOW && scl == HIGH) {
-            currentByte <<= 1;
-            if (sda) currentByte |= 1;
-            bitCount++;
-
-            if (bitCount == 8) {
-                std::stringstream ss;
-                ss << "0x" << std::hex << std::uppercase << (int)currentByte << " ";
-                terminalView.print(ss.str());
-
-                bitCount = 0;
-                currentByte = 0;
+            if (c == '\n') {
+                line += "  ";
+                terminalView.print(line);
+                line.clear();
+            } else {
+                line += c;
             }
         }
-
-        lastSCL = scl;
-        delayMicroseconds(delayUs);
+        delay(5);
     }
 
-    terminalView.println("");
-    terminalView.println("I2C Sniff: Exited.");
+    i2c_sniffer_reset_buffer();
+    i2c_sniffer_stop();
+    terminalView.println("\n\nI2C Sniffer: Stopped.");
 }
 
 /*
