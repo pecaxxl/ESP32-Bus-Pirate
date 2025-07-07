@@ -4,8 +4,8 @@
 #include <algorithm>
 #include <cctype>
 
-#include <Views/ITerminalView.h>
-#include <Inputs/IInput.h>
+#include <Interfaces/ITerminalView.h>
+#include <Interfaces/IInput.h>
 #include <Transformers/ArgTransformer.h>
 #include <Enums/ModeEnum.h>
 

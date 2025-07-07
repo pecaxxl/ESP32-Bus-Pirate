@@ -1,8 +1,8 @@
 #pragma once
 
 #include <vector>
-#include "Views/ITerminalView.h"
-#include "Inputs/IInput.h"
+#include "Interfaces/ITerminalView.h"
+#include "Interfaces/IInput.h"
 #include "Models/TerminalCommand.h"
 #include "Models/ByteCode.h"
 #include "Services/LedService.h"

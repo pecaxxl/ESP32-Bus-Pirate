@@ -2,8 +2,8 @@
 
 // Placeholder implementation for JTAG controller
 
-#include "Views/ITerminalView.h"
-#include "Inputs/IInput.h"
+#include "Interfaces/ITerminalView.h"
+#include "Interfaces/IInput.h"
 #include "Models/TerminalCommand.h"
 
 class JtagController {

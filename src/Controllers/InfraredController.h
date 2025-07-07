@@ -6,8 +6,8 @@
 #include <algorithm>
 #include <Arduino.h>
 
-#include "Views/ITerminalView.h"
-#include "Inputs/IInput.h"
+#include "Interfaces/ITerminalView.h"
+#include "Interfaces/IInput.h"
 #include "Services/InfraredService.h"
 #include "Models/TerminalCommand.h"
 #include "Transformers/ArgTransformer.h"

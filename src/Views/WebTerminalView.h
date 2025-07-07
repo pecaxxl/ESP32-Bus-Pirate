@@ -1,5 +1,5 @@
 #pragma once
-#include "ITerminalView.h"
+#include "Interfaces/ITerminalView.h"
 #include <string>
 #include "Servers/WebSocketServer.h"
 #include "Enums/TerminalTypeEnum.h"

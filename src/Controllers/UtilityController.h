@@ -6,8 +6,8 @@
 #include <sstream>
 #include <algorithm>
 #include "Models/TerminalCommand.h"
-#include "Views/ITerminalView.h"
-#include "Inputs/IInput.h"
+#include "Interfaces/ITerminalView.h"
+#include "Interfaces/IInput.h"
 #include "States/GlobalState.h"
 #include "Enums/ModeEnum.h"
 #include "Services/PinService.h"

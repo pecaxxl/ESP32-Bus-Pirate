@@ -2,8 +2,8 @@
 
 #include <string>
 #include <vector>
-#include "Views/IDeviceView.h"
-#include "Inputs/IInput.h"
+#include "Interfaces/IDeviceView.h"
+#include "Interfaces/IInput.h"
 #include "Inputs/CardputerInput.h"
 
 class HorizontalSelector {

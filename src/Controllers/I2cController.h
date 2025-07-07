@@ -3,8 +3,8 @@
 #include <sstream> 
 #include <string>
 #include <algorithm>
-#include "Views/ITerminalView.h"
-#include "Inputs/IInput.h"
+#include "Interfaces/ITerminalView.h"
+#include "Interfaces/IInput.h"
 #include "Services/I2cService.h"
 #include "Models/TerminalCommand.h"
 #include "Models/ByteCode.h"

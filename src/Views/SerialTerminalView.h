@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 #include <string>
-#include <Views/ITerminalView.h>
+#include <Interfaces/ITerminalView.h>
 #include <States/GlobalState.h>
 #include <Enums/TerminalTypeEnum.h>
 

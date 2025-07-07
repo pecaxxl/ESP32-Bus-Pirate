@@ -1,5 +1,5 @@
 #pragma once
-#include "IInput.h"
+#include "Interfaces/IInput.h"
 #include "Servers/WebSocketServer.h"
 
 class WebTerminalInput : public IInput {

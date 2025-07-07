@@ -1,7 +1,7 @@
 #pragma once
 
-#include "IDeviceView.h"
 #include <M5Unified.h>
+#include "Interfaces/IDeviceView.h"
 #include "Enums/ModeEnum.h"
 #include "States/GlobalState.h"
 #include "Models/PinoutConfig.h"

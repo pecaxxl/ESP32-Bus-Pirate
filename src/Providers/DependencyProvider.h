@@ -6,9 +6,9 @@ and injecting shared instances of core components
 (such as services, controllers, etc) throughout the application.
 */
 
-#include "Views/ITerminalView.h"
-#include "Views/IDeviceView.h"
-#include "Inputs/IInput.h"
+#include "Interfaces/ITerminalView.h"
+#include "Interfaces/IDeviceView.h"
+#include "Interfaces/IInput.h"
 #include "Services/SdService.h"
 #include "Services/NvsService.h"
 #include "Services/LedService.h"

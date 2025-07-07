@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Views/ITerminalView.h>
-#include <Inputs/IInput.h>
+#include <Interfaces/ITerminalView.h>
+#include <Interfaces/IInput.h>
 #include <Services/WifiService.h>
 #include <Services/NvsService.h>
 #include <Transformers/ArgTransformer.h>

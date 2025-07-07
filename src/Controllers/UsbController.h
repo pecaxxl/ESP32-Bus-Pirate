@@ -1,8 +1,8 @@
 #pragma once
 
 #include <sstream>
-#include "Views/ITerminalView.h"
-#include "Inputs/IInput.h"
+#include "Interfaces/ITerminalView.h"
+#include "Interfaces/IInput.h"
 #include "Services/UsbService.h"
 #include "Models/TerminalCommand.h"
 #include "Models/ByteCode.h"

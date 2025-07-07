@@ -176,7 +176,7 @@ Help
 */
 void UtilityController::handleHelp() {
     terminalView.println("");
-    terminalView.println("   +=== Help: Available Commands ===+");
+    terminalView.println("    +=== Help: Available Commands ===+");
     terminalView.println("");
 
     terminalView.println(" General:");

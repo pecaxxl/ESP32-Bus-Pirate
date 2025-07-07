@@ -3,8 +3,8 @@
 #include <iomanip>
 
 #include "Services/OneWireService.h"
-#include "Inputs/IInput.h"
-#include "Views/ITerminalView.h"
+#include "Interfaces/IInput.h"
+#include "Interfaces/ITerminalView.h"
 #include "Models/TerminalCommand.h"
 #include "States/GlobalState.h"
 #include "Transformers/ArgTransformer.h"

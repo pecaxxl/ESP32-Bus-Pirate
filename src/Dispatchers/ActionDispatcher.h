@@ -9,7 +9,7 @@
 #include "Providers/DependencyProvider.h"
 #include "Enums/ByteCodeEnum.h"
 #include "Enums/TerminalTypeEnum.h"
-#include "Views/ITerminalView.h"
+#include "Interfaces/ITerminalView.h"
 
 class ActionDispatcher {
 public:

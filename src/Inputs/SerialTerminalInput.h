@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Inputs/IInput.h>
+#include <Interfaces/IInput.h>
 #include <Arduino.h>
 #include <vector>
 

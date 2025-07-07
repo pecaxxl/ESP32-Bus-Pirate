@@ -1,8 +1,8 @@
 #pragma once
 
 #include <string>
-#include "Views/ITerminalView.h"
-#include "Inputs/IInput.h"
+#include "Interfaces/ITerminalView.h"
+#include "Interfaces/IInput.h"
 #include "Services/BluetoothService.h"
 #include "Transformers/ArgTransformer.h"
 #include "Models/TerminalCommand.h"

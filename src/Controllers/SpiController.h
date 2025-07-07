@@ -3,9 +3,9 @@
 // Placeholder implementation for SPI controller
 
 #include <vector>
-#include "Views/ITerminalView.h"
+#include "Interfaces/ITerminalView.h"
 #include "Services/SpiService.h" 
-#include "Inputs/IInput.h"
+#include "Interfaces/IInput.h"
 #include "Models/TerminalCommand.h"
 #include "Models/ByteCode.h"
 #include "Transformers/ArgTransformer.h"
