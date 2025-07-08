@@ -9,8 +9,16 @@ ActionDispatcher::ActionDispatcher(DependencyProvider& provider)
 void ActionDispatcher::setup(TerminalTypeEnum terminalType, std::string terminalInfos) {
     provider.getDeviceView().initialize();
     provider.getDeviceView().welcome(terminalType, terminalInfos);
-    provider.getTerminalView().initialize();
-    provider.getTerminalView().welcome(terminalType, terminalInfos);
+
+    if (terminalType == TerminalTypeEnum::Serial) {
+        provider.getTerminalView().initialize();
+        provider.getTerminalView().println("\n\nPress any key to start...");
+        provider.getTerminalInput().waitPress();
+        provider.getTerminalView().welcome(terminalType, terminalInfos);
+    } else {
+        provider.getTerminalView().initialize();
+        provider.getTerminalView().welcome(terminalType, terminalInfos);
+    }
 }
 
 /*
