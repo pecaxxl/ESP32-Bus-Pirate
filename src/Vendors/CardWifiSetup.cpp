@@ -11,6 +11,8 @@
  * WiFi: https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi
  **/
 
+#ifdef DEVICE_CARDPUTER
+
 
 #include "CardWifiSetup.h"
 
@@ -52,6 +54,8 @@ int scanWifiNetworks() {
         M5Cardputer.Display.fillScreen(TFT_BLACK);
         M5Cardputer.Display.setTextColor(0x05A3);
         M5Cardputer.Display.setTextSize(1.5);
+        M5.Lcd.fillRoundRect(20, 20, M5.Lcd.width() - 40, M5.Lcd.height() - 40, 5, 0x0841);
+        M5.Lcd.drawRoundRect(20, 20, M5.Lcd.width() - 40, M5.Lcd.height() - 40, 5, 0x05A3);
         M5Cardputer.Display.drawString("Scanning Networks...", 28, 60);
         networksCount = WiFi.scanNetworks();
 
@@ -106,7 +110,7 @@ String selectWifiNetwork(int numNetworks) {
 
 void setWifiCredentials(String ssid, String password) {
     Preferences& preferences = getPreferences();
-    preferences.begin("wifi_settings", false);
+    preferences.begin(NVS_DOMAIN, false);
     preferences.putString(NVS_SSID_KEY, ssid);
     preferences.putString(NVS_PASS_KEY, password);
     preferences.end();
@@ -163,7 +167,7 @@ String askWifiPassword(String ssid) {
     return inputText("> ", 4, M5Cardputer.Display.height() - 24);
 }
 
-void setupWifi() {
+void setupCardputerWifi() {
     bool connected = false;
     int numNetworks = 0;
     String savedSSID;
@@ -197,3 +201,5 @@ void setupWifi() {
         }
     }
 }
+
+#endif

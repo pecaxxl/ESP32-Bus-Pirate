@@ -13,12 +13,15 @@
 
 #pragma once
 
+#ifdef DEVICE_CARDPUTER
+
 #include <WiFi.h>
 #include <M5Cardputer.h>
 #include <Preferences.h>
 
-#define NVS_SSID_KEY "wifi_ssid"
-#define NVS_PASS_KEY "wifi_pass"
+#define NVS_SSID_KEY "ssid"
+#define NVS_PASS_KEY "pass"
+#define NVS_DOMAIN "wifi_settings"
 
 inline Preferences& getPreferences() {
     static Preferences preferences;
@@ -32,4 +35,6 @@ void setWifiCredentials(String ssid, String password);
 void getWifiCredentials(String& ssid, String& password);
 bool connectToWifi(String wifiSSID, String wifiPassword);
 String askWifiPassword(String ssid);
-void setupWifi();
+void setupCardputerWifi();
+
+#endif
