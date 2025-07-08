@@ -92,17 +92,30 @@ bool UserInputManager::readYesNo(const std::string& label, bool def) {
 
 uint8_t UserInputManager::readModeNumber() {
     std::string inputDigit;
+    size_t cursorIndex = 0;
 
     while (true) {
         char c = terminalInput.handler();
+
+        // Enter
         if (c == '\r' || c == '\n') {
             terminalView.println("");
             break;
         }
 
+        // Backspace
+        if ((c == '\b' || c == 127) && cursorIndex > 0) {
+            cursorIndex--;
+            inputDigit.erase(cursorIndex, 1);
+            terminalView.print("\b \b");
+            continue;
+        }
+
+        // Only number
         if (std::isdigit(c)) {
+            inputDigit.insert(cursorIndex, 1, c);
+            cursorIndex++;
             terminalView.print(std::string(1, c));
-            inputDigit += c;
         }
     }
 

@@ -35,8 +35,8 @@ void setup() {
         // Setup the Cardputer
         auto cfg = M5.config();
         M5Cardputer.begin(cfg, true);
-        CardputerInput deviceInput;
         deviceView.setRotation(1);
+        CardputerInput deviceInput;
     #endif
 
     deviceView.logo();
