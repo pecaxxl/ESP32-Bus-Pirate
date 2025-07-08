@@ -136,6 +136,7 @@ Scan
 */
 void WifiController::handleScan(const TerminalCommand&) {
     terminalView.println("WiFi: Scanning for networks...");
+    delay(100);
 
     auto results = wifiService.scanNetworks();
     for (const auto& network : results) {
