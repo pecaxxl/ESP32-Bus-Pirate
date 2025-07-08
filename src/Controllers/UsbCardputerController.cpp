@@ -116,8 +116,8 @@ Stick
 */
 void UsbCardputerController::handleUsbStick() {
     terminalView.println("USB Stick: Starting... USB Drive can take 30sec to appear");
-    usbService.storageBegin(state.getSdCardCSPin(), state.getSdCardCLKPin(), 
-                            state.getSdCardMISOPin(), state.getSdCardMOSIPin());
+    usbService.storageBegin(state.getSpiCSPin(), state.getSpiCLKPin(), 
+                            state.getSpiMISOPin(), state.getSpiMOSIPin());
 }
 
 /*
@@ -129,17 +129,17 @@ void UsbCardputerController::handleConfig() {
 
     GlobalState& state = GlobalState::getInstance();
 
-    uint8_t cs = userInputManager.readValidatedUint8("SD Card CS pin", state.getSdCardCSPin());
-    state.setSdCardCSPin(cs);
+    uint8_t cs = userInputManager.readValidatedUint8("SD Card CS pin", state.getSpiCSPin());
+    state.setSpiCSPin(cs);
 
-    uint8_t clk = userInputManager.readValidatedUint8("SD Card CLK pin", state.getSdCardCLKPin());
-    state.setSdCardCLKPin(clk);
+    uint8_t clk = userInputManager.readValidatedUint8("SD Card CLK pin", state.getSpiCLKPin());
+    state.setSpiCLKPin(clk);
 
-    uint8_t miso = userInputManager.readValidatedUint8("SD Card MISO pin", state.getSdCardMISOPin());
-    state.setSdCardMISOPin(miso);
+    uint8_t miso = userInputManager.readValidatedUint8("SD Card MISO pin", state.getSpiMISOPin());
+    state.setSpiMISOPin(miso);
 
-    uint8_t mosi = userInputManager.readValidatedUint8("SD Card MOSI pin", state.getSdCardMOSIPin());
-    state.setSdCardMOSIPin(mosi);
+    uint8_t mosi = userInputManager.readValidatedUint8("SD Card MOSI pin", state.getSpiMOSIPin());
+    state.setSpiMOSIPin(mosi);
 
     terminalView.println("USB Configured.");
     terminalView.println("\n[WARNING] If you're using USB Serial terminal mode,");

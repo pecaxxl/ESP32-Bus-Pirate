@@ -328,10 +328,10 @@ void ActionDispatcher::setCurrentMode(ModeEnum newMode) {
             break;
         case ModeEnum::SPI:
             config.setMappings({
-                "MOSI GPIO " + std::to_string(state.getSdCardMOSIPin()),
-                "MISO GPIO " + std::to_string(state.getSdCardMISOPin()),
-                "SCLK GPIO " + std::to_string(state.getSdCardCLKPin()),
-                "CS GPIO " + std::to_string(state.getSdCardCSPin())
+                "MOSI GPIO " + std::to_string(state.getSpiMOSIPin()),
+                "MISO GPIO " + std::to_string(state.getSpiMISOPin()),
+                "SCLK GPIO " + std::to_string(state.getSpiCLKPin()),
+                "CS GPIO " + std::to_string(state.getSpiCSPin())
             });
             provider.getSpiController().ensureConfigured();
             break;

@@ -101,7 +101,7 @@ void UtilityController::handleDisablePullups() {
     auto mode = state.getCurrentMode();
     switch (mode) {
         case ModeEnum::SPI:
-            pinService.setInput(state.getSdCardMISOPin());
+            pinService.setInput(state.getSpiMISOPin());
             terminalView.println("SPI: Pull-ups disabled on MISO");
             break;
 
@@ -139,8 +139,8 @@ void UtilityController::handleEnablePullups() {
     auto mode = state.getCurrentMode();
     switch (mode) {
         case ModeEnum::SPI:
-            pinService.setInput(state.getSdCardMISOPin());
-            pinService.setInputPullup(state.getSdCardMISOPin());
+            pinService.setInput(state.getSpiMISOPin());
+            pinService.setInputPullup(state.getSpiMISOPin());
             terminalView.println("SPI: Pull-up enabled on MISO.");
             break;
 

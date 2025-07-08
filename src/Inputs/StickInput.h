@@ -18,7 +18,7 @@ public:
     void waitPress() override;   // Attend une pression
 
 private:
-    char mapButton();            // Associe un bouton à une touche logique
+    char mapButton();
 };
 
 #endif

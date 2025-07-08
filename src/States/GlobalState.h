@@ -8,8 +8,10 @@
 
 class GlobalState {
 private:
-    // Device Pinout
+    // Builtin
     uint8_t ledPin = 21;
+
+    // SPI
     uint8_t sdCardCSPin = 12;
     uint8_t sdCardCLKPin = 40;
     uint8_t sdCardMISOPin = 39;
@@ -74,9 +76,6 @@ private:
     size_t fileCountLimit = 512;
     size_t fileCacheLimit = 64;
 
-    // Private constructor
-    GlobalState() = default;
-
 public:
     GlobalState(const GlobalState&) = delete;
     GlobalState& operator=(const GlobalState&) = delete;
@@ -86,17 +85,19 @@ public:
         return instance;
     }
 
-    // Accessors for Device Pinout
+    // Builtin
     uint8_t getLedPin() const { return ledPin; }
-    uint8_t getSdCardCSPin() const { return sdCardCSPin; }
-    uint8_t getSdCardCLKPin() const { return sdCardCLKPin; }
-    uint8_t getSdCardMISOPin() const { return sdCardMISOPin; }
-    uint8_t getSdCardMOSIPin() const { return sdCardMOSIPin; }
 
-    void setSdCardCSPin(uint8_t pin) { sdCardCSPin = pin; }
-    void setSdCardCLKPin(uint8_t pin) { sdCardCLKPin = pin; }
-    void setSdCardMISOPin(uint8_t pin) { sdCardMISOPin = pin; }
-    void setSdCardMOSIPin(uint8_t pin) { sdCardMOSIPin = pin; }
+    // SPI
+    uint8_t getSpiCSPin() const { return sdCardCSPin; }
+    uint8_t getSpiCLKPin() const { return sdCardCLKPin; }
+    uint8_t getSpiMISOPin() const { return sdCardMISOPin; }
+    uint8_t getSpiMOSIPin() const { return sdCardMOSIPin; }
+
+    void setSpiCSPin(uint8_t pin) { sdCardCSPin = pin; }
+    void setSpiCLKPin(uint8_t pin) { sdCardCLKPin = pin; }
+    void setSpiMISOPin(uint8_t pin) { sdCardMISOPin = pin; }
+    void setSpiMOSIPin(uint8_t pin) { sdCardMOSIPin = pin; }
 
     // AP WiFi
     const std::string& getApName() const { return apName; }
@@ -198,4 +199,50 @@ public:
 
     const std::string& getNvsSsidField() const { return nvsSsidField; }
     void setNvsSsidField(const std::string& f) { nvsSsidField = f; }
+
+    GlobalState() {
+        #ifdef LED_PIN
+            ledPin = LED_PIN;
+        #endif
+        #ifdef SPI_CS_PIN
+            sdCardCSPin = SPI_CS_PIN;
+        #endif
+        #ifdef SPI_CLK_PIN
+            sdCardCLKPin = SPI_CLK_PIN;
+        #endif
+        #ifdef SPI_MISO_PIN
+            sdCardMISOPin = SPI_MISO_PIN;
+        #endif
+        #ifdef SPI_MOSI_PIN
+            sdCardMOSIPin = SPI_MOSI_PIN;
+        #endif
+        #ifdef ONEWIRE_PIN
+            oneWirePin = ONEWIRE_PIN;
+        #endif
+        #ifdef UART_BAUD
+            uartBaudRate = UART_BAUD;
+        #endif
+        #ifdef UART_RX_PIN
+            uartRxPin = UART_RX_PIN;
+        #endif
+        #ifdef UART_TX_PIN
+            uartTxPin = UART_TX_PIN;
+        #endif
+        #ifdef HDUART_BAUD
+            hdUartBaudRate = HDUART_BAUD;
+        #endif
+        #ifdef HDUART_PIN
+            hdUartPin = HDUART_PIN;
+        #endif
+        #ifdef I2C_SCL_PIN
+            i2cSclPin = I2C_SCL_PIN;
+        #endif
+        #ifdef I2C_SDA_PIN
+            i2cSdaPin = I2C_SDA_PIN;
+        #endif
+        #ifdef I2C_FREQ
+            i2cFrequency = I2C_FREQ;
+        #endif
+    }
+
 };
