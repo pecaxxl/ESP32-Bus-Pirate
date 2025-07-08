@@ -9,8 +9,10 @@ inline const std::vector<InfraredCommand> deviceBgoneCommands = {
     {NECX2, 7, -1, 2},
     {SAMSUNG32, 7, 7, 2},
     {SAMSUNG20, 7, -1, 2},
+    {SAMSUNG20, 7, 7, 2},
     {SAMSUNG36, 7, 7, 2},
     {NECX2, 4, -1, 8},
+    {_NEC,  4, -1, 8},
     {_RC5, 0, 0, 12},
     {SONY20, 1, 0, 21},
     {SONY20, 2, 0, 21},
@@ -99,7 +101,14 @@ inline const std::vector<InfraredCommand> deviceBgoneCommands = {
     { _NEC, 0, -1, 57 },
     { _NEC, 0, -1, 135 }, 
     { F12, 0, -1, 128 },
-
+    { LEGO, 0, -1, 0 },   // LEGO channel 0 OFF
+    { LEGO, 0, -1, 1 },   // LEGO channel 0 ON
+    { LEGO, 1, -1, 0 },   // LEGO channel 1 OFF
+    { LEGO, 1, -1, 1 },   // LEGO channel 1 ON
+    { LEGO, 2, -1, 0 },   // LEGO channel 2 OFF
+    { LEGO, 2, -1, 1 },   // LEGO channel 2 ON
+    { LEGO, 3, -1, 0 },   // LEGO channel 3 OFF
+    { LEGO, 3, -1, 1 },   // LEGO channel 3 ON
 
     // NEC‑based universal power codes
     { _NEC2,        0,  -1, 16 },   // NEC generic power
@@ -111,6 +120,14 @@ inline const std::vector<InfraredCommand> deviceBgoneCommands = {
     // Samsung power
     { SAMSUNG32,   0,  -1, 44 },   // Samsung 32bit power
     { SAMSUNG36,   0,  -1, 44 },   // Samsung 36bit variant
+
+    // Repeat this one in case start was missed
+    {NECX2, 7, 7, 2},
+    {NECX2, 7, -1, 2},
+    {SAMSUNG32, 7, 7, 2},
+    {SAMSUNG20, 7, -1, 2},
+    {SAMSUNG36, 7, 7, 2},
+    {NECX2, 4, -1, 8},
 
     // Sony
     { SONY20,      1,   0, 21 },   // Sony20 standard power

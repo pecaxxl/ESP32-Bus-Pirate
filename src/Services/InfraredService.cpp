@@ -19,32 +19,40 @@ void InfraredService::sendInfraredCommand(InfraredCommand command) {
     uint16_t address;
     uint16_t vendorCode;
     std::string protocolString = InfraredProtocolMapper::toString(command.getProtocol());
+    uint8_t subdevice = command.getSubdevice() == -1 ? 0 : command.getSubdevice();
+    uint8_t device = command.getDevice();
+
+    // Combine device and subdevice into a 16-bit integer
+    uint16_t address = (static_cast<uint16_t>(subdevice) << 8) | device;
 
     switch (command.getProtocol()) {
-        // Makehex seems to not handle Panasonic correctly, we use IRemote instead
+        case InfraredProtocolEnum::_SAMSUNG:
+        case InfraredProtocolEnum::SAMSUNG20: {
+            IrSender.sendSamsung(address, command.getFunction(), 0);
+            break;
+        }
+
         case InfraredProtocolEnum::_PANASONIC:
         case InfraredProtocolEnum::PANASONIC2: {
-            subdevice = command.getSubdevice() == -1 ? 0 : command.getSubdevice(); // -1 to 0 if needed
-
-            // Combine device and subdevice into a 16-bit integer
-            uint16_t address = (static_cast<uint16_t>(command.getSubdevice()) << 8) | command.getDevice();
-
             // Panasonic can be used by many manufacturers in the IRDB format, we check for vendor name
             vendorCode = getKaseikyoVendorIdCode(protocolString);
             
             IrSender.sendKaseikyo(address, command.getFunction(), 0, vendorCode);
             break;
         }
+
         // Same for Sony20
         case InfraredProtocolEnum::SONY20: {
-            subdevice = command.getSubdevice() == -1 ? 0 : command.getSubdevice();
-
-            // Combine device and subdevice into a 16-bit integer
-            uint16_t address = (static_cast<uint16_t>(command.getSubdevice()) << 8) | command.getDevice();
-
             IrSender.sendSony(address, command.getFunction(), 0, SIRCS_20_PROTOCOL);  
             break;
         }
+
+        // LEGO
+        case InfraredProtocolEnum::LEGO: {
+            IrSender.sendLegoPowerFunctions(address, command.getFunction(), 0);  
+            break;
+        }
+        
         // Handle by MakeHex
         default: {
             int frequency = 38; // Default frequency, passed by reference to encodeRemoteCommand
@@ -80,9 +88,11 @@ InfraredCommand InfraredService::receiveInfraredCommand() {
     // Mapping protocols
     switch (data.protocol) {
         case NEC:
+            command.setProtocol(_NEC);
+            break;
         case NEC2:
         case ONKYO:
-            command.setProtocol(_NEC);
+            command.setProtocol(_NEC2);
             break;
 
         case DENON:
@@ -105,26 +115,41 @@ InfraredCommand InfraredService::receiveInfraredCommand() {
             command.setProtocol(_RC5);
             break;
 
+        case BOSEWAVE:
+        case BANG_OLUFSEN:
+            command.setProtocol(BOSE);
+
         case RC6:
-        case RC6_6_20:
             command.setProtocol(_RC6);
             break;
-
         case LG:
         case LG2:
         case SAMSUNG:
+            command.setProtocol(SAMSUNG20);
+            break;
+
         case SAMSUNGLG:
         case SAMSUNG48:
             command.setProtocol(_SAMSUNG);
             break;
 
         case PANASONIC:
-        case KASEIKYO:
+            command.setProtocol(_PANASONIC);
+            break;
+
         case KASEIKYO_DENON:
+            command.setProtocol(DENON_K);
+            break;
+
+        case KASEIKYO:
         case KASEIKYO_SHARP:
         case KASEIKYO_JVC:
         case KASEIKYO_MITSUBISHI:
-            command.setProtocol(_PANASONIC);
+            command.setProtocol(_KASEIKYO);
+            break;
+
+        case LEGO_PF:
+            command.setProtocol(LEGO);
             break;
 
         default:

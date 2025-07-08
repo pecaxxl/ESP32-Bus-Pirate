@@ -116,7 +116,8 @@ typedef enum InfraredProtocolEnum {
     NEC42ext = 110,
     RC5X = 111,
     SAMSUNG32 = 112,
-    RAW = 113,
+    LEGO = 113,
+    RAW = 114,
 } InfraredProtocolEnum;
 
 class InfraredProtocolMapper {
