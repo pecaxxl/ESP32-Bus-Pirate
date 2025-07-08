@@ -67,7 +67,7 @@ void UartController::handleInstruction(const std::vector<ByteCode>& bytecodes) {
 Bridge
 */
 void UartController::handleBridge() {
-    terminalView.println("Uart Bridge: in progress... Press Cardputer key to stop\n");
+    terminalView.println("Uart Bridge: In progress... Press any ESP32 button to stop.\n");
     while (true) {
         // Read from UART and print to terminal
         if (uartService.available()) {

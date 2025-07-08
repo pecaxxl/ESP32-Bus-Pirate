@@ -32,7 +32,7 @@ void HdUartController::handleInstruction(const std::vector<ByteCode>& bytecodes)
 Bridge mode read/write
 */
 void HdUartController::handleBridge() {
-    terminalView.println("HDUART Bridge: in progress... Press Cardputer key to stop");
+    terminalView.println("HDUART Bridge: In progress... Press any ESP32 button to stop.");
     while (true) {
         if (hdUartService.available()) {
             terminalView.print(std::string(1, hdUartService.read()));
