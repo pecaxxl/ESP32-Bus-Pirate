@@ -7,6 +7,7 @@
 #include <Transformers/ArgTransformer.h>
 #include <Models/TerminalCommand.h>
 #include <States/GlobalState.h>
+#include <Preferences.h>
 
 class WifiController {
 public:
@@ -27,6 +28,7 @@ private:
     ArgTransformer& argTransformer;
     GlobalState& state = GlobalState::getInstance();
     bool configured = false;
+    Preferences preferences;
 
     // Handle connection to a Wi-Fi network
     void handleConnect(const TerminalCommand& cmd);

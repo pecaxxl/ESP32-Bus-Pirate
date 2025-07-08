@@ -54,7 +54,18 @@ void WifiController::handleConnect(const TerminalCommand& cmd) {
     wifiService.setModeApSta();
     wifiService.connect(ssid, password);
     if (wifiService.isConnected()) {
-        terminalView.println("WiFi: Connected! IP " + wifiService.getLocalIP());
+        terminalView.println("");
+        terminalView.println("WiFi: Connected! WebUI IP " + wifiService.getLocalIP());
+        terminalView.println("      Reset the device and choose WiFi Web,");
+        terminalView.println("      if you want to use the web based CLI");
+        terminalView.println("");
+
+        // Save creds
+        nvsService.open();
+        nvsService.saveString(state.getNvsSsidField(), ssid);
+        nvsService.saveString(state.getNvsPasswordField(), password);
+        nvsService.close();
+
     } else {
         terminalView.println("WiFi: Connection failed.");
     }
