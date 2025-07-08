@@ -6,6 +6,10 @@ Constructor
 ActionDispatcher::ActionDispatcher(DependencyProvider& provider)
     : provider(provider) {}
 
+
+/*
+Setup
+*/
 void ActionDispatcher::setup(TerminalTypeEnum terminalType, std::string terminalInfos) {
     provider.getDeviceView().initialize();
     provider.getDeviceView().welcome(terminalType, terminalInfos);
