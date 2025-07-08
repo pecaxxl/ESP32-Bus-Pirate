@@ -26,3 +26,7 @@ void WebTerminalView::printPrompt(const std::string& mode) {
 void WebTerminalView::clear() {
     server.sendText("[Screen cleared]\n"); // ph
 }
+
+void WebTerminalView::waitPress() {
+    server.sendText("\n\nPress any key to start...");
+}

@@ -15,6 +15,7 @@ public:
     void println(const std::string& text) override;
     void printPrompt(const std::string& mode = "HIZ") override;
     void clear() override;
+    void waitPress() override;
     void setBaudrate(unsigned long baudrate);
     
 private:

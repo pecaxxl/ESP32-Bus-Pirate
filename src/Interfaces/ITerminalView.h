@@ -17,6 +17,9 @@ public:
     virtual void println(const std::string& text) = 0;
     virtual void printPrompt(const std::string& mode = "HIZ") = 0;
 
+    // Wait press
+    virtual void waitPress() = 0;
+
     // Clear the terminal
     virtual void clear() = 0;
 };

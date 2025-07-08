@@ -12,7 +12,7 @@ void ActionDispatcher::setup(TerminalTypeEnum terminalType, std::string terminal
 
     if (terminalType == TerminalTypeEnum::Serial) {
         provider.getTerminalView().initialize();
-        provider.getTerminalView().println("\n\nPress any key to start...");
+        provider.getTerminalView().waitPress();
         provider.getTerminalInput().waitPress();
         provider.getTerminalView().welcome(terminalType, terminalInfos);
     } else {

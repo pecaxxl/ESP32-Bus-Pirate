@@ -14,6 +14,8 @@ public:
     void println(const std::string& text) override;
     void printPrompt(const std::string& mode) override;
     void clear() override;
+    void waitPress() override;
+    
 private:
     WebSocketServer server;
 };

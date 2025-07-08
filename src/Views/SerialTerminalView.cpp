@@ -47,6 +47,10 @@ void SerialTerminalView::clear() {
     Serial.print("[H");  // default cursor pos
 }
 
+void SerialTerminalView::waitPress() {
+    Serial.println("\n\nPress any key to start...");
+}
+
 void SerialTerminalView::setBaudrate(unsigned long baud) {
     baudrate = baud;
 }

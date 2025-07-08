@@ -126,20 +126,26 @@ void M5DeviceView::horizontalSelection(
 void M5DeviceView::welcomeSerial(const std::string& baudStr) {
     M5.Lcd.fillScreen(BACKGROUND_COLOR);
 
-    M5.Lcd.setCursor(14, 32);
+    // Top
+    M5.Lcd.setCursor(14, 28);
     M5.Lcd.setTextSize(1.8);
     M5.Lcd.setTextColor(TEXT_COLOR);
     M5.Lcd.println("Open Serial (USB COM)");
 
+    // Baud
     M5.Lcd.setTextSize(2);
-    M5.Lcd.fillRoundRect(8, 60, 220, 40, DEFAULT_ROUND_RECT, RECT_COLOR_DARK);
-    M5.Lcd.drawRoundRect(8, 60, 220, 40, DEFAULT_ROUND_RECT, PRIMARY_COLOR);
-
+    M5.Lcd.fillRoundRect(8, 50, 220, 40, DEFAULT_ROUND_RECT, RECT_COLOR_DARK);
+    M5.Lcd.drawRoundRect(8, 50, 220, 40, DEFAULT_ROUND_RECT, PRIMARY_COLOR);
     M5.Lcd.setTextColor(TEXT_COLOR);
     auto baud = "Baudrate: " + baudStr;
     int16_t x = (M5.Lcd.width() - M5.Lcd.textWidth(baud.c_str())) / 2;
-    M5.Lcd.setCursor(x, 73);
+    M5.Lcd.setCursor(x, 63);
     M5.Lcd.printf(baud.c_str());
+    
+    // Sub
+    M5.Lcd.setTextSize(1.5);
+    M5.Lcd.setCursor(8, 100);
+    M5.Lcd.println("Then press a key to start");
 }
 
 void M5DeviceView::welcomeWeb(const std::string& ipStr) {
