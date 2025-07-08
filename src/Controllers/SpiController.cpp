@@ -1,6 +1,6 @@
 #include "SpiController.h"
 
-SpiController::SpiController(ITerminalView& terminalIiew, IInput& terminalInput, 
+SpiController::SpiController(ITerminalView& terminalView, IInput& terminalInput, 
                              SpiService& service, ArgTransformer& argTransformer,
                              UserInputManager& userInputManager)
     : terminalView(terminalView), terminalInput(terminalInput), spiService(service), argTransformer(argTransformer), userInputManager(userInputManager) {}
@@ -92,7 +92,7 @@ void SpiController::handleFlashErase() {
 Config
 */
 void SpiController::handleConfig() {
-    terminalView.println("SPI config [NYI]");
+    terminalView.println("SPI: Not yet implemented");
 }
 
 void SpiController::ensureConfigured() {
