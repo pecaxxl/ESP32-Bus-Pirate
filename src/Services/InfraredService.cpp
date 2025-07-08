@@ -6,6 +6,14 @@ void InfraredService::configure(uint8_t tx, uint8_t rx) {
     IrReceiver.begin(rx, ENABLE_LED_FEEDBACK);
 }
 
+void InfraredService::startReceiver() {
+    IrReceiver.start();
+}
+
+void InfraredService::stopReceiver() {
+    IrReceiver.stop();
+}
+
 void InfraredService::sendInfraredCommand(InfraredCommand command) {
     uint8_t subdevice;
     uint16_t address;
@@ -55,7 +63,6 @@ void InfraredService::sendInfraredCommand(InfraredCommand command) {
 }
 
 InfraredCommand InfraredService::receiveInfraredCommand() {
-    IrReceiver.start();
     InfraredCommand command;
 
     if (!IrReceiver.decode()) {
@@ -149,7 +156,6 @@ InfraredCommand InfraredService::receiveInfraredCommand() {
     // Commande principale
     command.setFunction(data.command);
 
-    IrReceiver.stop();
     return command;
 }
 

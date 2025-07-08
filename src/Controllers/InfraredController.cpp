@@ -74,7 +74,8 @@ Receive
 void InfraredController::handleReceive() {
     terminalView.println("Receiving infrared signal...");
     terminalView.println("Press ENTER to cancel.\n");
-
+    
+    infraredService.startReceiver();
     while (true) {
         // Check Enter press
         char c = terminalInput.readChar();
@@ -96,6 +97,7 @@ void InfraredController::handleReceive() {
             terminalView.println("INFRARED Receive: Waiting for next signal or press ENTER to exit.");
         }
     }
+    infraredService.stopReceiver();
 }
 
 /* 

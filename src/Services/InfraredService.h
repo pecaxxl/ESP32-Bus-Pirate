@@ -9,6 +9,8 @@
 class InfraredService {
 public:
     void configure(uint8_t tx, uint8_t rx);
+    void startReceiver();
+    void stopReceiver();
     void sendInfraredCommand(InfraredCommand command);
     InfraredCommand receiveInfraredCommand();
 private:
