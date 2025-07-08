@@ -164,10 +164,12 @@ void I2cController::handleWrite(const TerminalCommand& cmd) {
         return;
     }
 
+    // Args
     const std::string& addrStr = cmd.getSubcommand();
     const std::string& regStr = args[0];
     const std::string& valStr = args[1];
 
+    // Verify inputs
     if (!argTransformer.isValidNumber(addrStr) ||
         !argTransformer.isValidNumber(regStr) ||
         !argTransformer.isValidNumber(valStr)) {
@@ -175,10 +177,25 @@ void I2cController::handleWrite(const TerminalCommand& cmd) {
         return;
     }
 
+    // Parse input
     uint8_t addr = argTransformer.parseHexOrDec(addrStr);
     uint8_t reg  = argTransformer.parseHexOrDec(regStr);
     uint8_t val  = argTransformer.parseHexOrDec(valStr);
 
+    // Ping addr
+    i2cService.beginTransmission(addr);
+    uint8_t pingResult = i2cService.endTransmission();
+    
+    // Check ping
+    if (pingResult != 0) {
+        std::stringstream error;
+        error << "I2C Ping: 0x" << std::hex << std::uppercase << (int)addr
+              << " No response. Aborting write.";
+        terminalView.println(error.str());
+        return;
+    }
+
+    // Write
     i2cService.beginTransmission(addr);
     i2cService.write(reg);
     i2cService.write(val);
