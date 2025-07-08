@@ -134,21 +134,9 @@ button:hover {
   min-width: 0;
   -webkit-overflow-scrolling: touch;
 }
-
 .history-area::-webkit-scrollbar {
   width: 0;
   height: 0;
-}
-
-.history-area button {
-  flex: 0 0 auto;
-  background: #1a1a1a;
-  color: #00ff00;
-  border: 1px solid #333;
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 0.85em;
-  transition: background 0.2s ease;
 }
 .history-area button:hover {
   background: #2a2a2a;
@@ -163,6 +151,41 @@ button:hover {
 .history-area::-webkit-scrollbar-track {
   background-color: #222;
 }
+
+.history-area button {
+  flex: 0 0 auto;
+  background: #1a1a1a;
+  color: #00ff00;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.85em;
+  transition: background 0.2s ease;
+}
+
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #222;
+  color: #ff5555;
+  padding: 12px 18px;
+  border: 1px solid #444;
+  border-radius: 8px;
+  box-shadow: 0 0 8px #000;
+  z-index: 9999;
+  font-size: 0.95rem;
+}
+.popup a {
+  color: #00ffcc;;
+  text-decoration: underline;
+  margin-left: 10px;
+}
+.popup a:hover {
+  color: #00ffff;
+}
+
 
 /* Responsive */
 @media (max-width: 600px), (max-height: 600px) {

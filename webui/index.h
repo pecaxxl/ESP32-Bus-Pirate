@@ -19,6 +19,9 @@ inline const char* index_html = R"rawliteral(
     <h3 id="history-title" style="display: none;">Command History</h3>
     <div id="history" class="history-area"></div>
   </main>
+  <div id="ws-lost-popup" class="popup" style="display: none;">
+    Connection lost. <a href="#" onclick="location.reload()">Refresh</a>
+  </div>
   <script src="/scripts.js"></script>
 </body>
 </html>

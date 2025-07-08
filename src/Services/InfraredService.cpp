@@ -15,12 +15,10 @@ void InfraredService::stopReceiver() {
 }
 
 void InfraredService::sendInfraredCommand(InfraredCommand command) {
-    uint8_t subdevice;
-    uint16_t address;
     uint16_t vendorCode;
     std::string protocolString = InfraredProtocolMapper::toString(command.getProtocol());
-    uint8_t subdevice = command.getSubdevice() == -1 ? 0 : command.getSubdevice();
     uint8_t device = command.getDevice();
+    uint8_t subdevice = command.getSubdevice() == -1 ? 0 : command.getSubdevice();
 
     // Combine device and subdevice into a 16-bit integer
     uint16_t address = (static_cast<uint16_t>(subdevice) << 8) | device;

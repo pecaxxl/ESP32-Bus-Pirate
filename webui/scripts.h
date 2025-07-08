@@ -5,17 +5,25 @@ inline const char* scripts_js = R"rawliteral(
 let socket = null;
 let pendingEchoLines = 0;
 let reconnectInterval = 1000; // ms
+let responseTimeout = null;
+let responseTimeoutDelay = 6000; // ms
 
 function connectSocket() {
   socket = new WebSocket("ws://" + window.location.host + "/ws");
 
   socket.onopen = function () {
+    hideWsLostPopup(); // Supprime le popup 
     console.log("[WebSocket] Connected");
   };
 
   socket.onmessage = function (event) {
+
     const output = document.getElementById("output");
     const lines = event.data.split("\n");
+
+    // Clear response timeout
+    clearTimeout(responseTimeout);
+    hideWsLostPopup(); 
 
     if (pendingEchoLines > 0) {
       pendingEchoLines -= 1;
@@ -33,14 +41,36 @@ function connectSocket() {
 
   socket.onclose = function () {
     console.warn("[WebSocket] Disconnected. Retrying in 1s...");
+    showWsLostPopup(); // Affiche le popup
     setTimeout(connectSocket, reconnectInterval);
   };
+}
+
+function showWsLostPopup() {
+  const popup = document.getElementById("ws-lost-popup");
+  if (popup) {
+    popup.style.display = "block";
+  }
+}
+
+function hideWsLostPopup() {
+  const popup = document.getElementById("ws-lost-popup");
+  if (popup) {
+    popup.style.display = "none";
+  }
 }
 
 function sendCommand() {
   const input = document.getElementById("command");
   const output = document.getElementById("output");
   const cmd = input.value.trim();
+
+  // Timeout for response
+  clearTimeout(responseTimeout);
+  responseTimeout = setTimeout(() => {
+    console.warn("[WebSocket] No response after command.");
+    showWsLostPopup();
+  }, responseTimeoutDelay);
 
   if (socket.readyState !== WebSocket.OPEN) return;
 
@@ -92,7 +122,13 @@ function addToHistory(cmd) {
   if (last && last.textContent === cmd) return;
 
   const btn = document.createElement("button");
-  btn.textContent = cmd;
+  
+  // Limiter l'affichage du texte à 15 caractères
+  const maxLength = 15;
+  const displayText = cmd.length > maxLength ? cmd.slice(0, maxLength - 3) + "..." : cmd;
+
+  btn.textContent = displayText;
+  btn.title = cmd; // Tooltip complet au survol
   btn.onclick = () => {
     document.getElementById("command").value = cmd;
     document.getElementById("command").focus();
