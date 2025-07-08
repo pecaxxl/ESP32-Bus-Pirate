@@ -250,6 +250,6 @@ void M5DeviceView::loading() {
     M5.Lcd.setTextSize(1.5);
     M5.Lcd.fillRoundRect(20, 20, M5.Lcd.width() - 40, M5.Lcd.height() - 40, 5, RECT_COLOR_DARK);
     M5.Lcd.drawRoundRect(20, 20, M5.Lcd.width() - 40, M5.Lcd.height() - 40, 5, PRIMARY_COLOR);
-    M5.Lcd.setTextColor(PRIMARY_COLOR);
+    M5.Lcd.setTextColor(TEXT_COLOR);
     M5.Lcd.drawString("Loading...", 75, 60);
 }
