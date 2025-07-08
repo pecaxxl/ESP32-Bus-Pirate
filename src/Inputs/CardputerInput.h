@@ -1,7 +1,8 @@
 #pragma once
 
+#ifdef DEVICE_CARDPUTER
+
 #include <map>
-#include <M5Unified.h>
 #include <M5Cardputer.h>
 #include "Interfaces/IInput.h"
 #include "InputKeys.h"
@@ -12,3 +13,6 @@ public:
     void waitPress() override;
     char readChar() override;
 };
+
+
+#endif

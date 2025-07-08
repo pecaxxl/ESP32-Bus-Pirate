@@ -2,6 +2,7 @@
 
 #include <Enums/TerminalTypeEnum.h>
 #include <Vendors/CardWifiSetup.h>
+#include <Vendors/StickWifiSetup.h>
 #include <string>
 #include <WiFi.h>
 

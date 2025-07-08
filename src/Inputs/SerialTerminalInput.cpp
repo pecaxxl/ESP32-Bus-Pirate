@@ -1,4 +1,5 @@
 #include "SerialTerminalInput.h"
+#include <Arduino.h>
 
 char SerialTerminalInput::handler() {
     while (!Serial.available()) {}

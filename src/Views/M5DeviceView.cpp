@@ -165,6 +165,10 @@ void M5DeviceView::clear() {
     M5.Lcd.fillScreen(BACKGROUND_COLOR);
 }
 
+void M5DeviceView::setRotation(uint8_t rotation) {
+    M5.Lcd.setRotation(rotation);
+}
+
 void M5DeviceView::showModeName(std::string& mode, int y) {
     auto modeName = "Mode: " + mode;
     int16_t titleX = (M5.Lcd.width() - M5.Lcd.textWidth(modeName.c_str())) / 2;
@@ -238,6 +242,8 @@ void M5DeviceView::drawRect(bool selected, uint8_t margin, uint16_t startY, uint
 void M5DeviceView::loading() {
     clear();
     M5.Lcd.setTextSize(1.5);
+    M5.Lcd.fillRoundRect(20, 20, M5.Lcd.width() - 40, M5.Lcd.height() - 40, 5, RECT_COLOR_DARK);
+    M5.Lcd.drawRoundRect(20, 20, M5.Lcd.width() - 40, M5.Lcd.height() - 40, 5, PRIMARY_COLOR);
     M5.Lcd.setTextColor(PRIMARY_COLOR);
     M5.Lcd.drawString("Loading...", 75, 60);
 }

@@ -21,8 +21,8 @@ private:
 
     // NVS
     std::string nvsNamespace = "wifi_settings";
-    std::string nvsSsidField = "wifi_ssid";
-    std::string nvsPasswordField = "wifi_password";
+    std::string nvsSsidField = "ssid";
+    std::string nvsPasswordField = "pass";
 
     // Terminal Web UI
     std::string terminalIp = "0.0.0.0";

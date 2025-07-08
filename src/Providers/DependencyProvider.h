@@ -9,6 +9,8 @@ and injecting shared instances of core components
 #include "Interfaces/ITerminalView.h"
 #include "Interfaces/IDeviceView.h"
 #include "Interfaces/IInput.h"
+#include "Interfaces/IUsbController.h"
+#include "Interfaces/IUsbService.h"
 #include "Services/SdService.h"
 #include "Services/NvsService.h"
 #include "Services/LedService.h"
@@ -16,7 +18,7 @@ and injecting shared instances of core components
 #include "Services/I2cService.h"
 #include "Services/OneWireService.h"
 #include "Services/InfraredService.h"
-#include "Services/UsbService.h"
+#include "Services/UsbCardputerService.h"
 #include "Services/HdUartService.h"
 #include "Services/SpiService.h"
 #include "Services/PinService.h"
@@ -26,7 +28,7 @@ and injecting shared instances of core components
 #include "Controllers/I2cController.h"
 #include "Controllers/OneWireController.h"
 #include "Controllers/UtilityController.h"
-#include "Controllers/UsbController.h"
+#include "Controllers/UsbCardputerController.h"
 #include "Controllers/HdUartController.h"
 #include "Controllers/JtagController.h"
 #include "Controllers/SpiController.h"
@@ -48,8 +50,11 @@ and injecting shared instances of core components
 
 class DependencyProvider {
 public:
-    DependencyProvider(ITerminalView& terminalView, IDeviceView& deviceView, 
-                       IInput& terminalInput, IInput& deviceInput);
+    DependencyProvider(ITerminalView& terminalView, IDeviceView& deviceView,
+                       IInput& terminalInput, IInput& deviceInput,
+                       IUsbService& usbService,
+                       IUsbController& usbController);
+
 
     // Core Components
     ITerminalView& getTerminalView();
@@ -66,7 +71,7 @@ public:
     I2cService& getI2cService();
     OneWireService& getOneWireService();
     InfraredService& getInfraredService();
-    UsbService& getUsbService();
+    IUsbService& getUsbService();
     SpiService& getSpiService();
     HdUartService& getHdUartService();
     PinService& getPinService();
@@ -79,7 +84,7 @@ public:
     UtilityController& getUtilityController();
     OneWireController& getOneWireController();
     InfraredController& getInfraredController();
-    UsbController& getUsbController();
+    IUsbController& getUsbController();
     HdUartController& getHdUartController();
     SpiController& getSpiController();
     JtagController& getJtagController();
@@ -112,6 +117,8 @@ private:
     IDeviceView& deviceView;
     IInput& terminalInput;
     IInput& deviceInput;
+    IUsbService& usbService;
+    IUsbController& usbController;
     
     // Services
     SdService sdService;
@@ -121,7 +128,6 @@ private:
     I2cService i2cService;
     OneWireService oneWireService;
     InfraredService infraredService;
-    UsbService usbService;
     HdUartService hdUartService;
     SpiService spiService;
     PinService pinService;
@@ -134,7 +140,6 @@ private:
     OneWireController oneWireController;
     UtilityController utilityController;
     InfraredController infraredController;
-    UsbController usbController;
     HdUartController hdUartController;
     SpiController spiController;
     JtagController jtagController;

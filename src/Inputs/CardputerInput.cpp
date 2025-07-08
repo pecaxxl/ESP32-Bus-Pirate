@@ -1,3 +1,6 @@
+#ifdef DEVICE_CARDPUTER
+
+
 #include "CardputerInput.h"
 
 char CardputerInput::handler() {
@@ -92,3 +95,5 @@ char CardputerInput::readChar() {
         return c; // retourner le premier char saisi
     }
 }
+
+#endif

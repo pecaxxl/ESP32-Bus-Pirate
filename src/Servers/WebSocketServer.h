@@ -5,7 +5,8 @@
 #include <string>
 #include <Inputs/InputKeys.h>
 #include <Arduino.h>
-#include <M5Cardputer.h>
+#include <esp_log.h>
+#include <cstring>
 
 class WebSocketServer {
 public:

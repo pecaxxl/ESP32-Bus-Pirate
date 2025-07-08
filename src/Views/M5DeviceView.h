@@ -28,6 +28,7 @@ public:
     void show(PinoutConfig& config) override;
     void loading() override;
     void clear() override;
+    void setRotation(uint8_t rotation);
     void topBar(const std::string& title, bool submenu, bool searchBar) override;
     void horizontalSelection(
         const std::vector<std::string>& options,

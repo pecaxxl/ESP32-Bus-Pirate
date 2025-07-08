@@ -1,7 +1,5 @@
 #include "WebSocketServer.h"
-#include <esp_log.h>
-#include <esp_http_server.h>
-#include <cstring>
+
 
 static const char* TAG = "WebSocketServer";
 

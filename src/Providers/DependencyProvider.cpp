@@ -1,11 +1,14 @@
 #include "DependencyProvider.h"
 
 DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView& deviceView,
-                                       IInput& terminalInput, IInput& deviceInput)
+                                       IInput& terminalInput, IInput& deviceInput,
+                                       IUsbService& usbService, IUsbController& usbController)
     : terminalView(terminalView),
       deviceView(deviceView),
       terminalInput(terminalInput),
       deviceInput(deviceInput),
+      usbService(usbService),
+      usbController(usbController),
       sdService(),
       nvsService(),
       ledService(),
@@ -13,7 +16,6 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       i2cService(),
       oneWireService(),
       infraredService(),
-      usbService(),
       spiService(),
       pinService(),
       bluetoothService(),
@@ -30,7 +32,6 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       i2cController(terminalView, terminalInput, i2cService, argTransformer, userInputManager),
       oneWireController(terminalView, terminalInput, oneWireService, argTransformer, userInputManager),
       infraredController(terminalView, terminalInput, infraredService, argTransformer, userInputManager),
-      usbController(terminalView, terminalInput, usbService, argTransformer, userInputManager),
       utilityController(terminalView, terminalInput, pinService, userInputManager),
       hdUartController(terminalView, terminalInput, deviceInput, hdUartService, argTransformer, userInputManager),
       spiController(terminalView, terminalInput, spiService, argTransformer, userInputManager),
@@ -58,7 +59,7 @@ I2cService& DependencyProvider::getI2cService() { return i2cService; }
 UartService& DependencyProvider::getUartService() { return uartService; }
 OneWireService& DependencyProvider::getOneWireService() { return oneWireService; }
 InfraredService& DependencyProvider::getInfraredService() { return infraredService; }
-UsbService& DependencyProvider::getUsbService() { return usbService; }
+IUsbService& DependencyProvider::getUsbService() { return usbService; }
 SpiService& DependencyProvider::getSpiService() { return spiService; }
 HdUartService& DependencyProvider::getHdUartService() { return hdUartService; }
 PinService& DependencyProvider::getPinService() { return pinService; }
@@ -71,7 +72,7 @@ I2cController& DependencyProvider::getI2cController() { return i2cController; }
 OneWireController& DependencyProvider::getOneWireController() { return oneWireController; }
 UtilityController& DependencyProvider::getUtilityController() { return utilityController; }
 InfraredController& DependencyProvider::getInfraredController() { return infraredController; }
-UsbController& DependencyProvider::getUsbController() { return usbController; }
+IUsbController& DependencyProvider::getUsbController() { return usbController; }
 HdUartController& DependencyProvider::getHdUartController() { return hdUartController; }
 SpiController& DependencyProvider::getSpiController() { return spiController; }
 JtagController& DependencyProvider::getJtagController() { return jtagController; }
