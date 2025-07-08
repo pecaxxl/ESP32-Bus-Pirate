@@ -243,6 +243,12 @@ public:
         #ifdef I2C_FREQ
             i2cFrequency = I2C_FREQ;
         #endif
+        #ifdef IR_TX_PIN
+            infraredPin = IR_TX_PIN;
+        #endif
+        #ifdef IR_RX_PIN
+            infraredRxPin = IR_RX_PIN;
+        #endif
     }
 
 };

@@ -35,7 +35,7 @@
 
 #include "TinyIR.h"
 
-#if defined(DEBUG)
+#if defined(DEBUG) && !defined(LOCAL_DEBUG)
 #define LOCAL_DEBUG
 #else
 //#define LOCAL_DEBUG // This enables debug output only for this file
@@ -54,19 +54,18 @@
 //==============================================================================
 #include "TinyIR.h"
 /*
- Protocol=FAST Address=0x0 Command=0x76 Raw-Data=0x8976 16 bits LSB first
+Protocol=FAST Address=0x0 Command=0x76 Raw-Data=0x8976 16 bits LSB first
  +2100,-1050
  + 550,- 500 + 550,-1550 + 550,-1550 + 550,- 500
  + 550,-1550 + 550,-1550 + 550,-1550 + 550,- 500
  + 550,-1550 + 550,- 500 + 550,- 500 + 550,-1550
  + 550,- 500 + 550,- 500 + 550,- 500 + 550,-1550
  + 550
- Sum: 28900
- */
-struct PulseDistanceWidthProtocolConstants const FASTProtocolConstants PROGMEM = { FAST, FAST_KHZ, FAST_HEADER_MARK,
-        FAST_HEADER_SPACE,
-        FAST_BIT_MARK, FAST_ONE_SPACE, FAST_BIT_MARK, FAST_ZERO_SPACE, PROTOCOL_IS_LSB_FIRST, (FAST_REPEAT_PERIOD
-                / MICROS_IN_ONE_MILLI), nullptr };
+Sum: 28900
+*/
+struct PulseDistanceWidthProtocolConstants FASTProtocolConstants = { FAST, FAST_KHZ, FAST_HEADER_MARK, FAST_HEADER_SPACE,
+FAST_BIT_MARK, FAST_ONE_SPACE, FAST_BIT_MARK, FAST_ZERO_SPACE, PROTOCOL_IS_LSB_FIRST, (FAST_REPEAT_PERIOD / MICROS_IN_ONE_MILLI),
+NULL };
 
 /************************************
  * Start of send and decode functions
@@ -85,7 +84,7 @@ void IRsend::sendFAST(uint8_t aCommand, int_fast8_t aNumberOfRepeats) {
         mark(FAST_HEADER_MARK);
         space(FAST_HEADER_SPACE);
 
-        sendPulseDistanceWidthData_P(&FASTProtocolConstants, aCommand | (((uint8_t)(~aCommand)) << 8), FAST_BITS);
+        sendPulseDistanceWidthData(&FASTProtocolConstants, aCommand | (((uint8_t)(~aCommand)) << 8), FAST_BITS);
 
         tNumberOfCommands--;
         // skip last delay!
@@ -109,11 +108,11 @@ bool IRrecv::decodeFAST() {
         return false;
     }
 
-    if (!checkHeader_P(&FASTProtocolConstants)) {
+    if (!checkHeader(&FASTProtocolConstants)) {
         return false;
     }
 
-    if (!decodePulseDistanceWidthData_P(&FASTProtocolConstants, FAST_BITS)) {
+    if (!decodePulseDistanceWidthData(&FASTProtocolConstants, FAST_BITS)) {
 #if defined(LOCAL_DEBUG)
         Serial.print(F("FAST: "));
         Serial.println(F("Decode failed"));
@@ -124,7 +123,7 @@ bool IRrecv::decodeFAST() {
     WordUnion tValue;
     tValue.UWord = decodedIRData.decodedRawData;
 
-    if (tValue.UByte.LowByte != (uint8_t) ~(tValue.UByte.HighByte)) {
+    if (tValue.UByte.LowByte != (uint8_t)~(tValue.UByte.HighByte)) {
 #if defined(LOCAL_DEBUG)
         Serial.print(F("FAST: "));
         Serial.print(F("8 bit parity is not correct. Expected=0x"));

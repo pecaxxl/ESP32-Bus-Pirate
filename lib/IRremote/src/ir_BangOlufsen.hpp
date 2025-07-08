@@ -96,11 +96,11 @@
 //#define SUPPORT_BEO_DATALINK_TIMING_FOR_DECODE // This also supports headers up to 32 bit. Requires additional 150 bytes program memory.
 #if defined(DECODE_BEO)
 #  if defined(ENABLE_BEO_WITHOUT_FRAME_GAP)
-#    if RECORD_GAP_MICROS > 15000 && !defined(SUPPRESS_BEO_RECORD_GAP_MICROS_WARNING)
+#    if RECORD_GAP_MICROS > 15000
 #warning If defined ENABLE_BEO_WITHOUT_FRAME_GAP, RECORD_GAP_MICROS must be set to <= 15000 by "#define RECORD_GAP_MICROS 12750"
 #    endif
 #  else
-#    if RECORD_GAP_MICROS < 16000 && !defined(SUPPRESS_BEO_RECORD_GAP_MICROS_WARNING)
+#    if RECORD_GAP_MICROS < 16000
 #error If not defined ENABLE_BEO_WITHOUT_FRAME_GAP, RECORD_GAP_MICROS must be set to a value >= 16000 by "#define RECORD_GAP_MICROS 16000"
 #    endif
 #  endif
