@@ -176,7 +176,7 @@ Help
 */
 void UtilityController::handleHelp() {
     terminalView.println("");
-    terminalView.println("    +=== Help: Available Commands ===+");
+    terminalView.println("   +=== Help: Available Commands ===+");
     terminalView.println("");
 
     terminalView.println(" General:");
@@ -222,8 +222,8 @@ void UtilityController::handleHelp() {
     terminalView.println("  scan                 - Find devices");
     terminalView.println("  ping <addr>          - Check ACK");
     terminalView.println("  sniff                - View traffic");
-    terminalView.println("  read <a r>           - Read register");
-    terminalView.println("  write <a r v>        - Write register");
+    terminalView.println("  read <addr> <reg>    - Read register");
+    terminalView.println("  write <a> <r> <val>  - Write register");
     terminalView.println("  config               - Configure settings");
     terminalView.println("  [0x13 0x4B 0x1]      - Instruction syntax");
 
