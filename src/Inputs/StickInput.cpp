@@ -1,3 +1,5 @@
+#ifdef DEVICE_M5STICK
+
 #include "StickInput.h"
 
 StickInput::StickInput() {
@@ -8,7 +10,8 @@ char StickInput::mapButton() {
     M5.update();
 
     if (M5.BtnA.wasPressed()) return KEY_OK;
-    if (M5.BtnB.wasPressed()) return KEY_RETURN_CUSTOM;
+    if (M5.BtnB.wasPressed()) return KEY_ARROW_LEFT;
+    if (M5.BtnPWR.wasPressed()) return KEY_ARROW_RIGHT;
 
     return KEY_NONE;
 }
@@ -30,3 +33,5 @@ void StickInput::waitPress() {
         delay(10);
     }
 }
+
+#endif

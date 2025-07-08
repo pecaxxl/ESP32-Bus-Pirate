@@ -1,11 +1,14 @@
 #pragma once
 
+#ifdef DEVICE_M5STICK
+
+
 #include <M5Unified.h>
 #include <Arduino.h>
 #include "Interfaces/IInput.h"
 #include "InputKeys.h"
 
-// Classe pour gérer les entrées sur M5Stick (BtnA / BtnB)
+// M5Stick C PLUS 2 inputs
 class StickInput : public IInput {
 public:
     StickInput();
@@ -17,3 +20,5 @@ public:
 private:
     char mapButton();            // Associe un bouton à une touche logique
 };
+
+#endif
