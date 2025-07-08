@@ -28,6 +28,9 @@ public:
     // Clear the view
     virtual void clear() = 0;
 
+    // Set screen rotation
+    virtual void setRotation(uint8_t rotation) = 0;
+
     // Display a main title
     virtual void topBar(const std::string& title, bool submenu, bool searchBar) = 0;
 
