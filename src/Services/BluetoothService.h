@@ -20,6 +20,8 @@ struct ScannedDevice {
     std::string name;
     std::string address;
     int rssi;
+    std::string type;
+    std::string adSummary;
 };
 
 class BluetoothService {
@@ -30,7 +32,15 @@ private:
     bool connected = false;
     static const uint8_t HID_REPORT_MAP[];
     BluetoothMode mode = BluetoothMode::NONE;
+    static BLEScan* bleScan;
+    static std::string lastAdParsed;
+
 public:
+    class PassiveAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
+    public:
+        void onResult(BLEAdvertisedDevice advertisedDevice) override;
+    };
+
     // begin / end server BT
     void begin(const std::string& deviceName = "Bus-Pirate-Blueooth");
     void end();
@@ -61,8 +71,20 @@ public:
     std::string getMacAddress();
     BluetoothMode getMode();
     void clearBondedDevices();
-
-    std::vector<ScannedDevice> scanDevices(int seconds = 10);
+    void switchToMode(BluetoothMode newMode);
+    
+    // Scan
+    std::vector<std::string> scanDevices(int seconds = 10);
     std::vector<std::string> connectTo(const std::string& addr);
+    
+    // Bluetooth sniffing
+    class PassiveBLEAdvertisedDeviceCallbacks;
+    static void startPassiveBluetoothSniffing();
+    static void stopPassiveBluetoothSniffing();
+    static std::vector<std::string> getBluetoothSniffLog();
+    static bool isLikelyConnectable(BLEAdvertisedDevice& device);
+    static std::string parseAdTypes(const uint8_t* payload, size_t len);
+    static std::vector<std::string> bluetoothSniffLog;
+    static portMUX_TYPE bluetoothSniffMux;
 };
 

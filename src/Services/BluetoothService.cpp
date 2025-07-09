@@ -1,5 +1,12 @@
 #include "BluetoothService.h"
 
+// Static var for the sniffer
+std::vector<std::string> BluetoothService::bluetoothSniffLog;
+portMUX_TYPE BluetoothService::bluetoothSniffMux = portMUX_INITIALIZER_UNLOCKED;
+BLEScan* BluetoothService::bleScan = nullptr;
+std::string BluetoothService::lastAdParsed = "";
+
+// Callback connect/disconnect
 class BluetoothServerCallbacks : public BLEServerCallbacks {
 private:
     BluetoothService& service;
@@ -161,24 +168,45 @@ void BluetoothService::clickMouse() {
     sendMouseReport(0, 0, 0x00);  // Release
 }
 
-std::vector<ScannedDevice> BluetoothService::scanDevices(int seconds) {
+void BluetoothService::switchToMode(BluetoothMode newMode) {
+    if (mode == newMode) return;
+
+    if (mode == BluetoothMode::SERVER || mode == BluetoothMode::CLIENT) {
+        BLEDevice::deinit(true);
+    }
+
+    // Init pour le nouveau mode
+    if (newMode == BluetoothMode::CLIENT || newMode == BluetoothMode::SERVER) {
+        BLEDevice::init("");  // Peut être changé si tu veux des logs personnalisés
+    }
+
+    mode = newMode;
+}
+
+std::vector<std::string> BluetoothService::scanDevices(int seconds) {
+    switchToMode(BluetoothMode::CLIENT);
+    stopPassiveBluetoothSniffing();
+
     auto scan = BLEDevice::getScan();
     scan->setActiveScan(true);
-
     auto results = scan->start(seconds);
-    std::vector<ScannedDevice> devices;
+
+    std::vector<std::string> formattedDevices;
 
     for (int i = 0; i < results.getCount(); ++i) {
         BLEAdvertisedDevice device = results.getDevice(i);
-        devices.push_back({
-            device.getName().empty() ? "(unknown)" : device.getName(),
-            device.getAddress().toString(),
-            device.getRSSI()
-        });
+
+        std::string name = device.getName().empty() ? "(unknown)" : device.getName();
+        std::string addr = device.getAddress().toString();
+        int rssi = device.getRSSI();
+        std::string type = isLikelyConnectable(device) ? "Connectable" : "Non-Connectable";
+        std::string entry = addr + " | " + name + " | RSSI: " + std::to_string(rssi) + " | Type: " + type;
+
+        formattedDevices.push_back(entry);
     }
 
     scan->clearResults();
-    return devices;
+    return formattedDevices;
 }
 
 std::vector<std::string> BluetoothService::connectTo(const std::string& addr) {
@@ -265,6 +293,213 @@ void BluetoothService::clearBondedDevices() {
     }
 
     free(bonded);
+}
+
+void BluetoothService::PassiveAdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertisedDevice) {
+    // Basic infos
+    std::string name = advertisedDevice.getName().empty() ? "(unknown)" : advertisedDevice.getName();
+    std::string addr = advertisedDevice.getAddress().toString();
+    int rssi = advertisedDevice.getRSSI();
+
+    // Check type
+    std::string type;
+    if (isLikelyConnectable(advertisedDevice)) {
+        type = "Connectable    ";
+    } else {
+        type = "Non-Connectable";
+    }
+
+    // Build the log entry
+    std::string logEntry = "[BLE] " + addr + " | " + name + " | RSSI: " + std::to_string(rssi) + " | Type: " + type;
+
+    // Parse AD infos
+    std::string adParsed = parseAdTypes(advertisedDevice.getPayload(), advertisedDevice.getPayloadLength());
+
+    // No AD duplicate
+    if (adParsed == lastAdParsed) return;
+    lastAdParsed = adParsed;
+
+    // Ad AD infos to log
+    if (!adParsed.empty()) {
+        logEntry += " | " + adParsed;
+    }
+
+    // Add log to shared vector, erase the first element if max size is reach
+    portENTER_CRITICAL(&BluetoothService::bluetoothSniffMux);
+    if (bluetoothSniffLog.size() > 200) bluetoothSniffLog.erase(bluetoothSniffLog.begin());
+    BluetoothService::bluetoothSniffLog.push_back(logEntry);
+    portEXIT_CRITICAL(&BluetoothService::bluetoothSniffMux);
+}
+
+void BluetoothService::startPassiveBluetoothSniffing() {
+    if (!BLEDevice::getInitialized()) {
+        BLEDevice::init("Sniffer");
+    }
+
+    bleScan = BLEDevice::getScan();
+    bleScan->setAdvertisedDeviceCallbacks(new PassiveAdvertisedDeviceCallbacks(), true);
+    bleScan->setActiveScan(false);
+    bleScan->start(0, nullptr);
+}
+
+void BluetoothService::stopPassiveBluetoothSniffing() {
+    if (bleScan) {
+        bleScan->stop();
+        bleScan->setAdvertisedDeviceCallbacks(nullptr);
+        bleScan->clearResults();
+        bleScan = nullptr;
+    }
+    bluetoothSniffLog.clear();
+}
+
+std::vector<std::string> BluetoothService::getBluetoothSniffLog() {
+    std::vector<std::string> copy;
+    portENTER_CRITICAL(&bluetoothSniffMux);
+    copy.swap(bluetoothSniffLog);
+    portEXIT_CRITICAL(&bluetoothSniffMux);
+    return copy;
+}
+
+bool BluetoothService::isLikelyConnectable(BLEAdvertisedDevice& device) {
+    uint8_t* payload = device.getPayload();
+    size_t len = device.getPayloadLength();
+
+    for (size_t i = 0; i + 1 < len;) {
+        uint8_t field_len = payload[i];
+        if (field_len == 0 || i + field_len + 1 > len) break;
+
+        uint8_t ad_type = payload[i + 1];
+
+        if (ad_type == 0x01 && field_len >= 2) { // Flags
+            uint8_t flags = payload[i + 2];
+            // Bit 0x02 General Discoverable Mode
+            // Bit 0x04 BR/EDR Not Supported (Only BLE)
+            return (flags & 0x02) != 0;
+        }
+
+        i += field_len + 1;
+    }
+
+    return false;
+}
+
+std::string BluetoothService::parseAdTypes(const uint8_t* payload, size_t len) {
+    std::string result;
+    size_t i = 0;
+
+    while (i + 1 < len) {
+        uint8_t field_len = payload[i];
+        if (field_len == 0 || i + field_len + 1 > len) break;
+
+        uint8_t ad_type = payload[i + 1];
+        const uint8_t* data = payload + i + 2;
+
+        std::string entry;
+
+        switch (ad_type) {
+            case 0x01: { // Flags
+                entry = "AD 0x01: Flags: ";
+                uint8_t flags = data[0];
+                if (flags & 0x01) entry += "LE Limited, ";
+                if (flags & 0x02) entry += "LE General, ";
+                if (flags & 0x04) entry += "BR/EDR Not Supported, ";
+                if (flags & 0x08) entry += "LE+BR/EDR (Controller), ";
+                if (flags & 0x10) entry += "LE+BR/EDR (Host), ";
+                if (!entry.empty() && entry.back() == ' ') entry.erase(entry.size() - 2); // remove ", "
+                break;
+            }
+            case 0x02:
+            case 0x03: { // 16bit UUIDs
+                entry = "AD 0x03: UUID16: ";
+                for (int j = 0; j + 1 < field_len - 1; j += 2) {
+                    uint16_t uuid = data[j] | (data[j + 1] << 8);
+                    char uuidStr[8];
+                    snprintf(uuidStr, sizeof(uuidStr), "0x%04X ", uuid);
+                    entry += uuidStr;
+                }
+                break;
+            }
+            case 0x06:
+            case 0x07: { // 128bit UUIDs
+                entry = "AD 0x07: UUID128: ";
+                for (int j = 0; j + 15 < field_len - 1; j += 16) {
+                    char uuidStr[40];
+                    snprintf(uuidStr, sizeof(uuidStr),
+                        "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X ",
+                        data[j+15], data[j+14], data[j+13], data[j+12],
+                        data[j+11], data[j+10],
+                        data[j+9], data[j+8],
+                        data[j+7], data[j+6],
+                        data[j+5], data[j+4], data[j+3], data[j+2], data[j+1], data[j+0]);
+                    entry += uuidStr;
+                }
+                break;
+            }
+            case 0x08: // Shortened Local Name
+            case 0x09: { // Complete Local Name
+                entry = "AD 0x09: Name: ";
+                entry.append(reinterpret_cast<const char*>(data), field_len - 1);
+                break;
+            }
+            case 0x0A: { // Tx Power Level
+                entry = "AD 0x0A: Tx Power: ";
+                char val[6];
+                snprintf(val, sizeof(val), "%d dBm", (int8_t)data[0]);
+                entry += val;
+                break;
+            }
+            case 0x16: {
+                entry = "AD 0x16: ServiceData16: ";
+                // UUID16 + raw data
+                if (field_len >= 3) {
+                    uint16_t uuid = data[0] | (data[1] << 8);
+                    char uuidStr[16];
+                    snprintf(uuidStr, sizeof(uuidStr), "UUID 0x%04X, Data: ", uuid);
+                    entry += uuidStr;
+                    for (int j = 2; j < field_len - 1; ++j) {
+                        char byteStr[4];
+                        snprintf(byteStr, sizeof(byteStr), "%02X ", data[j]);
+                        entry += byteStr;
+                    }
+                }
+                break;
+            }
+            case 0xFF: { // Manufacturer Specific
+                entry = "AD 0xFF: Raw ";
+                for (int j = 0; j < field_len - 1; ++j) {
+                    char byteStr[4];
+                    snprintf(byteStr, sizeof(byteStr), "%02X ", data[j]);
+                    entry += byteStr;
+                }
+                break;
+            }
+            default: {
+                char typeLabel[24];
+                snprintf(typeLabel, sizeof(typeLabel), "AD 0x%02X: Raw ", ad_type);
+                entry = typeLabel;
+                for (int j = 0; j < field_len - 1; ++j) {
+                    char byteStr[4];
+                    snprintf(byteStr, sizeof(byteStr), "%02X ", data[j]);
+                    entry += byteStr;
+                }
+                break;
+            }
+        }
+
+        // Trim space if needed
+        if (!entry.empty() && entry.back() == ' ') entry.pop_back();
+
+        // Add entry with separator
+        result += entry + " | ";
+
+        i += field_len + 1;
+    }
+
+    // Remove trailing " | " if present
+    if (result.size() >= 3 && result.substr(result.size() - 3) == " | ")
+        result.erase(result.size() - 3);
+
+    return result;
 }
 
 const uint8_t BluetoothService::HID_REPORT_MAP[] = {

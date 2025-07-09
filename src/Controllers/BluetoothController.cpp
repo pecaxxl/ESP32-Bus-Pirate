@@ -25,6 +25,8 @@ void BluetoothController::handleCommand(const TerminalCommand& cmd) {
         handlePair(cmd);
     } else if (root == "spoof") {
         handleSpoof(cmd);
+    } else if (root == "sniff") {
+        handleSniff(cmd);
     } else if (root == "status") {
         handleStatus();
     } else if (root == "server") {
@@ -44,21 +46,16 @@ void BluetoothController::handleCommand(const TerminalCommand& cmd) {
 Scan
 */
 void BluetoothController::handleScan() {
-    terminalView.println("Bluetooth Scan: In progress for 10 sec...");
-    terminalView.println("");
-    
-    bluetoothService.init();
-    auto devices = bluetoothService.scanDevices(10);
+    terminalView.println("Bluetooth Scan: In progress for 10 sec...\n");
 
-    if (devices.empty()) {
+    auto lines = bluetoothService.scanDevices(10);
+    if (lines.empty()) {
         terminalView.println("Bluetooth Scan: No devices");
         return;
     }
 
-    for (size_t i = 0; i < devices.size(); ++i) {
-        const auto& dev = devices[i];
-        terminalView.println("  " + std::to_string(i) + ": " + dev.name + " @ " + dev.address + " RSSI: " + std::to_string(dev.rssi));
-        terminalView.println("");
+    for (const auto& line : lines) {
+        terminalView.println("  " + line + "\n");
     }
 }
 
@@ -66,6 +63,7 @@ void BluetoothController::handleScan() {
 Pair
 */
 void BluetoothController::handlePair(const TerminalCommand& cmd) {
+    bluetoothService.switchToMode(BluetoothMode::CLIENT);
     std::string addr = cmd.getSubcommand();
     if (addr.empty()) {
         terminalView.println("Usage: pair <mac address>");
@@ -109,6 +107,38 @@ void BluetoothController::handleStatus() {
     } else {
         terminalView.println("  MAC Address: Unknown");
     }
+}
+
+/*
+Sniff
+*/
+void BluetoothController::handleSniff(const TerminalCommand& cmd) {
+    terminalView.println("Bluetooth Sniff: Started... Press [Enter] to stop.\n");
+
+    bluetoothService.switchToMode(BluetoothMode::CLIENT);
+    BluetoothService::startPassiveBluetoothSniffing();
+
+    unsigned long lastPull = 0;
+
+    while (true) {
+        // Enter press
+        char key = terminalInput.readChar();
+        if (key == '\r' || key == '\n') break;
+
+        // Show paquets if any
+        if (millis() - lastPull > 200) { 
+            auto logs = BluetoothService::getBluetoothSniffLog();
+            for (const auto& line : logs) {
+                terminalView.println(line);
+            }
+            lastPull = millis();
+        }
+
+        delay(10);
+    }
+
+    BluetoothService::stopPassiveBluetoothSniffing();
+    terminalView.println("Bluetooth Sniff: Stopped by user.\n");
 }
 
 /*
@@ -246,13 +276,6 @@ void BluetoothController::handleHelp() {
     terminalView.println("  mouse <x> <y>");
     terminalView.println("  mouse click");
     terminalView.println("  reset");
-}
-
-/*
-Sniff
-*/
-void BluetoothController::handleSniff() {
-    terminalView.println("Bluetooth Sniff: Not Yet Implemented");
 }
 
 /*

@@ -51,7 +51,7 @@ private:
     void handleMouse(const TerminalCommand& cmd);
 
     // Sniff BT server I/O
-    void handleSniff();
+    void handleSniff(const TerminalCommand& cmd);
 
     // Available BT commands
     void handleHelp();
