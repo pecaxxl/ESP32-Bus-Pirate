@@ -50,6 +50,7 @@ void M5DeviceView::show(PinoutConfig& config) {
 
     if (mappings.empty()) {
         noMapping();
+        return;
     }
 
     int boxHeight = 24;
@@ -188,14 +189,14 @@ void M5DeviceView::showModeName(std::string& mode, int y) {
 
 void M5DeviceView::noMapping() {
     // Box frame
-    M5.Lcd.drawRoundRect(10, 35, M5.Lcd.width() - 20, 90, DEFAULT_ROUND_RECT, PRIMARY_COLOR);
+    M5.Lcd.drawRoundRect(10, 28, M5.Lcd.width() - 20, 97, DEFAULT_ROUND_RECT, PRIMARY_COLOR);
 
     // Description
     std::string map = "No mapping defined";
     M5.Lcd.setTextSize(1.5);
     M5.Lcd.setTextColor(TEXT_COLOR);
     int16_t titleX = (M5.Lcd.width() - M5.Lcd.textWidth(map.c_str())) / 2;
-    M5.Lcd.setCursor(titleX, 75);
+    M5.Lcd.setCursor(titleX, 70);
     M5.Lcd.printf(map.c_str());
 }
 

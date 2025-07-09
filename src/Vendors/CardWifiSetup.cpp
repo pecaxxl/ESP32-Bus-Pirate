@@ -56,7 +56,7 @@ int scanWifiNetworks() {
         M5Cardputer.Display.setTextSize(1.5);
         M5.Lcd.fillRoundRect(20, 20, M5.Lcd.width() - 40, M5.Lcd.height() - 40, 5, 0x0841);
         M5.Lcd.drawRoundRect(20, 20, M5.Lcd.width() - 40, M5.Lcd.height() - 40, 5, 0x05A3);
-        M5Cardputer.Display.drawString("Scanning Networks...", 32, 60);
+        M5Cardputer.Display.drawString("Scanning Networks", 45, 60);
         networksCount = WiFi.scanNetworks();
 
         if (networksCount == 0) {
