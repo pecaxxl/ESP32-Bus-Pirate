@@ -285,9 +285,9 @@ void UtilityController::handleHelp() {
     terminalView.println("");
     terminalView.println(" 13. BLUETOOTH:");
     terminalView.println("  scan                 - Discover devices");
-    terminalView.println("  pair <addr>          - Pair with a device");
+    terminalView.println("  pair <mac>           - Pair with a device");
     terminalView.println("  sniff                - Sniff Bluetooth data");
-    terminalView.println("  spoof <addr>         - Spoof mac address");
+    terminalView.println("  spoof <mac>          - Spoof mac address");
     terminalView.println("  status               - Show current status");
     terminalView.println("  server               - Create an HID server");
     terminalView.println("  keyboard <text>      - Type over Bluetooth");
@@ -299,8 +299,10 @@ void UtilityController::handleHelp() {
     terminalView.println(" 14. WIFI:");
     terminalView.println("  scan                 - List Wi-Fi networks");
     terminalView.println("  ping <host>          - Ping a remote host");
-    terminalView.println("  sniff                - Monitor packets [NYI]");
+    terminalView.println("  sniff                - Monitor Wi-Fi packets");
     terminalView.println("  connect <ssid> <pw>  - Connect to a network");
+    terminalView.println("  spoof ap <mac>       - Spoof Access point MAC");
+    terminalView.println("  spoof sta <mac>      - Spoof Station MAC");
     terminalView.println("  status               - Show Wi-Fi status");
     terminalView.println("  disconnect           - Disconnect from Wi-Fi");
     terminalView.println("  ap <ssid> <password> - Set access point");

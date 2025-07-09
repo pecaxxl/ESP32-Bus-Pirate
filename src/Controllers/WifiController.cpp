@@ -20,6 +20,8 @@ void WifiController::handleCommand(const TerminalCommand& cmd) {
         handleStatus(cmd);
     } else if (root == "ap") {
         handleAp(cmd);
+    } else if (root == "spoof") {
+        handleSpoof(cmd);
     } else if (root == "scan") {
         handleScan(cmd);
     } else if (root == "ping") {
@@ -79,14 +81,20 @@ void WifiController::handleDisconnect(const TerminalCommand& cmd) {
     terminalView.println("WiFi: Disconnected.");
 }
 
+
+/*
+Status
+*/
 void WifiController::handleStatus(const TerminalCommand& cmd) {
     if (wifiService.isConnected()) {
         terminalView.println("WiFi: Connected");
         terminalView.println("  IP:  " + wifiService.getLocalIP());
-        terminalView.println("  MAC: " + wifiService.getMacAddress());
     } else {
         terminalView.println("WiFi: Not connected.");
     }
+    
+    terminalView.println("  STA MAC: " + wifiService.getMacAddressSta());
+    terminalView.println("   AP MAC: " + wifiService.getMacAddressAp());
 }
 
 /*
@@ -136,14 +144,25 @@ Scan
 */
 void WifiController::handleScan(const TerminalCommand&) {
     terminalView.println("WiFi: Scanning for networks...");
-    delay(100);
+    delay(300);
 
-    auto results = wifiService.scanNetworks();
-    for (const auto& network : results) {
-        terminalView.println("  SSID: " + network);
+    auto networks = wifiService.scanDetailedNetworks();
+
+    for (const auto& net : networks) {
+        std::string line = "  SSID: " + net.ssid;
+        line += " | Sec: " + wifiService.encryptionTypeToString(net.encryption);
+        line += " | BSSID: " + net.bssid;
+        line += " | CH: " + std::to_string(net.channel);
+        line += " | RSSI: " + std::to_string(net.rssi) + " dBm";
+        if (net.open) line += " [open]";
+        if (net.vulnerable) line += " [vulnerable]";
+        if (net.hidden) line += " [hidden]";
+
+        terminalView.println(line);
     }
 
-    if (results.empty()) {
+
+    if (networks.empty()) {
         terminalView.println("WiFi: No networks found.");
     }
 }
@@ -177,7 +196,69 @@ void WifiController::handlePing(const TerminalCommand& cmd) {
 Sniff
 */
 void WifiController::handleSniff(const TerminalCommand& cmd) {
-    terminalView.println("WiFi Sniff: Not implemented yet.");
+    terminalView.println("WiFi Sniffing started... Press [Enter] to stop.\n");
+
+    wifiService.startPassiveSniffing();
+    wifiService.switchChannel(1);
+
+    uint8_t channel = 1;
+    unsigned long lastHop = 0;
+    unsigned long lastPull = 0;
+
+    while (true) {
+        // Enter Press
+        char key = terminalInput.readChar();
+        if (key == '\r' || key == '\n') break;
+
+        // Read sniff data
+        if (millis() - lastPull > 20) {
+            auto logs = wifiService.getSniffLog();
+            for (const auto& line : logs) {
+                terminalView.println(line);
+            }
+            lastPull = millis();
+        }
+
+        // Switch channel every 100ms
+        if (millis() - lastHop > 100) {
+            channel = (channel % 13) + 1;  // channel 1 to 13
+            wifiService.switchChannel(channel);
+            lastHop = millis();
+        }
+
+        delay(5);
+    }
+
+    wifiService.stopPassiveSniffing();
+    terminalView.println("WiFi Sniffing stopped.\n");
+}
+
+/*
+Spoof
+*/
+void WifiController::handleSpoof(const TerminalCommand& cmd) {
+    auto mode = cmd.getSubcommand();
+    auto mac= cmd.getArgs();
+
+    if (mode.empty() && mac.empty()) {
+        terminalView.println("Usage: spoof sta <mac>");
+        terminalView.println("       spoof ap <mac>");
+        return;
+    }
+
+    WifiService::MacInterface iface = (mode == "sta") 
+        ? WifiService::MacInterface::Station
+        : WifiService::MacInterface::AccessPoint;
+
+    terminalView.println("WiFi: Spoofing " + mode + " MAC to " + mac + "...");
+
+    bool ok = wifiService.spoofMacAddress(mac, iface);
+
+    if (ok) {
+        terminalView.println("WiFi: MAC spoofed successfully.");
+    } else {
+        terminalView.println("WiFi: Failed to spoof MAC.");
+    }
 }
 
 /*
@@ -224,6 +305,8 @@ void WifiController::handleHelp() {
     terminalView.println("  ping <host>");
     terminalView.println("  sniff");
     terminalView.println("  connect <ssid> <password>");
+    terminalView.println("  spoof sta <mac>");
+    terminalView.println("  spoof ap <mac>");
     terminalView.println("  status");
     terminalView.println("  disconnect");
     terminalView.println("  ap <ssid> <password>");

@@ -54,6 +54,9 @@ private:
     // Show WebUI IP
     void handleWebUi(const TerminalCommand& cmd);
 
+    // Spoof Mac addr
+    void handleSpoof(const TerminalCommand& cmd);
+
     // Reset Wi-Fi configuration
     void handleReset();
 

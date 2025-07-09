@@ -136,7 +136,7 @@ bool connectToWifi(String wifiSSID, String wifiPassword) {
     M5.Lcd.drawRoundRect(20, 20, M5.Lcd.width() - 40, M5.Lcd.height() - 40, 5, 0x05A3);
     M5Cardputer.Display.drawString("Connecting", 70, 55);
     M5Cardputer.Display.setTextColor(TFT_LIGHTGRAY);
-    M5Cardputer.Display.setCursor(30, 75);
+    M5Cardputer.Display.setCursor(35, 75);
     M5Cardputer.Display.setTextSize(0.5); // for the loading dots
 
     while (tm++ < 110 && WiFi.status() != WL_CONNECTED) {
@@ -144,7 +144,7 @@ bool connectToWifi(String wifiSSID, String wifiPassword) {
         M5Cardputer.Display.print(".");
 
         if (tm == 55) {
-            M5Cardputer.Display.setCursor(30, 80);
+            M5Cardputer.Display.setCursor(35, 80);
         }
     }
 
