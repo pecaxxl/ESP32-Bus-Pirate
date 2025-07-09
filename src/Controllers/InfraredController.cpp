@@ -72,8 +72,8 @@ void InfraredController::handleSend(const TerminalCommand& command) {
 Receive
 */
 void InfraredController::handleReceive() {
-    terminalView.println("Receiving infrared signal...");
-    terminalView.println("Press ENTER to cancel.\n");
+    terminalView.println("Receiving infrared signal...Press [ENTER] to cancel.");
+    terminalView.println("");
     
     infraredService.startReceiver();
     while (true) {
@@ -94,7 +94,7 @@ void InfraredController::handleReceive() {
             terminalView.println("  SubDev   : " + std::to_string(cmd.getSubdevice()));
             terminalView.println("  Command  : " + std::to_string(cmd.getFunction()));
             terminalView.println("");
-            terminalView.println("INFRARED Receive: Waiting for next signal or press ENTER to exit.");
+            terminalView.println("INFRARED Receive: Waiting for next signal or press [ENTER] to exit.");
         }
     }
     infraredService.stopReceiver();

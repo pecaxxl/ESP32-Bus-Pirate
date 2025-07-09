@@ -126,7 +126,7 @@ void DioController::handleSniff(const TerminalCommand& cmd) {
     int pin = std::stoi(cmd.getSubcommand());
     pinService.setInput(pin);
 
-    terminalView.println("DIO Sniff: Pin " + std::to_string(pin) + " (press ENTER to stop)...");
+    terminalView.println("DIO Sniff: Pin " + std::to_string(pin) + "... Press [ENTER] to stop");
     
     int last = pinService.read(pin);
     terminalView.println("Initial state: " + std::to_string(last));

@@ -98,7 +98,7 @@ void UartController::handleBridge() {
 Read
 */
 void UartController::handleRead() {
-    terminalView.println("UART Read: Streaming until ENTER is pressed...");
+    terminalView.println("UART Read: Streaming until [ENTER] is pressed...");
     uartService.flush();
 
     while (true) {
@@ -180,7 +180,7 @@ void UartController::handlePing() {
 Scan
 */
 void UartController::handleScan() {
-    terminalView.println("UART Scan: in progress... (press ENTER to cancel)");
+    terminalView.println("UART Scan: in progress... Press [ENTER] to cancel");
     terminalView.println("");
     terminalView.println("[INFOS]");
     terminalView.println("  The UART scanner attempts to detect the correct baudrate");

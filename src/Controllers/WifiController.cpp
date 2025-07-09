@@ -290,7 +290,7 @@ void WifiController::handleWebUi(const TerminalCommand&) {
 Config
 */
 void WifiController::handleConfig() {
-    terminalView.println("[WARNING] If you're connected via Wi-Fi,");
+    terminalView.println("[WARNING] If you're connected via Web CLI,");
     terminalView.println("          executing Wi-Fi configuration commands may");
     terminalView.println("          cause the terminal session to disconnect.");
     terminalView.println("          Use USB serial or restart if connection is lost.\n");
