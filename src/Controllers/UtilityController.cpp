@@ -230,13 +230,13 @@ void UtilityController::handleHelp() {
     terminalView.println("");
     terminalView.println(" 6. SPI:");
     terminalView.println("  sniff                - View traffic [NYI]");
-    terminalView.println("  sdcard               - Operations on SD [NYI]");
-    terminalView.println("  flash probe          - Identify SPI chip [NYI]");
-    terminalView.println("  flash read           - Read flash content [NYI]");
-    terminalView.println("  flash write          - Write to SPI flash [NYI]");
-    terminalView.println("  flash erase          - Erase SPI flash [NYI]");
+    terminalView.println("  sdcard               - SD operations [NYI]");
+    terminalView.println("  flash probe          - Identify chip [NYI]");
+    terminalView.println("  flash read           - Read content [NYI]");
+    terminalView.println("  flash write          - Write to flash [NYI]");
+    terminalView.println("  flash erase          - Erase flash [NYI]");
     terminalView.println("  config               - Configure settings [NYI]");
-    terminalView.println("  [..]                 - Instruction syntax[NYI]");
+    terminalView.println("  [..]                 - Instruction syntax [NYI]");
 
     terminalView.println("");
     terminalView.println(" 7. 2WIRE:");
