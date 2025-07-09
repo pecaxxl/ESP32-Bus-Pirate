@@ -20,7 +20,8 @@ inline const char* index_html = R"rawliteral(
     <div id="history" class="history-area"></div>
   </main>
   <div id="ws-lost-popup" class="popup" style="display: none;">
-    Connection lost. <a href="#" onclick="location.reload()">Refresh</a>
+    <span class="popup-text">Connection lost.</span>
+    <a href="#" onclick="location.reload()">Refresh</a>
   </div>
   <script src="/scripts.js"></script>
 </body>

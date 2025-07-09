@@ -53,7 +53,7 @@ void I2cController::handleInstruction(const std::vector<ByteCode>& bytecodes) {
 Scan
 */
 void I2cController::handleScan() {
-    terminalView.println("I2C Scan: Scanning I2C bus... Press ENTER to stop");
+    terminalView.println("I2C Scan: Scanning I2C bus... Press [ENTER] to stop");
     terminalView.println("");
     bool found = false;
 
@@ -83,7 +83,7 @@ void I2cController::handleScan() {
 Sniff
 */    
 void I2cController::handleSniff() {
-    terminalView.println("I2C Sniffer: Listening... Press ENTER to stop.\n");
+    terminalView.println("I2C Sniffer: Listening... Press [ENTER] to stop.\n");
     i2c_sniffer_begin(state.getI2cSclPin(), state.getI2cSdaPin()); // dont need freq to work
     i2c_sniffer_setup();
 

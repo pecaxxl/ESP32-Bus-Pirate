@@ -101,7 +101,7 @@ void OneWireController::handlePing() {
 Read
 */
 void OneWireController::handleRead() {
-    terminalView.println("OneWire Read: Press ENTER to stop.\n");
+    terminalView.println("OneWire Read: Press [ENTER] to stop.\n");
 
     while (true) {
         auto key = terminalInput.readChar();
@@ -227,7 +227,7 @@ void OneWireController::handleIdWrite(std::vector<uint8_t> idBytes) {
     int attempt = 0;
     bool success = false;
 
-    terminalView.println("OneWire ID Write: Waiting for device... Press ENTER to stop");
+    terminalView.println("OneWire ID Write: Waiting for device... Press [ENTER] to stop");
 
     // Wait detection
     while (!oneWireService.reset()) {
@@ -284,7 +284,7 @@ void OneWireController::handleScratchpadWrite(std::vector<uint8_t> scratchpadByt
     int attempt = 0;
     bool success = false;
 
-    terminalView.println("OneWire Write: Waiting for device... Press ENTER to stop");
+    terminalView.println("OneWire Write: Waiting for device... Press [ENTER] to stop");
 
     // Wait for device presence
     while (!oneWireService.reset()) {
@@ -367,7 +367,7 @@ void OneWireController::handleConfig() {
 Sniff
 */
 void OneWireController::handleSniff() {
-    terminalView.println("OneWire Sniff: Oberserving data line... Press ENTER to stop.\n");
+    terminalView.println("OneWire Sniff: Oberserving data line... Press [ENTER] to stop.\n");
 
     // Init the pin to read passively
     uint8_t pin = state.getOneWirePin();

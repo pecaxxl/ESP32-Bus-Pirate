@@ -176,16 +176,33 @@ button:hover {
   box-shadow: 0 0 8px #000;
   z-index: 9999;
   font-size: 0.95rem;
+  max-width: 90vw;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  white-space: nowrap;
+  overflow: hidden;
 }
+
+.popup-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .popup a {
-  color: #00ffcc;;
+  color: #00ffcc;
   text-decoration: underline;
-  margin-left: 10px;
+  flex-shrink: 0;
 }
+
 .popup a:hover {
   color: #00ffff;
 }
-
+  
 
 /* Responsive */
 @media (max-width: 600px), (max-height: 600px) {
@@ -193,6 +210,11 @@ button:hover {
     padding: 8px;
     gap: 6px;
   }
+
+  .popup {
+    font-size: 0.8rem;
+  }
+
 
   #output {
     font-size: 0.8rem;

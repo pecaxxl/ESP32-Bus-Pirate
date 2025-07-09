@@ -104,7 +104,7 @@ void InfraredController::handleReceive() {
 DeviceBgone
 */
 void InfraredController::handleDeviceBgone() {
-    terminalView.println("Sending Device-B-Gone commands... Press ENTER to stop");
+    terminalView.println("Sending Device-B-Gone commands... Press [ENTER] to stop");
 
     for (const auto& cmd : deviceBgoneCommands) {
 

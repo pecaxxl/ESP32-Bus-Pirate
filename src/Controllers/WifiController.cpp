@@ -291,8 +291,8 @@ Config
 */
 void WifiController::handleConfig() {
     terminalView.println("[WARNING] If you're connected via Web CLI,");
-    terminalView.println("          executing Wi-Fi configuration commands may");
-    terminalView.println("          cause the terminal session to disconnect.");
+    terminalView.println("          executing Wi-Fi commands may cause ");
+    terminalView.println("          the terminal session to disconnect.");
     terminalView.println("          Use USB serial or restart if connection is lost.\n");
 }
 
