@@ -171,6 +171,9 @@ void UsbCardputerController::handleHelp() {
     terminalView.println("  config");
 }
 
+/*
+Ensure Configuration
+*/
 void UsbCardputerController::ensureConfigured() {
     if (!configured) {
         handleConfig();

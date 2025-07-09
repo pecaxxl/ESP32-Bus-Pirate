@@ -53,9 +53,6 @@ private:
     // Display help for USB commands
     void handleHelp();
 
-    // Prompt user input via terminal
-    std::string getUserInput();
-
     bool configured = false;
     ITerminalView& terminalView;
     IInput& terminalInput;
