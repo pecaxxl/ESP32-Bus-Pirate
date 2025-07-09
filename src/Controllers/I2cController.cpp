@@ -49,6 +49,9 @@ void I2cController::handleInstruction(const std::vector<ByteCode>& bytecodes) {
     }
 }
 
+/*
+Scan
+*/
 void I2cController::handleScan() {
     terminalView.println("I2C Scan: Scanning I2C bus... Press ENTER to stop");
     terminalView.println("");
