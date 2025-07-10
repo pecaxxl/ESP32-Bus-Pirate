@@ -46,11 +46,15 @@ It supports sniffing, sending, scripting, and interacting with various digital p
 📚 Visit the **[Wiki](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki)** for detailed documentation on every mode and command.
 
 Includes:
+- [Terminal mode](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/00-Terminal)
 - [Mode overviews](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki)
 - [Instruction syntax](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/99-Instructions)
 - [Serial/Web setup](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/99-Serial)
 - [Python scripting examples](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/99-Python)
 
+
+
+##### The wiki is the best place to learn how everything works.
 
 ## Getting Started
 
