@@ -78,7 +78,7 @@ Includes:
 ![ESP32 Bus Pirate running on M5 Stack devices](images/buspirate.jpg)
 
 
-## ESP32 Bus Pirate available on Mobile
+## ESP32 Bus Pirate Web CLI on Mobile
 ![An iPhone screenshot showing Bus Pirate web cli](images/mobile.jpg)
 
 
