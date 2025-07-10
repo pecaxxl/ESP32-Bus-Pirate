@@ -46,20 +46,20 @@ It supports sniffing, sending, scripting, and interacting with various digital p
 📚 Visit the **[Wiki](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki)** for detailed documentation on every mode and command.
 
 Includes:
-- [Mode overviews](wiki/Modes)
-- [Instruction syntax](wiki/Instructions)
-- [Serial/Web setup](wiki/Serial)
-- [Python scripting examples](wiki/Python)
+- [Mode overviews](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki)
+- [Instruction syntax](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/Instructions)
+- [Serial/Web setup](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/Serial)
+- [Python scripting examples](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/Python)
 
 
 ## Getting Started
 
 1. 🔧 Flash the firmware  
-   - Download the latest release from the [Releases](https://github.com/your-username/esp32-bus-pirate/releases) page, and flash it using your favorite tool (`esptool.py`, `PlatformIO`, etc.).
+   - Download the latest release from the [Releases](https://github.com/geo-tp/ESP32-Bus-Pirate/releases) page, and flash it using your favorite tool (`esptool.py`, `PlatformIO`, etc.).
    - You can also burn it on [M5Burner](https://docs.m5stack.com/en/download), in the M5stick or Cardputer category.
 
 2. 🔌 Connect via Serial or Web
-   - Serial: any terminal app (see [Connect via Serial](https://github.com/your-username/esp32-bus-pirate/wiki/Connect-via-Serial))
+   - Serial: any terminal app (see [Connect via Serial](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/Serial))
    - Web: configure Wi-Fi and access the CLI via browser
 
 3. 🧪 Use commands like:
