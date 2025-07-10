@@ -172,7 +172,7 @@ void BluetoothService::switchToMode(BluetoothMode newMode) {
     if (mode == newMode) return;
 
     if (mode == BluetoothMode::SERVER || mode == BluetoothMode::CLIENT) {
-        BLEDevice::deinit(true);
+        end();
     }
 
     // Init pour le nouveau mode
