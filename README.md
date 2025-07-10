@@ -47,9 +47,9 @@ It supports sniffing, sending, scripting, and interacting with various digital p
 
 Includes:
 - [Mode overviews](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki)
-- [Instruction syntax](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/Instructions)
-- [Serial/Web setup](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/Serial)
-- [Python scripting examples](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/Python)
+- [Instruction syntax](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/99-Instructions)
+- [Serial/Web setup](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/99-Serial)
+- [Python scripting examples](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/99-Python)
 
 
 ## Getting Started
@@ -59,7 +59,7 @@ Includes:
    - You can also burn it on [M5Burner](https://docs.m5stack.com/en/download), in the M5stick or Cardputer category.
 
 2. 🔌 Connect via Serial or Web
-   - Serial: any terminal app (see [Connect via Serial](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/Serial))
+   - Serial: any terminal app (see [Connect via Serial](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/99-Serial))
    - Web: configure Wi-Fi and access the CLI via browser
 
 3. 🧪 Use commands like:
