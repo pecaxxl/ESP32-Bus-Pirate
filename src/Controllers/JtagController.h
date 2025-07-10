@@ -20,7 +20,7 @@ public:
 private:
     ITerminalView& terminalView;
     IInput& terminalInput;
-    bool configured;
+    bool configured = false;
 
     // Perform a JTAG device scan (to be implemented)
     void handleScan();
