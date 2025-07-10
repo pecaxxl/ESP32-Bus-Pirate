@@ -45,12 +45,12 @@ void DioController::handleCommand(const TerminalCommand& cmd) {
 Read
 */
 void DioController::handleReadPin(const TerminalCommand& cmd) {
-    if (cmd.getSubcommand().empty()) {
+    if (cmd.getSubcommand().empty() || !argTransformer.isValidNumber(cmd.getSubcommand())) {
         terminalView.println("Usage: read <pin>");
         return;
     }
 
-    int pin = std::stoi(cmd.getSubcommand());
+    uint8_t pin = argTransformer.toUint8(cmd.getSubcommand());
     int value = pinService.read(pin);
     terminalView.println("Pin " + std::to_string(pin) + " = " + std::to_string(value));
 }
@@ -64,13 +64,13 @@ void DioController::handleSetPin(const TerminalCommand& cmd) {
         return;
     }
 
-    int pin = std::stoi(cmd.getSubcommand());
     std::string arg = cmd.getArgs();
     if (arg.empty()) {
-        terminalView.println("DIO Set: Invalid argument.");
+        terminalView.println("DIO Set: Missing mode (IN/OUT/HI/LOW).");
         return;
     }
 
+    uint8_t pin = argTransformer.toUint8(cmd.getSubcommand());
     char c = std::toupper(arg[0]);
 
     switch (c) {
@@ -108,7 +108,7 @@ void DioController::handlePullup(const TerminalCommand& cmd) {
         return;
     }
 
-    int pin = std::stoi(cmd.getSubcommand());
+    int pin = argTransformer.toUint8(cmd.getSubcommand());
     pinService.setInputPullup(pin);
 
     terminalView.println("DIO Pullup: Set on pin " + std::to_string(pin));
@@ -123,7 +123,7 @@ void DioController::handleSniff(const TerminalCommand& cmd) {
         return;
     }
 
-    int pin = std::stoi(cmd.getSubcommand());
+    uint8_t pin = argTransformer.toUint8(cmd.getSubcommand());
     pinService.setInput(pin);
 
     terminalView.println("DIO Sniff: Pin " + std::to_string(pin) + "... Press [ENTER] to stop");
