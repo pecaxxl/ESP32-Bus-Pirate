@@ -33,7 +33,7 @@ bool setupStickWifi() {
         M5.Lcd.setTextColor(TFT_LIGHTGRAY);
         M5.Lcd.drawString("USB Serial to setup", 36, 70);
 
-        delay(10000);
+        delay(5000);
         return false;
     }
 
@@ -64,7 +64,7 @@ bool setupStickWifi() {
     M5.Lcd.setTextSize(1.5);
     M5.Lcd.drawString("USB Serial to setup", 36, 70);
 
-    delay(10000);
+    delay(4000);
     return false;
 }
 
