@@ -78,6 +78,11 @@ Includes:
 ![ESP32 Bus Pirate running on M5 Stack devices](images/buspirate.jpg)
 
 
+## ESP32 Bus Pirate available on Mobile
+![An iPhone screenshot showing Bus Pirate web cli](images/mobile.jpg)
+
+
+
 ## Warning
 > ⚠️ **Voltage Warning**: Devices should only operate at **3.3V** or **5V**.  
 > Do **not** connect peripherals using other voltage levels — doing so may **damage your ESP32**.
