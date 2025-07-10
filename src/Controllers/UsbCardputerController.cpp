@@ -103,13 +103,23 @@ void UsbCardputerController::handleMouse(const TerminalCommand& cmd)  {
 /*
 Gamepad
 */
-void UsbCardputerController::handleGamepad(const TerminalCommand& cmd)  {
+void UsbCardputerController::handleGamepad(const TerminalCommand& cmd) {
     terminalView.println("USB Gamepad: Configuring HID...");
     usbService.gamepadBegin();
-    terminalView.println("USB Gamepad: Initialize HID...");
-    usbService.gamepadPress(cmd.getSubcommand());
-    terminalView.println("USB Gamepad: Key sent.");
-} 
+
+    std::string subcmd = cmd.getSubcommand();
+    std::transform(subcmd.begin(), subcmd.end(), subcmd.begin(), ::tolower);
+
+    if (subcmd == "up" || subcmd == "down" || subcmd == "left" || subcmd == "right" ||
+        subcmd == "a" || subcmd == "b") {
+        
+        usbService.gamepadPress(subcmd);
+        terminalView.println("USB Gamepad: Key sent.");
+
+    } else {
+        terminalView.println("USB Gamepad: Unknown input. Try up, down, left, right, a, b");
+    }
+}
 
 /*
 Stick
@@ -140,7 +150,7 @@ void UsbCardputerController::handleConfig() {
 
     uint8_t mosi = userInputManager.readValidatedPinNumber("SD Card MOSI pin", state.getSpiMOSIPin(), forbidden);
     state.setSpiMOSIPin(mosi);
-    
+
     terminalView.println("USB Configured.");
     terminalView.println("\n[WARNING] If you're using USB Serial terminal mode,");
     terminalView.println("          using USB commands may interrupt the session.");
@@ -153,7 +163,7 @@ Reset
 */
 void UsbCardputerController::handleReset() {
     usbService.reset();
-    terminalView.println("USB Reset: Resetting...");
+    terminalView.println("USB Reset: Disable interfaces...");
 }
 
 /*

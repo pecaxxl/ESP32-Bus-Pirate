@@ -111,8 +111,8 @@ void UsbCardputerService::mouseRelease(int button) {
 void UsbCardputerService::gamepadBegin() {
     if (gamepadActive) return;
 
-    USB.begin();
     gamepad.begin();
+    USB.begin();
     gamepadActive = true;
     hidInitTime = millis();
 }
@@ -125,33 +125,36 @@ void UsbCardputerService::gamepadPress(const std::string& name) {
         delay(10);
     }
 
-    // Valeurs par défaut (repos)
-    int8_t x = 0, y = 0, z = 0, rz = 0, rx = 0, ry = 0;
-    uint8_t hat = HAT_CENTER;
-    uint32_t buttons = 0;
-
-    // Interprétation de la commande
-    if (name == "up") {
-        hat = HAT_UP;
-    } else if (name == "down") {
-        hat = HAT_DOWN;
-    } else if (name == "left") {
-        hat = HAT_LEFT;
-    } else if (name == "right") {
-        hat = HAT_RIGHT;
-    } else if (name == "a") {
-        buttons = (1 << BUTTON_A);
-    } else if (name == "b") {
-        buttons = (1 << BUTTON_B);
-    } else {
-        return; // commande inconnue
+    // Reset before any new input
+    gamepad.hat(HAT_CENTER);
+    for (int i = 0; i < 32; ++i) {
+        gamepad.releaseButton(i);
     }
 
-    // Envoie de l'état
-    gamepad.send(x, y, z, rz, rx, ry, hat, buttons);
-    delay(100);  // Simule une pression courte
-    gamepad.send(0, 0, 0, 0, 0, 0, HAT_CENTER, 0); // Relâche tout
+    if (name == "up") {
+        gamepad.hat(HAT_UP);
+    } else if (name == "down") {
+        gamepad.hat(HAT_DOWN);
+    } else if (name == "left") {
+        gamepad.hat(HAT_LEFT);
+    } else if (name == "right") {
+        gamepad.hat(HAT_RIGHT);
+    } else if (name == "a") {
+        gamepad.pressButton(BUTTON_A);
+    } else if (name == "b") {
+        gamepad.pressButton(BUTTON_B);
+    } else {
+        return; // unknow
+    }
+
+    delay(500);  // simulate short press
+
+    // Reset state
+    gamepad.hat(HAT_CENTER);
+    gamepad.releaseButton(BUTTON_A);
+    gamepad.releaseButton(BUTTON_B);
 }
+
 
 bool UsbCardputerService::isKeyboardActive() const {
     return keyboardActive;
@@ -230,12 +233,14 @@ void UsbCardputerService::reset() {
     if (initialized) {
         keyboard.releaseAll(); // si clavier actif
         msc.end();             // si stockage actif
-        // USB.~ESPUSB();         // force la destruction de l'instance USB
-        // USB.enableDFU();       // réinitialise le contrôleur USB (important)
+        keyboard.end();
+        gamepad.end();
+        mouse.end();
         initialized = false;
         keyboardActive = false;
         storageActive = false;
         mouseActive = false;
+        gamepadActive = false;
     }
 }
 
