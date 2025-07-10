@@ -365,6 +365,10 @@ Sniff
 void OneWireController::handleSniff() {
     terminalView.println("OneWire Sniff: Oberserving data line... Press [ENTER] to stop.\n");
 
+    terminalView.println("  [Info] This feature uses very fast timing.");
+    terminalView.println("         The Web CLI may miss some signals,");
+    terminalView.println("         use Serial CLI for best results.\n");
+
     // Init the pin to read passively
     uint8_t pin = state.getOneWirePin();
     pinMode(pin, INPUT);
