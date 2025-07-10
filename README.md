@@ -43,7 +43,7 @@ It supports sniffing, sending, scripting, and interacting with various digital p
 
 ## Wiki
 
-📚 Visit the **[Wiki](https://github.com/your-username/esp32-bus-pirate/wiki)** for detailed documentation on every mode and command.
+📚 Visit the **[Wiki](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki)** for detailed documentation on every mode and command.
 
 Includes:
 - [Mode overviews](wiki/Modes)
