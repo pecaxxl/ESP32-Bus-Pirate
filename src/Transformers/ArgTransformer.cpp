@@ -138,3 +138,37 @@ std::string ArgTransformer::filterPrintable(const std::string& input) {
     }
     return result;
 }
+
+std::string ArgTransformer::decodeEscapes(const std::string& input) {
+    std::ostringstream out;
+    for (size_t i = 0; i < input.length(); ++i) {
+        if (input[i] == '\\' && i + 1 < input.length()) {
+            char next = input[++i];
+            switch (next) {
+                case 'n': out << '\n'; break;
+                case 'r': out << '\r'; break;
+                case 't': out << '\t'; break;
+                case '\\': out << '\\'; break;
+                case 'x':
+                    if (i + 2 < input.length()) {
+                        std::string hex = input.substr(i + 1, 2);
+                        try {
+                            out << static_cast<char>(std::stoi(hex, nullptr, 16));
+                        } catch (...) {
+                            out << "\\x" << hex; // Invalid
+                        }
+                        i += 2;
+                    } else {
+                        out << "\\x"; // Incomplete
+                    }
+                    break;
+                default:
+                    out << '\\' << next; // Unrecognized,
+                    break;
+            }
+        } else {
+            out << input[i];
+        }
+    }
+    return out.str();
+}

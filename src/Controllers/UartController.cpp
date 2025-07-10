@@ -122,7 +122,9 @@ void UartController::handleRead() {
 Write
 */
 void UartController::handleWrite(TerminalCommand cmd) {
-    uartService.print(cmd.getSubcommand() + cmd.getArgs());
+    std::string raw = cmd.getSubcommand() + cmd.getArgs();
+    std::string decoded = argTransformer.decodeEscapes(raw);
+    uartService.print(decoded);
     terminalView.println("UART Write: Text sent at baud " + std::to_string(state.getUartBaudRate()));
 }
 
