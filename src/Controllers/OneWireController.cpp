@@ -349,19 +349,15 @@ void OneWireController::handleConfig() {
     terminalView.println("");
     terminalView.println("OneWire Configuration:");
 
-    uint8_t currentPin = state.getOneWirePin();
+    const auto& forbidden = state.getProtectedPins();
 
-    terminalView.print("Data pin [" + std::to_string(currentPin) + "]: ");
-    std::string input = userInputManager.getLine();
-    uint8_t pin = input.empty() ? currentPin : argTransformer.toUint8(input);
-    
+    uint8_t pin = userInputManager.readValidatedPinNumber("Data pin", state.getOneWirePin(), forbidden);
     state.setOneWirePin(pin);
     oneWireService.configure(pin);
 
     terminalView.println("OneWire configured.");
     terminalView.println("");
 }
-
 
 /*
 Sniff

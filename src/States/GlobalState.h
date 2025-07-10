@@ -2,12 +2,16 @@
 
 #include <cstdint>
 #include <string>
+#include <sstream>
 #include "Enums/InfraredProtocolEnum.h"
 #include "Enums/ModeEnum.h"
 #include "Enums/TerminalTypeEnum.h"
 
 class GlobalState {
 private:
+    //Pin in use
+    std::vector<uint8_t> protectedPins;
+
     // Builtin
     uint8_t ledPin = 21;
 
@@ -200,6 +204,16 @@ public:
     const std::string& getNvsSsidField() const { return nvsSsidField; }
     void setNvsSsidField(const std::string& f) { nvsSsidField = f; }
 
+    // Protected
+    const std::vector<uint8_t>& getProtectedPins() const {
+        return protectedPins;
+    }
+
+    bool isPinProtected(uint8_t pin) const {
+        return std::find(protectedPins.begin(), protectedPins.end(), pin) != protectedPins.end();
+    }
+
+    // Constructor
     GlobalState() {
         #ifdef LED_PIN
             ledPin = LED_PIN;
@@ -249,6 +263,16 @@ public:
         #ifdef IR_RX_PIN
             infraredRxPin = IR_RX_PIN;
         #endif
-    }
 
+        #ifdef PROTECTED_PINS
+        {
+            std::string pinsStr = PROTECTED_PINS;
+            std::stringstream ss(pinsStr);
+            std::string item;
+            while (std::getline(ss, item, ',')) {
+                protectedPins.push_back(static_cast<uint8_t>(std::stoi(item)));
+            }
+        }
+        #endif
+    }
 };

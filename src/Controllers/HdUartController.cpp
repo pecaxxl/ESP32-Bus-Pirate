@@ -53,7 +53,9 @@ Config
 void HdUartController::handleConfig() {
     terminalView.println("\nHDUART Configuration:");
 
-    uint8_t pin = userInputManager.readValidatedUint8("Shared TX/RX pin", state.getHdUartPin());
+    const auto& forbidden = state.getProtectedPins();
+
+    uint8_t pin = userInputManager.readValidatedPinNumber("Shared TX/RX pin", state.getHdUartPin(), forbidden);
     state.setHdUartPin(pin);
 
     uint32_t baud = userInputManager.readValidatedUint32("Baud rate", state.getHdUartBaudRate());
@@ -62,7 +64,8 @@ void HdUartController::handleConfig() {
     uint8_t dataBits = userInputManager.readValidatedUint8("Data bits (5-8)", state.getHdUartDataBits(), 5, 8);
     state.setHdUartDataBits(dataBits);
 
-    char parity = userInputManager.readCharChoice("Parity (N/E/O)", 'N', {'N', 'E', 'O'});
+    char defaultParity = state.getHdUartParity().empty() ? 'N' : state.getHdUartParity()[0];
+    char parity = userInputManager.readCharChoice("Parity (N/E/O)", defaultParity, {'N', 'E', 'O'});
     state.setHdUartParity(std::string(1, parity));
 
     uint8_t stopBits = userInputManager.readValidatedUint8("Stop bits (1 or 2)", state.getHdUartStopBits(), 1, 2);
@@ -78,6 +81,7 @@ void HdUartController::handleConfig() {
 
     terminalView.println("HDUART configuration applied.\n");
 }
+
 
 /*
 Help

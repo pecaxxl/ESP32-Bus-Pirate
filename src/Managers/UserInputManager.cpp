@@ -125,3 +125,18 @@ uint8_t UserInputManager::readModeNumber() {
 
     return std::stoi(inputDigit);
 }
+
+uint8_t UserInputManager::readValidatedPinNumber(const std::string& label, uint8_t def, uint8_t min, uint8_t max, const std::vector<uint8_t>& forbiddenPins) {
+    while (true) {
+        int val = readValidatedUint8(label, def, min, max);
+        if (std::find(forbiddenPins.begin(), forbiddenPins.end(), val) != forbiddenPins.end()) {
+            terminalView.println("This pin is reserved/protected and cannot be used.");
+            continue;
+        }
+        return val;
+    }
+}
+
+uint8_t UserInputManager::readValidatedPinNumber(const std::string& label, uint8_t def, const std::vector<uint8_t>& forbiddenPins) {
+    return readValidatedPinNumber(label, def, 0, 48, forbiddenPins);
+}

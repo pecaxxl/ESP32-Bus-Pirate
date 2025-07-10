@@ -21,6 +21,9 @@ public:
     char readCharChoice(const std::string& label, char def, const std::vector<char>& allowed);
     bool readYesNo(const std::string& label, bool def);
     uint8_t readModeNumber();
+    uint8_t readValidatedPinNumber(const std::string& label, uint8_t def, uint8_t min, uint8_t max,  const std::vector<uint8_t>& forbiddenPins);
+    uint8_t readValidatedPinNumber(const std::string& label, uint8_t def,  const std::vector<uint8_t>& forbiddenPins);
+    
 private:
     ITerminalView& terminalView;
     IInput& terminalInput;

@@ -127,20 +127,20 @@ void UsbCardputerController::handleConfig() {
     terminalView.println("");
     terminalView.println("USB Configuration:");
 
-    GlobalState& state = GlobalState::getInstance();
+    const auto& forbidden = state.getProtectedPins();
 
-    uint8_t cs = userInputManager.readValidatedUint8("SD Card CS pin", state.getSpiCSPin());
+    uint8_t cs = userInputManager.readValidatedPinNumber("SD Card CS pin", state.getSpiCSPin(), forbidden);
     state.setSpiCSPin(cs);
 
-    uint8_t clk = userInputManager.readValidatedUint8("SD Card CLK pin", state.getSpiCLKPin());
+    uint8_t clk = userInputManager.readValidatedPinNumber("SD Card CLK pin", state.getSpiCLKPin(), forbidden);
     state.setSpiCLKPin(clk);
 
-    uint8_t miso = userInputManager.readValidatedUint8("SD Card MISO pin", state.getSpiMISOPin());
+    uint8_t miso = userInputManager.readValidatedPinNumber("SD Card MISO pin", state.getSpiMISOPin(), forbidden);
     state.setSpiMISOPin(miso);
 
-    uint8_t mosi = userInputManager.readValidatedUint8("SD Card MOSI pin", state.getSpiMOSIPin());
+    uint8_t mosi = userInputManager.readValidatedPinNumber("SD Card MOSI pin", state.getSpiMOSIPin(), forbidden);
     state.setSpiMOSIPin(mosi);
-
+    
     terminalView.println("USB Configured.");
     terminalView.println("\n[WARNING] If you're using USB Serial terminal mode,");
     terminalView.println("          using USB commands may interrupt the session.");

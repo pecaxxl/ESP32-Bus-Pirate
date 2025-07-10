@@ -305,10 +305,12 @@ void UartController::handleConfig() {
     terminalView.println("");
     terminalView.println("UART Configuration:");
 
-    uint8_t rxPin = userInputManager.readValidatedUint8("RX pin number", state.getUartRxPin());
+    const auto& forbidden = state.getProtectedPins();
+
+    uint8_t rxPin = userInputManager.readValidatedPinNumber("RX pin number", state.getUartRxPin(), forbidden);
     state.setUartRxPin(rxPin);
 
-    uint8_t txPin = userInputManager.readValidatedUint8("TX pin number", state.getUartTxPin());
+    uint8_t txPin = userInputManager.readValidatedPinNumber("TX pin number", state.getUartTxPin(), forbidden);
     state.setUartTxPin(txPin);
 
     uint32_t baud = userInputManager.readValidatedUint32("Baud rate", state.getUartBaudRate());

@@ -193,8 +193,10 @@ Config
 void InfraredController::handleConfig() {
     terminalView.println("\nInfrared Configuration:");
 
-    uint8_t txPin = userInputManager.readValidatedUint8("Infrared TX pin", state.getInfraredTxPin());
-    uint8_t rxPin = userInputManager.readValidatedUint8("Infrared RX pin", state.getInfraredRxPin());
+    const auto& forbidden = state.getProtectedPins();
+
+    uint8_t txPin = userInputManager.readValidatedPinNumber("Infrared TX pin", state.getInfraredTxPin(), forbidden);
+    uint8_t rxPin = userInputManager.readValidatedPinNumber("Infrared RX pin", state.getInfraredRxPin(), forbidden);
 
     state.setInfraredTxPin(txPin);
     state.setInfraredRxPin(rxPin);

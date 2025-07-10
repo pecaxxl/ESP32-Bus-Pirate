@@ -247,10 +247,12 @@ Config
 void I2cController::handleConfig() {
     terminalView.println("\nI2C Configuration:");
 
-    uint8_t sda = userInputManager.readValidatedUint8("SDA pin", state.getI2cSdaPin());
+    const auto& forbidden = state.getProtectedPins();
+
+    uint8_t sda = userInputManager.readValidatedPinNumber("SDA pin", state.getI2cSdaPin(), forbidden);
     state.setI2cSdaPin(sda);
 
-    uint8_t scl = userInputManager.readValidatedUint8("SCL pin", state.getI2cSclPin());
+    uint8_t scl = userInputManager.readValidatedPinNumber("SCL pin", state.getI2cSclPin(), forbidden);
     state.setI2cSclPin(scl);
 
     uint32_t freq = userInputManager.readValidatedUint32("Frequency", state.getI2cFrequency());
