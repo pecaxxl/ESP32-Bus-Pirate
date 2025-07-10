@@ -74,31 +74,42 @@ function sendCommand() {
 
   // Timeout for response
   clearTimeout(responseTimeout);
-  if (cmd.trim().toLowerCase() !== "bridge") {
+  if (!bridgeMode) {
+    clearTimeout(responseTimeout);
     responseTimeout = setTimeout(() => {
       console.warn("[WebSocket] No response after command.");
       showWsLostPopup();
     }, responseTimeoutDelay);
   }
 
+  // No socket
   if (socket.readyState !== WebSocket.OPEN) return;
 
-  if (cmd.trim().toLowerCase() === "bridge") {
+  // Bridge mode start
+  if (cmd === "bridge") {
     bridgeMode = true;
     clearTimeout(responseTimeout);
     hideWsLostPopup();
     console.log("[WebSocket] Bridge Mode");
+    pendingEchoLines = cmd.length
+    socket.send(cmd + "\n");
+    input.value = "";
+    addToHistory(cmd);
+    output.value += cmd + "\n";
+    return; // enter bridge mode
   }
 
+  // Normal Send
   socket.send(cmd + "\n");
-  pendingEchoLines = cmd.length;
-
   input.value = "";
 
   // Don't save the cmd if it's just a number, unless we're in bridge mode
   if (!bridgeMode && !/^\d+$/.test(cmd)) {
     output.value += cmd;
     addToHistory(cmd);
+    pendingEchoLines = cmd.length;
+  } else {
+      pendingEchoLines = 0;
   }
 }
 

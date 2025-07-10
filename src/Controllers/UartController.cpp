@@ -72,11 +72,7 @@ void UartController::handleBridge() {
         // Read from UART and print to terminal
         if (uartService.available()) {
             char c = uartService.read();
-            if (c == '\n') {
-                terminalView.println("");  // saut de ligne
-            } else {
-                terminalView.print(std::string(1, c));
-            }
+            terminalView.print(std::string(1, c));
         }
 
         // Read from user input and write to UART
