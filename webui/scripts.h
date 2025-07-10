@@ -7,6 +7,7 @@ let pendingEchoLines = 0;
 let reconnectInterval = 1000; // ms
 let responseTimeout = null;
 let responseTimeoutDelay = 6000; // ms
+let bridgeMode = false;
 
 function connectSocket() {
   socket = new WebSocket("ws://" + window.location.host + "/ws");
@@ -20,6 +21,12 @@ function connectSocket() {
 
     const output = document.getElementById("output");
     const lines = event.data.split("\n");
+
+    // Bridge mode specific
+    if (event.data.includes("Bridge: Stopped by user.")) {
+      bridgeMode = false;
+      console.log("[WebSocket] Bridge mode exited.");
+    }
 
     // Clear response timeout
     clearTimeout(responseTimeout);
@@ -67,20 +74,29 @@ function sendCommand() {
 
   // Timeout for response
   clearTimeout(responseTimeout);
-  responseTimeout = setTimeout(() => {
-    console.warn("[WebSocket] No response after command.");
-    showWsLostPopup();
-  }, responseTimeoutDelay);
+  if (cmd.trim().toLowerCase() !== "bridge") {
+    responseTimeout = setTimeout(() => {
+      console.warn("[WebSocket] No response after command.");
+      showWsLostPopup();
+    }, responseTimeoutDelay);
+  }
 
   if (socket.readyState !== WebSocket.OPEN) return;
+
+  if (cmd.trim().toLowerCase() === "bridge") {
+    bridgeMode = true;
+    clearTimeout(responseTimeout);
+    hideWsLostPopup();
+    console.log("[WebSocket] Bridge Mode");
+  }
 
   socket.send(cmd + "\n");
   pendingEchoLines = cmd.length;
 
   input.value = "";
 
-  // Don't save the cmd if  it just a number
-  if (!/^\d+$/.test(cmd)) {
+  // Don't save the cmd if it's just a number, unless we're in bridge mode
+  if (!bridgeMode && !/^\d+$/.test(cmd)) {
     output.value += cmd;
     addToHistory(cmd);
   }

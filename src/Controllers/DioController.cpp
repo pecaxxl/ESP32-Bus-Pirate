@@ -98,7 +98,6 @@ void DioController::handleSetPin(const TerminalCommand& cmd) {
     }
 }
 
-
 /*
 Pullup
 */
