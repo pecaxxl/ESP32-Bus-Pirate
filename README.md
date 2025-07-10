@@ -46,15 +46,15 @@ It supports sniffing, sending, scripting, and interacting with various digital p
 📚 Visit the **[Wiki](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki)** for detailed documentation on every mode and command.
 
 Includes:
-- [Terminal mode](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/00-Terminal)
-- [Mode overviews](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki)
-- [Instruction syntax](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/99-Instructions)
-- [Serial/Web setup](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/99-Serial)
-- [Python scripting examples](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/99-Python)
+- [Terminal mode](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/00-Terminal) - About serial and web terminal.
+- [Mode overviews](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki) - Browse supported modes.
+- [Instruction syntax](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/99-Instructions) - Master the instructions.
+- [Serial setup](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/99-Serial) - Serial access via USB.
+- [Python scripting examples](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/99-Python) - Automate tasks using Python.
 
 
 
-##### The wiki is the best place to learn how everything works.
+The wiki is the best place to learn how everything works.
 
 ## Getting Started
 
@@ -73,7 +73,8 @@ Includes:
    scan
    sniff
    ...
-
+    ```
+   See detailed explanations about [Terminal Commands](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki) and how each one works.
 ## ESP32 Bus Pirate on M5 Devices
 ![ESP32 Bus Pirate running on M5 Stack devices](images/buspirate.jpg)
 
