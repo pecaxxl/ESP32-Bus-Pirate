@@ -92,7 +92,8 @@ void SpiController::handleFlashErase() {
 Config
 */
 void SpiController::handleConfig() {
-    terminalView.println("SPI: Not yet implemented");
+    terminalView.println("  [Info] This mode is not implemented yet.");
+    terminalView.println("         Support is planned for a future release.");
 }
 
 void SpiController::ensureConfigured() {

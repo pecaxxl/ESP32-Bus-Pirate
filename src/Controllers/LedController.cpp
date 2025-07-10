@@ -33,7 +33,8 @@ void LedController::handleInstruction(const std::vector<ByteCode>& bytecodes) {
 Config
 */
 void LedController::handleConfig() {
-    terminalView.println("LED Configuration [NYI]");
+    terminalView.println("  [Info] This mode is not implemented yet.");
+    terminalView.println("         Support is planned for a future release.");
 }
 
 void LedController::ensureConfigured() {
