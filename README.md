@@ -83,9 +83,11 @@ The wiki is the best place to learn how everything works.
 
 The ESP32 Bus Pirate firmware provides two command-line interface (CLI) modes:
 
-- **Web Interface:** Accessible from any browser over Wi-Fi, the web CLI lets you control the Bus Pirate wirelessly using a mobile phone or computer. It’s ideal for quick tests, demos, or headless setups.
+| Interface         | Advantages                                                                 | Ideal for...                          |
+|------------------|-----------------------------------------------------------------------------|----------------------------------------|
+| **Web Interface** | - Accessible from any browser<br>- Works over Wi-Fi<br>- No cables needed | Quick tests, demos, headless setups   |
+| **Serial Interface** | - Faster performance<br>- Instant responsiveness<br>- Handles large data smoothly | Intensive sessions, frequent interactions |
 
-- **Serial Interface:** Offers faster performance, instant responsiveness, and a smoother experience, especially when working with large amounts of output or intensive interaction.
 
 Both interfaces share the same command structure and can be used interchangeably.
 
