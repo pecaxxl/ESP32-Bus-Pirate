@@ -207,7 +207,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  read                 - Read at current baud");
     terminalView.println("  write <text>         - Send at current baud");
     terminalView.println("  bridge               - Full-duplex mode");
-    terminalView.println("  glitch               - Timing attack [NYI]");
+    terminalView.println("  glitch               - Timing attack");
     terminalView.println("  config               - Configure settings");
     terminalView.println("  ['Hello'] [r:64]...   - Instruction syntax");
  
@@ -229,23 +229,23 @@ void UtilityController::handleHelp() {
 
     terminalView.println("");
     terminalView.println(" 6. SPI:");
-    terminalView.println("  sniff                - View traffic [NYI]");
-    terminalView.println("  sdcard               - SD operations [NYI]");
-    terminalView.println("  flash probe          - Identify chip [NYI]");
-    terminalView.println("  flash read           - Read content [NYI]");
-    terminalView.println("  flash write          - Write to flash [NYI]");
-    terminalView.println("  flash erase          - Erase flash [NYI]");
-    terminalView.println("  config               - Configure settings [NYI]");
-    terminalView.println("  [..]                 - Instruction syntax [NYI]");
+    terminalView.println("  sniff                - View traffic");
+    terminalView.println("  sdcard               - SD operations");
+    terminalView.println("  flash probe          - Identify chip");
+    terminalView.println("  flash read           - Read content");
+    terminalView.println("  flash write          - Write to flash");
+    terminalView.println("  flash erase          - Erase flash");
+    terminalView.println("  config               - Configure settings");
+    terminalView.println("  [..]                 - Instruction syntax");
 
     terminalView.println("");
     terminalView.println(" 7. 2WIRE:");
-    terminalView.println("  sniff                - View traffic [NYI]");
-    terminalView.println("  [..]                 - Instruction syntax [NYI]");
+    terminalView.println("  sniff                - View traffic");
+    terminalView.println("  [..]                 - Instruction syntax");
 
     terminalView.println("");
     terminalView.println(" 8. 3WIRE:");
-    terminalView.println("  [..]                 - Instruction syntax [NYI]");
+    terminalView.println("  [..]                 - Instruction syntax");
 
     terminalView.println("");
     terminalView.println(" 9. DIO:");
@@ -258,11 +258,11 @@ void UtilityController::handleHelp() {
 
     terminalView.println("");
     terminalView.println(" 10. LED:");
-    terminalView.println("  write i <r> <g> <b>  - Set LED color [NYI]");
-    terminalView.println("  setprotocol          - Select LED type [NYI]");
-    terminalView.println("  test                 - Run animation [NYI]");
-    terminalView.println("  config               - Configure settings [NYI]");
-    terminalView.println("  reset                - Turn off all LEDs [NYI]");
+    terminalView.println("  write i <r> <g> <b>  - Set LED color");
+    terminalView.println("  setprotocol          - Select LED type");
+    terminalView.println("  test                 - Run animation");
+    terminalView.println("  config               - Configure settings");
+    terminalView.println("  reset                - Turn off all LEDs");
 
     terminalView.println("");
     terminalView.println(" 11. INFRARED:");
@@ -301,7 +301,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  ping <host>          - Ping a remote host");
     terminalView.println("  sniff                - Monitor Wi-Fi packets");
     terminalView.println("  connect <ssid> <pw>  - Connect to a network");
-    terminalView.println("  spoof ap <mac>       - Spoof Access point MAC");
+    terminalView.println("  spoof ap <mac>       - Spoof AP MAC");
     terminalView.println("  spoof sta <mac>      - Spoof Station MAC");
     terminalView.println("  status               - Show Wi-Fi status");
     terminalView.println("  disconnect           - Disconnect from Wi-Fi");
@@ -311,7 +311,7 @@ void UtilityController::handleHelp() {
 
     terminalView.println("");
     terminalView.println(" 15. JTAG:");
-    terminalView.println("  scan                 - Scan JTAG/SWD [NYI]");
+    terminalView.println("  scan                 - Scan JTAG/SWD pins");
 
     terminalView.println("");
     terminalView.println(" Instructions (available in most modes):");
