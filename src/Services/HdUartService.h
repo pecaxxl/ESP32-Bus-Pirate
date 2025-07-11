@@ -1,11 +1,20 @@
 #pragma once
 
 #include <vector>
-#include "Models/ByteCode.h"
 #include <Arduino.h>
+#include "driver/uart.h"
+#include "driver/gpio.h"
+#include "esp_rom_gpio.h"
+#include "hal/uart_types.h"
+#include "soc/uart_periph.h"
+#include "Models/ByteCode.h"
+
+#define HD_UART_PORT UART_NUM_1
+#define UART_RX_BUFFER_SIZE 256
+
 class HdUartService {
 public:
-    void configure(unsigned long baud, uint32_t config, uint8_t pin, bool inverted);
+    void configure(unsigned long baud, uint8_t dataBits, char parity, uint8_t stopBits, uint8_t ioPin, bool inverted);
     void write(uint8_t data);
     void write(const std::string& str);
     bool available() const;
@@ -13,6 +22,7 @@ public:
     std::string readLine();
     std::string executeByteCode(const std::vector<ByteCode>& bytecodes);
     void flush();
+    uart_config_t buildUartConfig(unsigned long baud, uint8_t bits, char parity, uint8_t stop);
 
 private:
     uint8_t ioPin;
@@ -20,6 +30,4 @@ private:
     uint32_t serialConfig;
     bool isInverted;
 
-    void switchToRead();
-    void switchToWrite();
 };

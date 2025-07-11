@@ -33,12 +33,28 @@ Bridge mode read/write
 */
 void HdUartController::handleBridge() {
     terminalView.println("HDUART Bridge: In progress... Press any ESP32 button to stop.");
+
+    std::string echoBuffer;
+
     while (true) {
-        if (hdUartService.available()) {
-            terminalView.print(std::string(1, hdUartService.read()));
+        // Receive UART
+        while (hdUartService.available()) {
+            char incoming = hdUartService.read();
+            if (!echoBuffer.empty() && incoming == echoBuffer.front()) {
+                echoBuffer.erase(0, 1); // Filter for echo line
+            } else {
+                terminalView.print(std::string(1, incoming));
+            }
         }
+
+        // Terminal input
         char c = terminalInput.readChar();
-        if (c != KEY_NONE) hdUartService.write(c);
+        if (c != KEY_NONE) {
+            hdUartService.write(c);
+            echoBuffer += c; // On s'attend à le recevoir en écho
+        }
+
+        // Device input
         c = deviceInput.readChar();
         if (c != KEY_NONE) {
             terminalView.println("\nHDUART Bridge: Stopped by user.");
@@ -74,14 +90,10 @@ void HdUartController::handleConfig() {
     bool inverted = userInputManager.readYesNo("Inverted?", state.isHdUartInverted());
     state.setHdUartInverted(inverted);
 
-    uint32_t config = buildUartConfig(dataBits, parity, stopBits);
-    state.setHdUartConfig(config);
-
-    hdUartService.configure(baud, config, pin, inverted);
+    hdUartService.configure(baud, dataBits, parity, stopBits, pin, inverted);
 
     terminalView.println("HDUART configuration applied.\n");
 }
-
 
 /*
 Help
@@ -90,19 +102,6 @@ void HdUartController::handleHelp() {
     terminalView.println("\nHDUART Commands:\n"
                          "  bridge       Interactive mode\n"
                          "  config       Set TX/RX pin, baud etc.\n");
-}
-
-uint32_t HdUartController::buildUartConfig(uint8_t bits, char parity, uint8_t stop) {
-    uint32_t conf = SERIAL_8N1;
-    if (bits == 5) conf = (stop == 2) ? SERIAL_5N2 : SERIAL_5N1;
-    else if (bits == 6) conf = (stop == 2) ? SERIAL_6N2 : SERIAL_6N1;
-    else if (bits == 7) conf = (stop == 2) ? SERIAL_7N2 : SERIAL_7N1;
-    else if (bits == 8) conf = (stop == 2) ? SERIAL_8N2 : SERIAL_8N1;
-
-    if (parity == 'E') conf |= 0x02;
-    else if (parity == 'O') conf |= 0x01;
-
-    return conf;
 }
 
 void HdUartController::ensureConfigured() {

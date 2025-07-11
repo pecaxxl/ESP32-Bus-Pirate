@@ -42,7 +42,4 @@ private:
 
     // HDURT Available commands
     void handleHelp();
-
-    // Package configuration
-    uint32_t buildUartConfig(uint8_t dataBits, char parity, uint8_t stopBits);
 };
