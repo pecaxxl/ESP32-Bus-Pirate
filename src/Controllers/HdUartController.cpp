@@ -51,7 +51,7 @@ void HdUartController::handleBridge() {
         char c = terminalInput.readChar();
         if (c != KEY_NONE) {
             hdUartService.write(c);
-            echoBuffer += c; // On s'attend à le recevoir en écho
+            echoBuffer += c; // echo char
         }
 
         // Device input

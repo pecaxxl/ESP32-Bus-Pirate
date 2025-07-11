@@ -209,7 +209,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  bridge               - Full-duplex mode");
     terminalView.println("  glitch               - Timing attack [NYI]");
     terminalView.println("  config               - Configure settings");
-    terminalView.println("  ['Hello] [r:64]...   - Instruction syntax");
+    terminalView.println("  ['Hello'] [r:64]...   - Instruction syntax");
  
     terminalView.println("");
     terminalView.println(" 4. HDUART:");
