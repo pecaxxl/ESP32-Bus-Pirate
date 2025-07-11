@@ -6,6 +6,7 @@
 #include "Models/TerminalCommand.h"
 #include "Models/ByteCode.h"
 #include "Services/UartService.h"
+#include "Services/HdUartService.h"
 #include "Interfaces/ITerminalView.h"
 #include "Interfaces/IInput.h"
 #include "States/GlobalState.h"
@@ -19,6 +20,7 @@ public:
                    IInput& terminalInput,
                    IInput& deviceInput,
                    UartService& uartService, 
+                   HdUartService& hdUartService, 
                    ArgTransformer& argTransformer,
                    UserInputManager& userInputManager);
     
@@ -78,10 +80,10 @@ public:
     IInput& terminalInput;
     IInput& deviceInput;
     UartService& uartService;
+    HdUartService& hdUartService;
     ArgTransformer& argTransformer;
     UserInputManager& userInputManager;
     GlobalState& state = GlobalState::getInstance();
-    bool configured = false;
     bool scanCancelled = false;
 
     // Predefined probe commands for scan()

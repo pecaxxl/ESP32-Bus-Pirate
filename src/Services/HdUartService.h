@@ -9,7 +9,7 @@
 #include "soc/uart_periph.h"
 #include "Models/ByteCode.h"
 
-#define HD_UART_PORT UART_NUM_1
+#define HD_UART_PORT UART_NUM_2
 #define UART_RX_BUFFER_SIZE 256
 
 class HdUartService {
@@ -23,11 +23,14 @@ public:
     std::string executeByteCode(const std::vector<ByteCode>& bytecodes);
     void flush();
     uart_config_t buildUartConfig(unsigned long baud, uint8_t bits, char parity, uint8_t stop);
+    void end();
+    bool getConfigured();
 
 private:
     uint8_t ioPin;
     unsigned long baudRate;
     uint32_t serialConfig;
     bool isInverted;
+    bool hdUartConfigured = false;
 
 };

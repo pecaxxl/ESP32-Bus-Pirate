@@ -4,8 +4,8 @@
 Constructor
 */
 UartController::UartController(ITerminalView& terminalView, IInput& terminalInput, IInput& deviceInput, 
-                               UartService& uartService, ArgTransformer& argTransformer, UserInputManager& userInputManager)
-    : terminalView(terminalView), terminalInput(terminalInput), deviceInput(deviceInput), uartService(uartService), argTransformer(argTransformer), userInputManager(userInputManager) {}
+                               UartService& uartService, HdUartService& hDUartService, ArgTransformer& argTransformer, UserInputManager& userInputManager)
+    : terminalView(terminalView), terminalInput(terminalInput), deviceInput(deviceInput), uartService(uartService), hdUartService(hdUartService), argTransformer(argTransformer), userInputManager(userInputManager) {}
 
 
 /*
@@ -363,8 +363,8 @@ void UartController::handleGlitch() {
 Ensure Config
 */
 void UartController::ensureConfigured() {
-    if (!configured) {
+    // hdUartService.end(); // it crashes the app for some reasons
+    if (!uartService.getConfigured()) {
         handleConfig();
-        configured = true;
     }
 }

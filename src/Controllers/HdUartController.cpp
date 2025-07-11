@@ -4,9 +4,9 @@
 Constructor
 */
 HdUartController::HdUartController(ITerminalView& terminalView, IInput& terminalInput, IInput& deviceInput,
-                                   HdUartService& hdUartService, ArgTransformer& argTransformer, UserInputManager& userInputManager)
+                                   HdUartService& hdUartService, UartService& uartService, ArgTransformer& argTransformer, UserInputManager& userInputManager)
     : terminalView(terminalView), terminalInput(terminalInput), deviceInput(deviceInput),
-      hdUartService(hdUartService), argTransformer(argTransformer), userInputManager(userInputManager) {}
+      hdUartService(hdUartService), uartService(uartService), argTransformer(argTransformer), userInputManager(userInputManager) {}
 
 /*
 Entry point for HDUART commands
@@ -104,9 +104,12 @@ void HdUartController::handleHelp() {
                          "  config       Set TX/RX pin, baud etc.\n");
 }
 
+/*
+Ensure Configuration
+*/
 void HdUartController::ensureConfigured() {
-    if (!configured) {
+    uartService.end();
+    if (!hdUartService.getConfigured()) {
         handleConfig();
-        configured = true;
     }
 }

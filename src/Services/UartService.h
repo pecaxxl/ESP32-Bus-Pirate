@@ -1,8 +1,15 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "Models/ByteCode.h"
 #include "Arduino.h"
+#include "driver/uart.h"
+#include "driver/gpio.h"
+#include "esp_rom_gpio.h"
+#include "hal/uart_types.h"
+#include "soc/uart_periph.h"
+#include "Models/ByteCode.h"
+
+#define UART_PORT UART_NUM_1
 
 class UartService {
 public:
@@ -18,5 +25,9 @@ public:
     void switchBaudrate(unsigned long newBaud);
     void flush();
     void clearUartBuffer();
+    void end();
+    bool getConfigured();
     uint32_t buildUartConfig(uint8_t dataBits, char parity, uint8_t stopBits);
+private:
+    bool uartConfigured = false;
 };

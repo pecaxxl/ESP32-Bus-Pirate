@@ -5,6 +5,7 @@
 #include "Models/ByteCode.h"
 #include "Models/TerminalCommand.h"
 #include "Services/HdUartService.h"
+#include "Services/UartService.h"
 #include "Transformers/ArgTransformer.h"
 #include "States/GlobalState.h"
 #include "Managers/UserInputManager.h"
@@ -12,7 +13,7 @@
 class HdUartController {
 public:
     HdUartController(ITerminalView& terminalView, IInput& terminalInput, IInput& deviceInput,
-                     HdUartService& hdUartService, ArgTransformer& argTransformer, UserInputManager& userInputManager);
+                     HdUartService& hdUartService, UartService& uartService, ArgTransformer& argTransformer, UserInputManager& userInputManager);
     
     // Entry point for HDUART command
     void handleCommand(const TerminalCommand& cmd);
@@ -28,18 +29,17 @@ private:
     IInput& terminalInput;
     IInput& deviceInput;
     HdUartService& hdUartService;
+    UartService& uartService;
     ArgTransformer& argTransformer;
     UserInputManager& userInputManager;
     GlobalState& state = GlobalState::getInstance();
-    
-    bool configured = false;
-    
+        
     // HDUART Bridge mode read/write on one line
     void handleBridge();
 
     // Configure HDUART
     void handleConfig();
 
-    // HDURT Available commands
+    // Show HDUART Available commands
     void handleHelp();
 };
