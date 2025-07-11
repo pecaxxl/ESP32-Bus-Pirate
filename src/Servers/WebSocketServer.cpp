@@ -86,11 +86,21 @@ char WebSocketServer::readCharNonBlocking() {
 void WebSocketServer::sendText(const std::string& msg) {
     if (clientFd < 0) return;
 
-    httpd_ws_frame_t ws_pkt;
-    memset(&ws_pkt, 0, sizeof(ws_pkt));
-    ws_pkt.type = HTTPD_WS_TYPE_TEXT;
-    ws_pkt.payload = (uint8_t*) msg.c_str();
-    ws_pkt.len = msg.length();
+    // Sanitize UTF8
+    std::string safeMsg;
+    for (unsigned char c : msg) {
+        if ((c >= 32 && c <= 126) || c == '\n' || c == '\r' || c == '\t') {
+            safeMsg += c;
+        }
+        // None UTF8, cant send that to socket
+    }
 
-    esp_err_t ret = httpd_ws_send_frame_async(server, clientFd, &ws_pkt);
+    if (safeMsg.empty()) return;
+
+    httpd_ws_frame_t ws_pkt = {};
+    ws_pkt.type = HTTPD_WS_TYPE_TEXT;
+    ws_pkt.payload = (uint8_t*) safeMsg.c_str();
+    ws_pkt.len = safeMsg.length();
+
+    httpd_ws_send_frame_async(server, clientFd, &ws_pkt);
 }
