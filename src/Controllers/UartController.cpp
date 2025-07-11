@@ -240,6 +240,7 @@ bool UartController::checkScanCancelled() {
     char key = terminalInput.readChar();
     if (key == '\r' || key == '\n') {
         terminalView.println("UART Scan: Cancelled by user.");
+        uartService.switchBaudrate(state.getUartBaudRate()); // restore previous
         scanCancelled = true;
         return true;
     }
