@@ -24,13 +24,11 @@ public:
     void flush();
     uart_config_t buildUartConfig(unsigned long baud, uint8_t bits, char parity, uint8_t stop);
     void end();
-    bool getConfigured();
 
 private:
     uint8_t ioPin;
     unsigned long baudRate;
     uint32_t serialConfig;
     bool isInverted;
-    bool hdUartConfigured = false;
 
 };

@@ -3,17 +3,10 @@
 void UartService::configure(unsigned long baud, uint32_t config, uint8_t rx, uint8_t tx, bool inverted) {
     Serial1.end(); // stop before reconfigure
     Serial1.begin(baud, config, rx, tx, inverted);
-    uartConfigured = true;
 }
 
 void UartService::end() {
-    if (!uartConfigured) return;
     Serial1.end();
-    uartConfigured = false;
-}
-
-bool UartService::getConfigured() {
-    return uartConfigured;
 }
 
 std::string UartService::readLine() {

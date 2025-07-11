@@ -221,5 +221,11 @@ void InfraredController::ensureConfigured() {
     if (!configured) {
         handleConfig();
         configured = true;
+        return;
     }
+
+    // Always reconfigure before use
+    uint8_t tx = state.getInfraredTxPin();
+    uint8_t rx = state.getInfraredRxPin();
+    infraredService.configure(tx, rx);
 }

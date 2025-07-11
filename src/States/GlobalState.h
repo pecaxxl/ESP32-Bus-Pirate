@@ -62,7 +62,7 @@ private:
     bool hdUartInverted = false;
     uint8_t hdUartPin = 1;
     uint8_t hdUartDataBits = 8;
-    std::string hdUartParity = "None";
+    std::string hdUartParity = "N";
     bool hdUartFlowControl = false;
     uint8_t hdUartStopBits = 1;
 

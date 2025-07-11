@@ -26,8 +26,5 @@ public:
     void flush();
     void clearUartBuffer();
     void end();
-    bool getConfigured();
     uint32_t buildUartConfig(uint8_t dataBits, char parity, uint8_t stopBits);
-private:
-    bool uartConfigured = false;
 };

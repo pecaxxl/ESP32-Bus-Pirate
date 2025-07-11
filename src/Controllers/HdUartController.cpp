@@ -109,7 +109,25 @@ Ensure Configuration
 */
 void HdUartController::ensureConfigured() {
     uartService.end();
-    if (!hdUartService.getConfigured()) {
+
+    if (!configured) {
         handleConfig();
+        configured = true;
+        return;
     }
+
+    hdUartService.end();
+
+    // User could have set the same pin to a different usage
+    // eg. select UART, then select I2C, then select UART
+    // Always reconfigure pins before use
+    auto rx = state.getHdUartPin();
+    auto parityStr = state.getHdUartParity();
+    auto baud = state.getHdUartBaudRate();
+    auto dataBits = state.getHdUartDataBits();
+    auto stopBits = state.getHdUartStopBits();
+    bool inverted = state.isHdUartInverted();
+    char parity = !parityStr.empty() ? parityStr[0] : 'N';
+
+    hdUartService.configure(baud, dataBits, parity, stopBits, rx, inverted);
 }

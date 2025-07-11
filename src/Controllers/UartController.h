@@ -84,6 +84,7 @@ public:
     ArgTransformer& argTransformer;
     UserInputManager& userInputManager;
     GlobalState& state = GlobalState::getInstance();
+    bool configured = false;
     bool scanCancelled = false;
 
     // Predefined probe commands for scan()

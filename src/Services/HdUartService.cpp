@@ -28,19 +28,12 @@ void HdUartService::configure(unsigned long baud, uint8_t dataBits, char parity,
     // Route UART signals to shared pin
     esp_rom_gpio_connect_out_signal(ioPin, UART_PERIPH_SIGNAL(HD_UART_PORT, SOC_UART_TX_PIN_IDX), false, false);
     esp_rom_gpio_connect_in_signal(ioPin, UART_PERIPH_SIGNAL(HD_UART_PORT, SOC_UART_RX_PIN_IDX), false);
-    hdUartConfigured = true;
 }
 
 void HdUartService::end() {
-    if (hdUartConfigured) {
-        uart_driver_delete(HD_UART_PORT);
-        hdUartConfigured = false;
-    }
+    uart_driver_delete(HD_UART_PORT);
 }
 
-bool HdUartService::getConfigured() {
-    return hdUartConfigured;
-}
 
 void HdUartService::write(uint8_t data) {
     uart_write_bytes(HD_UART_PORT, &data, 1);

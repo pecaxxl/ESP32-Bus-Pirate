@@ -31,7 +31,7 @@ void ThreeWireController::handleInstruction(const std::vector<ByteCode>& bytecod
 Config
 */
 void ThreeWireController::handleConfig() {
-    terminalView.println("  [Info] This mode is not implemented yet.");
+    terminalView.println("  [INFO] This mode is not implemented yet.");
     terminalView.println("         Support is planned for a future release.\n");
 }
 

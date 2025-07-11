@@ -87,6 +87,10 @@ void I2cController::handleSniff() {
     i2c_sniffer_begin(state.getI2cSclPin(), state.getI2cSdaPin()); // dont need freq to work
     i2c_sniffer_setup();
 
+    terminalView.println("  [INFO] I2C sniffer mode is experimental.");
+    terminalView.println("         It may crash or freeze the firmware");
+    terminalView.println("         if the data stream is too fast or continuous.\n");
+
     std::string line;
 
     while (true) {
@@ -284,13 +288,15 @@ void I2cController::ensureConfigured() {
     if (!configured) {
         handleConfig();
         configured = true;
-    } else {
-        // Reset I2C
-        i2cService.end();
-        uint8_t sda = state.getI2cSdaPin();
-        uint8_t scl = state.getI2cSclPin();
-        uint32_t freq = state.getI2cFrequency();
-        i2cService.configure(sda, scl, freq);
-
+        return;
     }
+
+    // User could have set the same pin to a different usage
+    // eg. select I2C then select UART then select I2C
+    // Always reconfigure pins before use
+    i2cService.end();
+    uint8_t sda = state.getI2cSdaPin();
+    uint8_t scl = state.getI2cSclPin();
+    uint32_t freq = state.getI2cFrequency();
+    i2cService.configure(sda, scl, freq);
 }

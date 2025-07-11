@@ -363,8 +363,24 @@ void UartController::handleGlitch() {
 Ensure Config
 */
 void UartController::ensureConfigured() {
-    // hdUartService.end(); // it crashes the app for some reasons
-    if (!uartService.getConfigured()) {
+    // hdUartService.end() // It crashed the app for some reasons, not rly needed
+
+    if (!configured) {
         handleConfig();
+        configured = true;
+        return;
     }
+
+    // User could have set the same pin to a different usage
+    // eg. select UART, then select I2C, then select UART
+    // Always reconfigure pins before use
+    uartService.end();
+
+    uint8_t rx = state.getUartRxPin();
+    uint8_t tx = state.getUartTxPin();
+    uint32_t baud = state.getUartBaudRate();
+    uint32_t config = state.getUartConfig();
+    bool inverted = state.isUartInverted();
+
+    uartService.configure(baud, config, rx, tx, inverted);
 }

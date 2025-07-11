@@ -46,7 +46,7 @@ void TwoWireController::handleSniff() {
 Config
 */
 void TwoWireController::handleConfig() {
-    terminalView.println("  [Info] This mode is not implemented yet.");
+    terminalView.println("  [INFO] This mode is not implemented yet.");
     terminalView.println("         Support is planned for a future release.\n");
 }
 

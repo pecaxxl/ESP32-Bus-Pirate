@@ -33,7 +33,9 @@ private:
     ArgTransformer& argTransformer;
     UserInputManager& userInputManager;
     GlobalState& state = GlobalState::getInstance();
-        
+    
+    bool configured = false;
+    
     // HDUART Bridge mode read/write on one line
     void handleBridge();
 
