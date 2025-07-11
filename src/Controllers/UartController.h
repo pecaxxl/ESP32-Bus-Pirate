@@ -53,9 +53,6 @@ public:
     // Send glitch pattern over uart
     void handleGlitch();
 
-    // Encode UART config bits
-    uint32_t buildUartConfig(uint8_t dataBits, char parity, uint8_t stopBits);
-
     // Scan to find the right baudrate
     void handleScan();
 

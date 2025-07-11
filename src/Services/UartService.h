@@ -18,4 +18,5 @@ public:
     void switchBaudrate(unsigned long newBaud);
     void flush();
     void clearUartBuffer();
+    uint32_t buildUartConfig(uint8_t dataBits, char parity, uint8_t stopBits);
 };

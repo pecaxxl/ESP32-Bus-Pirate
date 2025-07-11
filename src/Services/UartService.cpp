@@ -126,3 +126,17 @@ void UartService::clearUartBuffer() {
         count++;
     }
 }
+
+
+uint32_t UartService::buildUartConfig(uint8_t dataBits, char parity, uint8_t stopBits) {
+    uint32_t config = SERIAL_8N1;
+    if (dataBits == 5) config = (stopBits == 2) ? SERIAL_5N2 : SERIAL_5N1;
+    else if (dataBits == 6) config = (stopBits == 2) ? SERIAL_6N2 : SERIAL_6N1;
+    else if (dataBits == 7) config = (stopBits == 2) ? SERIAL_7N2 : SERIAL_7N1;
+    else if (dataBits == 8) config = (stopBits == 2) ? SERIAL_8N2 : SERIAL_8N1;
+
+    if (parity == 'E') config |= 0x02;
+    else if (parity == 'O') config |= 0x01;
+
+    return config;
+}

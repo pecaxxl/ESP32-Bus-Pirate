@@ -327,9 +327,8 @@ void UartController::handleConfig() {
     bool inverted = userInputManager.readYesNo("Inverted?", state.isUartInverted());
     state.setUartInverted(inverted);
 
-    uint32_t config = buildUartConfig(dataBits, parityChar, stopBits);
+    uint32_t config = uartService.buildUartConfig(dataBits, parityChar, stopBits);
     state.setUartConfig(config);
-
     uartService.configure(baud, config, rxPin, txPin, inverted);
 
     terminalView.println("UART configuration applied.");
@@ -360,7 +359,6 @@ void UartController::handleGlitch() {
     terminalView.println("Uart Glicher: Not Yet Implemented");
 }
 
-
 /*
 Ensure Config
 */
@@ -369,20 +367,4 @@ void UartController::ensureConfigured() {
         handleConfig();
         configured = true;
     }
-}
-
-/*
-Utils
-*/
-uint32_t UartController::buildUartConfig(uint8_t dataBits, char parity, uint8_t stopBits) {
-    uint32_t config = SERIAL_8N1;
-    if (dataBits == 5) config = (stopBits == 2) ? SERIAL_5N2 : SERIAL_5N1;
-    else if (dataBits == 6) config = (stopBits == 2) ? SERIAL_6N2 : SERIAL_6N1;
-    else if (dataBits == 7) config = (stopBits == 2) ? SERIAL_7N2 : SERIAL_7N1;
-    else if (dataBits == 8) config = (stopBits == 2) ? SERIAL_8N2 : SERIAL_8N1;
-
-    if (parity == 'E') config |= 0x02;
-    else if (parity == 'O') config |= 0x01;
-
-    return config;
 }
