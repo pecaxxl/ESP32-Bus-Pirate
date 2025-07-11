@@ -75,12 +75,6 @@ char WebSocketServer::readCharBlocking() {
 }
 
 char WebSocketServer::readCharNonBlocking() {
-    const unsigned long timeout = millis() + 20; // some time for websocket
-
-    while (buffer.empty() && millis() < timeout) {
-        delay(1);  // laisse tourner la loop
-    }
-
     if (buffer.empty()) return KEY_NONE;
 
     char c = buffer.front();

@@ -13,7 +13,9 @@ function connectSocket() {
   socket = new WebSocket("ws://" + window.location.host + "/ws");
 
   socket.onopen = function () {
-    hideWsLostPopup(); // Supprime le popup 
+    hideWsLostPopup(); // Supprime le popup
+    bridgeMode = false;
+    pendingEchoLines = 0;
     console.log("[WebSocket] Connected");
   };
 
@@ -54,6 +56,7 @@ function connectSocket() {
 }
 
 function showWsLostPopup() {
+  if (bridgeMode) return;
   const popup = document.getElementById("ws-lost-popup");
   if (popup) {
     popup.style.display = "block";
@@ -72,16 +75,6 @@ function sendCommand() {
   const output = document.getElementById("output");
   const cmd = input.value.trim();
 
-  // Timeout for response
-  clearTimeout(responseTimeout);
-  if (!bridgeMode) {
-    clearTimeout(responseTimeout);
-    responseTimeout = setTimeout(() => {
-      console.warn("[WebSocket] No response after command.");
-      showWsLostPopup();
-    }, responseTimeoutDelay);
-  }
-
   // No socket
   if (socket.readyState !== WebSocket.OPEN) return;
 
@@ -98,6 +91,13 @@ function sendCommand() {
     output.value += cmd + "\n";
     return; // enter bridge mode
   }
+
+  // Set timeout in non-bridge mode
+  clearTimeout(responseTimeout);
+  responseTimeout = setTimeout(() => {
+    console.warn("[WebSocket] No response after command.");
+    showWsLostPopup();
+  }, responseTimeoutDelay);
 
   // Normal Send
   socket.send(cmd + "\n");
