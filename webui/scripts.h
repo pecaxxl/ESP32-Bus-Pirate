@@ -113,18 +113,12 @@ function sendCommand() {
   }
 }
 
-// Bind Enter to sendCommand
+// Bind
 window.addEventListener("DOMContentLoaded", function () {
   const input = document.getElementById("command");
+  const output = document.getElementById("output");
 
-  input.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      sendCommand();
-    }
-  });
-
-  // Initialiser l'affichage du terminal
+  // Initialize terminal
   output.value = 
 `  ____                    _           _       
  | __ ) _   _ ___   _ __ (_)_ __ __ _| |_ ___ 
@@ -137,6 +131,71 @@ window.addEventListener("DOMContentLoaded", function () {
  Type 'mode' to start or 'help' for commands
 
 HIZ> `;
+
+  // Key events
+  input.addEventListener("keydown", function (event) {
+    // --- ENTER ---
+    if (event.key === "Enter") {
+      event.preventDefault();
+      sendCommand();
+      return;
+    }
+
+    // --- ESCAPE (0x1B) ---
+    if (event.key === "Escape") {
+      if (bridgeMode) {
+        event.preventDefault();
+        socket.send("\x1B");
+      }
+      return;
+    }
+
+    // --- CTRL+C (0x03) ---
+    if (event.ctrlKey && event.key.toLowerCase() === "c") {
+      if (bridgeMode) {
+        event.preventDefault();
+        socket.send("\x03");
+      }
+      return;
+    }
+    
+    // --- TAB (0x09) ---
+    if (event.key === "Tab") {
+      if (bridgeMode) {
+        event.preventDefault();
+        socket.send("\x09");
+      }
+      return;
+    }
+
+    // --- CTRL+D -----
+    if (event.ctrlKey && event.key.toLowerCase() === "d") {
+      if (bridgeMode) {
+        event.preventDefault();
+        socket.send("\x04");
+      }
+      return;
+    }
+    
+    // --- CTRL+Z -----
+    if (event.ctrlKey && event.key.toLowerCase() === "z") {
+      if (bridgeMode) {
+        event.preventDefault();
+        socket.send("\x1A");
+      }
+      return;
+    }
+
+    // --- CTRL+X -----
+    if (event.ctrlKey && event.key.toLowerCase() === "x") {
+      if (bridgeMode) {
+        event.preventDefault();
+        socket.send("\x18");
+      }
+      return;
+    }
+
+  });
 
   connectSocket(); // Initial connection
 });
