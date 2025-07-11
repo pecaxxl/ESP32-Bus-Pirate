@@ -60,7 +60,7 @@ public:
     bool startAccessPoint(const std::string& ssid, const std::string& password = "", int channel = 1, int maxConn = 4);
     
     // Ping
-    bool ping(const std::string& host);
+    int ping(const std::string& host);
 
     // Spoof MAC
     bool spoofMacAddress(const std::string& macStr, MacInterface which);

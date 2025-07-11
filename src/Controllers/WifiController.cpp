@@ -81,7 +81,6 @@ void WifiController::handleDisconnect(const TerminalCommand& cmd) {
     terminalView.println("WiFi: Disconnected.");
 }
 
-
 /*
 Status
 */
@@ -118,7 +117,7 @@ void WifiController::handleAp(const TerminalCommand& cmd) {
     }
 
     if (wifiService.startAccessPoint(ssid, password)) {
-        terminalView.println("WiFi: Access Point started with SSID = " + ssid);
+        terminalView.println("WiFi: Access Point started with SSID " + ssid);
         terminalView.println("AP IP: " + wifiService.getApIp());
 
         auto nvsSsidField = state.getNvsSsidField();
@@ -173,20 +172,10 @@ Ping
 void WifiController::handlePing(const TerminalCommand& cmd) {
     std::string host = cmd.getSubcommand();
 
-    if (host.empty()) {
-        terminalView.println("Usage: ping <host>");
-        return;
-    }
+    int responseTimeMs = wifiService.ping(host);
 
-    if (!wifiService.isConnected()) {
-        terminalView.println("WiFi: Not connected.");
-        return;
-    }
-
-    terminalView.println("WiFi: Pinging " + host + "...");
-
-    if (wifiService.ping(host)) {
-        terminalView.println("WiFi: Ping successful.");
+    if (responseTimeMs >= 0) {
+        terminalView.println("WiFi: Ping on " + host + " successful (" + std::to_string(responseTimeMs) + " ms).");
     } else {
         terminalView.println("WiFi: Ping failed.");
     }
