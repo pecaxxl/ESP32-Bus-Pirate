@@ -75,14 +75,21 @@ The wiki is the best place to learn how everything works.
    ...
     ```
    See detailed explanations about [Terminal Commands](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki) and how each one works.
+   
 ## ESP32 Bus Pirate on M5 Devices
 ![ESP32 Bus Pirate running on M5 Stack devices](images/buspirate.jpg)
 
+## CLI: Web & Serial Interfaces
 
-## ESP32 Bus Pirate Web CLI on Mobile
+The ESP32 Bus Pirate firmware provides two command-line interface (CLI) modes:
+
+- **Web Interface:** Accessible from any browser over Wi-Fi, the web CLI lets you control the Bus Pirate wirelessly using a mobile phone or computer. It’s ideal for quick tests, demos, or headless setups.
+
+- **Serial Interface:** Offers faster performance, instant responsiveness, and a smoother experience, especially when working with large amounts of output or intensive interaction.
+
+Both interfaces share the same command structure and can be used interchangeably.
+
 ![An iPhone screenshot showing Bus Pirate web cli](images/mobile.jpg)
-
-
 
 ## Warning
 > ⚠️ **Voltage Warning**: Devices should only operate at **3.3V** or **5V**.  
