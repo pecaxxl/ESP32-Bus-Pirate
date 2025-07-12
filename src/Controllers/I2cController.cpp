@@ -113,6 +113,7 @@ void I2cController::handleSniff() {
 
     i2c_sniffer_reset_buffer();
     i2c_sniffer_stop();
+    i2cService.configure(state.getI2cSdaPin(), state.getI2cSclPin(), state.getI2cFrequency());
     terminalView.println("\n\nI2C Sniffer: Stopped.");
 }
 
