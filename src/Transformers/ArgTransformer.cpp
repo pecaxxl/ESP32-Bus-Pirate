@@ -112,8 +112,46 @@ bool ArgTransformer::isValidNumber(const std::string& input) {
     return true;
 }
 
+bool ArgTransformer::isValidSignedNumber(const std::string& input) {
+    if (input.empty()) return false;
+
+    std::string s = input;
+    int base = 10;
+    size_t start = 0;
+
+    // Optional sign
+    if (s[0] == '-' || s[0] == '+') {
+        if (s.size() == 1) return false;  // - or + alone is not valid
+        start = 1;
+    }
+
+    // Check for hex prefix
+    if (s.find("0x", start) == start || s.find("0X", start) == start) {
+        base = 16;
+        start += 2;
+    }
+
+    if (start >= s.size()) return false;
+
+    for (size_t i = start; i < s.size(); ++i) {
+        char c = s[i];
+        if ((base == 10 && !isdigit(c)) || (base == 16 && !isxdigit(c))) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 uint8_t ArgTransformer::toUint8(const std::string& input) {
     return static_cast<uint8_t>(std::stoi(input));
+}
+
+int8_t ArgTransformer::toClampedInt8(const std::string& input) {
+    int value = std::stoi(input);
+    if (value < -127) value = -127;
+    if (value > 127) value = 127;
+    return static_cast<int8_t>(value);
 }
 
 uint32_t ArgTransformer::toUint32(const std::string& input) {

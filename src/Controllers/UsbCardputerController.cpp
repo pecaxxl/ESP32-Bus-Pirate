@@ -61,13 +61,15 @@ Mouse Move
 void UsbCardputerController::handleMouseMove(const TerminalCommand& cmd) {
     int x, y = 0;
 
+    // mouse move x y
     if (cmd.getSubcommand() == "move") {
         auto args = argTransformer.splitArgs(cmd.getArgs());
-        x = argTransformer.parseHexOrDec(args[0]);
-        y = argTransformer.parseHexOrDec(args[1]);;
+        x = argTransformer.toClampedInt8(args[0]);
+        y = argTransformer.toClampedInt8(args[1]);
+    // mouse x y
     } else {
-        x = argTransformer.parseHexOrDec(cmd.getSubcommand());
-        y = argTransformer.parseHexOrDec(cmd.getArgs());
+        x = argTransformer.toClampedInt8(cmd.getSubcommand());
+        y = argTransformer.toClampedInt8(cmd.getArgs());
     }
 
     usbService.mouseMove(x, y);

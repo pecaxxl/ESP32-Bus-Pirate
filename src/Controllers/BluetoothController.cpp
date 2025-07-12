@@ -199,11 +199,11 @@ void BluetoothController::handleMouse(const TerminalCommand& cmd) {
 
     // mouse move x y
     if (args.size() == 2 && cmd.getSubcommand() == "move" &&
-        argTransformer.isValidNumber(args[0]) &&
-        argTransformer.isValidNumber(args[1])) {
-        
-        int16_t x = static_cast<int16_t>(std::stoi(args[0]));
-        int16_t y = static_cast<int16_t>(std::stoi(args[1]));
+        argTransformer.isValidSignedNumber(args[0]) &&
+        argTransformer.isValidSignedNumber(args[1])) {
+
+        int8_t x = argTransformer.toClampedInt8(args[0]);
+        int8_t y = argTransformer.toClampedInt8(args[1]);
 
         bluetoothService.mouseMove(x, y);
         terminalView.println("Bluetooth Mouse: Moved by (" + std::to_string(x) + ", " + std::to_string(y) + ")");
@@ -211,13 +211,15 @@ void BluetoothController::handleMouse(const TerminalCommand& cmd) {
     }
     
     // mouse x y
-    if (args.size() != 1 || !argTransformer.isValidNumber(cmd.getSubcommand()) || !argTransformer.isValidNumber(args[0])) {
+    if (args.size() != 1 ||
+        !argTransformer.isValidSignedNumber(cmd.getSubcommand()) ||
+        !argTransformer.isValidSignedNumber(args[0])) {
         terminalView.println("Usage: mouse <x> <y> or mouse click");
         return;
     }
 
-    int16_t x = static_cast<int8_t>(std::stoi(cmd.getSubcommand()));
-    int16_t y = static_cast<int8_t>(std::stoi(args[0]));
+    int8_t x = argTransformer.toClampedInt8(cmd.getSubcommand());
+    int8_t y = argTransformer.toClampedInt8(args[0]);
 
     bluetoothService.mouseMove(x, y);
     terminalView.println("Bluetooth Mouse: Moved by (" + std::to_string(x) + ", " + std::to_string(y) + ")");

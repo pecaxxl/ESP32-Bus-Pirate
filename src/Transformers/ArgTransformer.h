@@ -23,4 +23,6 @@ public:
     std::string toLower(const std::string& input);
     std::string filterPrintable(const std::string& input);
     std::string decodeEscapes(const std::string& input);
+    int8_t toClampedInt8(const std::string& input);
+    bool isValidSignedNumber(const std::string& input);
 };
