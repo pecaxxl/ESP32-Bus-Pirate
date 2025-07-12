@@ -308,6 +308,9 @@ void ActionDispatcher::setCurrentMode(ModeEnum newMode) {
     auto proto = InfraredProtocolMapper::toString(state.getInfraredProtocol());
 
     switch (newMode) {
+        case ModeEnum::HIZ:
+            provider.disableAllProtocols();
+            break;
         case ModeEnum::OneWire:
             provider.getOneWireController().ensureConfigured();
             config.setMappings({ "DATA GPIO " + std::to_string(state.getOneWirePin()) });

@@ -111,6 +111,9 @@ public:
     // Config
     TerminalTypeConfigurator& getTerminalTypeConfigurator();
 
+    // Disable
+    void disableAllProtocols();
+
 private:
     // Core Components
     ITerminalView& terminalView;

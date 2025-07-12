@@ -98,3 +98,12 @@ HorizontalSelector& DependencyProvider::getHorizontalSelector() { return horizon
 
 // Config
 TerminalTypeConfigurator& DependencyProvider::getTerminalTypeConfigurator() { return terminalTypeConfigurator ;}
+
+
+// Disable interfaces
+void DependencyProvider::disableAllProtocols() {
+    getUartService().end();
+    getHdUartService().end();
+    getI2cService().end();
+    getBluetoothService().end();
+}
