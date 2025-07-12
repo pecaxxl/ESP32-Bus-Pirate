@@ -199,6 +199,8 @@ void WifiService::stopPassiveSniffing() {
     esp_wifi_stop();
     esp_wifi_deinit();
     sniffLog.clear();
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect(true);
 }
 
 void WifiService::snifferCallback(void* buf, wifi_promiscuous_pkt_type_t) {
