@@ -185,7 +185,7 @@ void WifiController::handlePing(const TerminalCommand& cmd) {
 Sniff
 */
 void WifiController::handleSniff(const TerminalCommand& cmd) {
-    terminalView.println("WiFi Sniffing started... Press [Enter] to stop.\n");
+    terminalView.println("WiFi Sniffing started... Press [ENTER] to stop.\n");
 
     wifiService.startPassiveSniffing();
     wifiService.switchChannel(1);

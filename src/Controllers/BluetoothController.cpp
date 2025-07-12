@@ -113,7 +113,7 @@ void BluetoothController::handleStatus() {
 Sniff
 */
 void BluetoothController::handleSniff(const TerminalCommand& cmd) {
-    terminalView.println("Bluetooth Sniff: Started... Press [Enter] to stop.\n");
+    terminalView.println("Bluetooth Sniff: Started... Press [ENTER] to stop.\n");
 
     bluetoothService.switchToMode(BluetoothMode::CLIENT);
     BluetoothService::startPassiveBluetoothSniffing();
