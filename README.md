@@ -77,9 +77,9 @@ The wiki is the best place to learn how everything works.
    See detailed explanations about [Terminal Commands](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki) and how each one works.
    
 ## ESP32 Bus Pirate on M5 Devices
-![ESP32 Bus Pirate running on M5 Stack devices](images/buspirate.jpg)
+![ESP32 Bus Pirate running on M5 Stack devices](images/buspirate_s.jpg)
 
-## CLI: Web & Serial Interfaces
+## Web & Serial Interfaces
 
 The ESP32 Bus Pirate firmware provides two command-line interface (CLI) modes:
 
@@ -91,7 +91,11 @@ The ESP32 Bus Pirate firmware provides two command-line interface (CLI) modes:
 
 Both interfaces share the same command structure and can be used interchangeably.
 
-![An iPhone screenshot showing Bus Pirate web cli](images/mobile.jpg)
+![An iPhone screenshot showing Bus Pirate web cli](images/mobile_s.jpg)
+
+## Using the ESP32 Bus Pirate to speak UART over WiFi
+![Using the ESP32 Bus pirate with UART](images/demo2.gif)
+
 
 ## Warning
 > ⚠️ **Voltage Warning**: Devices should only operate at **3.3V** or **5V**.  
