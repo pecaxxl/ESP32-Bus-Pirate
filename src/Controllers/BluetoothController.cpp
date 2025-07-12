@@ -269,7 +269,7 @@ Help
 void BluetoothController::handleHelp() {
     terminalView.println("Bluetooth commands:");
     terminalView.println("  scan");
-    terminalView.println("  pair <addr>");
+    terminalView.println("  pair <mac>");
     terminalView.println("  spoof <mac>");
     terminalView.println("  sniff");
     terminalView.println("  status");

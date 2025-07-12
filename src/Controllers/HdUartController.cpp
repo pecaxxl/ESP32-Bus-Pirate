@@ -101,7 +101,9 @@ Help
 void HdUartController::handleHelp() {
     terminalView.println("\nHDUART Commands:\n"
                          "  bridge       Interactive mode\n"
-                         "  config       Set TX/RX pin, baud etc.\n");
+                         "  config       Set TX/RX pin, baud etc.\n"
+                         "  [0x1 r:255]  Instruction syntax\n");
+
 }
 
 /*
