@@ -12,8 +12,10 @@ public:
 
     uint8_t transfer(uint8_t data);
 
-    void readFlashID(uint8_t* buffer, size_t length);
+    std::string readFlashID();
+    void readFlashIdRaw(uint8_t* buffer);
     void readFlashData(uint32_t address, uint8_t* buffer, size_t length);
+    uint32_t calculateFlashCapacity(uint8_t code);
 
 private:
     uint8_t csPin;

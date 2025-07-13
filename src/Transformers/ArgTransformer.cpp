@@ -44,10 +44,10 @@ uint8_t ArgTransformer::parseHexOrDec(const std::string& str) const {
     // Check Hex format
     if (str.size() > 2 && (str[0] == '0') && (str[1] == 'x' || str[1] == 'X')) {
         base = 16;
-        cstr += 2; // saute le prefixe 0x
+        cstr += 2; // prefix 0x
     }
 
-    // Verifier tous les char
+    // Check chars
     for (size_t i = 0; i < strlen(cstr); ++i) {
         char c = cstr[i];
         if (base == 10 && !isdigit(c)) return 0;
@@ -60,6 +60,28 @@ uint8_t ArgTransformer::parseHexOrDec(const std::string& str) const {
     return static_cast<uint8_t>(value);
 }
 
+uint32_t ArgTransformer::parseHexOrDec32(const std::string& str) const {
+    if (str.empty()) return 0;
+
+    int base = 10;
+    const char* cstr = str.c_str();
+
+    // Check Hex format
+    if (str.size() > 2 && str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) {
+        base = 16;
+        cstr += 2;
+    }
+
+    // Check chars
+    for (size_t i = 0; i < strlen(cstr); ++i) {
+        char c = cstr[i];
+        if (base == 10 && !isdigit(c)) return 0;
+        if (base == 16 && !isxdigit(c)) return 0;
+    }
+
+    unsigned long value = strtoul(str.c_str(), nullptr, base);
+    return static_cast<uint32_t>(value);
+}
 
 std::vector<std::string> ArgTransformer::splitArgs(const std::string& input) {
     std::vector<std::string> result;

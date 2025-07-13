@@ -1,9 +1,9 @@
 #include "Services/SpiService.h"
 
 void SpiService::configure(uint8_t mosi, uint8_t miso, uint8_t sclk, uint8_t cs, uint32_t frequency) {
-    this->csPin = cs;
+    csPin = cs;
+    spiFrequency = frequency;
     SPI.begin(sclk, miso, mosi, cs);
-    SPI.beginTransaction(SPISettings(frequency, MSBFIRST, SPI_MODE0));
     pinMode(cs, OUTPUT);
     digitalWrite(cs, HIGH);
 }
@@ -22,13 +22,36 @@ uint8_t SpiService::transfer(uint8_t data) {
     return SPI.transfer(data);
 }
 
-void SpiService::readFlashID(uint8_t* buffer, size_t length) {
+std::string SpiService::readFlashID() {
+    uint8_t id[3] = {0};
+
     beginTransaction();
     SPI.transfer(0x9F);  // JEDEC ID command
-    for (size_t i = 0; i < length; ++i) {
+    for (uint8_t& byte : id) {
+        byte = SPI.transfer(0x00);
+    }
+    endTransaction();
+
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%02X %02X %02X", id[0], id[1], id[2]);
+    return std::string(buf);
+}
+
+void SpiService::readFlashIdRaw(uint8_t* buffer) {
+    beginTransaction();
+    SPI.transfer(0x9F);  // JEDEC ID command
+    for (int i = 0; i < 3; ++i) {
         buffer[i] = SPI.transfer(0x00);
     }
     endTransaction();
+}
+
+uint32_t SpiService::calculateFlashCapacity(uint8_t code) {
+    // code 0x11 = 2^17 = 128 KB, etc.
+    if (code >= 0x11 && code <= 0x20) {
+        return 1UL << code;  // 2^code
+    }
+    return 0; // Non standard
 }
 
 void SpiService::readFlashData(uint32_t address, uint8_t* buffer, size_t length) {

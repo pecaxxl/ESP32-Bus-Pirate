@@ -16,10 +16,11 @@ private:
     uint8_t ledPin = 21;
 
     // SPI
-    uint8_t sdCardCSPin = 12;
-    uint8_t sdCardCLKPin = 40;
-    uint8_t sdCardMISOPin = 39;
-    uint8_t sdCardMOSIPin = 14;
+    uint8_t spiCSPin = 12;
+    uint8_t spiCLKPin = 40;
+    uint8_t spiMISOPin = 39;
+    uint8_t spiMOSIPin = 14;
+    uint32_t spiFrequency = 8000000;
 
     // WiFi AP Credentials
     std::string apName = "ESP32-Bus-Pirate";
@@ -93,15 +94,17 @@ public:
     uint8_t getLedPin() const { return ledPin; }
 
     // SPI
-    uint8_t getSpiCSPin() const { return sdCardCSPin; }
-    uint8_t getSpiCLKPin() const { return sdCardCLKPin; }
-    uint8_t getSpiMISOPin() const { return sdCardMISOPin; }
-    uint8_t getSpiMOSIPin() const { return sdCardMOSIPin; }
-
-    void setSpiCSPin(uint8_t pin) { sdCardCSPin = pin; }
-    void setSpiCLKPin(uint8_t pin) { sdCardCLKPin = pin; }
-    void setSpiMISOPin(uint8_t pin) { sdCardMISOPin = pin; }
-    void setSpiMOSIPin(uint8_t pin) { sdCardMOSIPin = pin; }
+    uint8_t getSpiCSPin() const { return spiCSPin; }
+    uint8_t getSpiCLKPin() const { return spiCLKPin; }
+    uint8_t getSpiMISOPin() const { return spiMISOPin; }
+    uint8_t getSpiMOSIPin() const { return spiMOSIPin; }
+    uint32_t getSpiFrequency() const { return spiFrequency; }
+    
+    void setSpiCSPin(uint8_t pin) { spiCSPin = pin; }
+    void setSpiCLKPin(uint8_t pin) { spiCLKPin = pin; }
+    void setSpiMISOPin(uint8_t pin) { spiMISOPin = pin; }
+    void setSpiMOSIPin(uint8_t pin) { spiMOSIPin = pin; }
+    void setSpiFrequency(uint32_t freq) { spiFrequency = freq; }
 
     // AP WiFi
     const std::string& getApName() const { return apName; }
@@ -219,16 +222,16 @@ public:
             ledPin = LED_PIN;
         #endif
         #ifdef SPI_CS_PIN
-            sdCardCSPin = SPI_CS_PIN;
+            spiCSPin = SPI_CS_PIN;
         #endif
         #ifdef SPI_CLK_PIN
-            sdCardCLKPin = SPI_CLK_PIN;
+            spiCLKPin = SPI_CLK_PIN;
         #endif
         #ifdef SPI_MISO_PIN
-            sdCardMISOPin = SPI_MISO_PIN;
+            spiMISOPin = SPI_MISO_PIN;
         #endif
         #ifdef SPI_MOSI_PIN
-            sdCardMOSIPin = SPI_MOSI_PIN;
+            spiMOSIPin = SPI_MOSI_PIN;
         #endif
         #ifdef ONEWIRE_PIN
             oneWirePin = ONEWIRE_PIN;

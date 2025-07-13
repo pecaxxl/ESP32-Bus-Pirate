@@ -15,6 +15,7 @@ public:
     std::vector<uint8_t> parseByteList(const std::string& input) const;
     uint8_t parseByte(const std::string& str, int index = -1) const;
     uint8_t parseHexOrDec(const std::string& s) const ;
+    uint32_t parseHexOrDec32(const std::string& s) const ;
     bool parseInt(const std::string& input, int& output);
     std::vector<std::string> splitArgs(const std::string& input);
     bool isValidNumber(const std::string& input);

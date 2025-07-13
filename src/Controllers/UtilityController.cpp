@@ -232,7 +232,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  sniff                - View traffic");
     terminalView.println("  sdcard               - SD operations");
     terminalView.println("  flash probe          - Identify chip");
-    terminalView.println("  flash read           - Read content");
+    terminalView.println("  flash read <ad> <ln> - Read content");
     terminalView.println("  flash write          - Write to flash");
     terminalView.println("  flash erase          - Erase flash");
     terminalView.println("  config               - Configure settings");

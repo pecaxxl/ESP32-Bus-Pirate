@@ -11,6 +11,7 @@
 #include "Transformers/ArgTransformer.h"
 #include "Managers/UserInputManager.h"
 #include "States/GlobalState.h"
+#include "Data/FlashDatabase.h"
 
 class SpiController {
 public:
@@ -42,7 +43,8 @@ private:
     void handleFlashProbe();
 
     // Read data from flash memory
-    void handleFlashRead();
+    void handleFlashRead(const TerminalCommand& cmd);
+    void readFlashInChunks(uint32_t address, uint32_t length);
 
     // Write data to flash memory
     void handleFlashWrite();
