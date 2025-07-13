@@ -64,8 +64,6 @@ void SpiController::handleSniff() {
 Flash Probe
 */
 void SpiController::handleFlashProbe() {
-    ensureConfigured();
-
     uint8_t id[3] = {0};
     spiService.readFlashIdRaw(id);
 
