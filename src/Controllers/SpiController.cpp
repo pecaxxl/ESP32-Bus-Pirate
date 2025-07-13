@@ -33,16 +33,7 @@ void SpiController::handleCommand(const TerminalCommand& cmd) {
     }
     
     else {
-        terminalView.println("");
-        terminalView.println("Unknown SPI command. Usage:");
-        terminalView.println("  sniff");
-        terminalView.println("  flash probe");
-        terminalView.println("  flash read <addr> <len>");
-        terminalView.println("  flash write");
-        terminalView.println("  flash erase");
-        terminalView.println("  config");
-        terminalView.println("  [..]");
-        terminalView.println("");
+        handleHelp();
     }
 }
 
@@ -50,7 +41,11 @@ void SpiController::handleCommand(const TerminalCommand& cmd) {
 Entry point for instructions
 */
 void SpiController::handleInstruction(const std::vector<ByteCode>& bytecodes) {
-    terminalView.println("SPI Instruction [NYI]");
+    auto result = spiService.executeByteCode(bytecodes);
+    if (!result.empty()) {
+        terminalView.println("SPI Read:\n");
+        terminalView.println(result);
+    }
 }
 
 /*
@@ -318,7 +313,7 @@ void SpiController::handleFlashErase(const TerminalCommand& cmd) {
 
     // Erase sectors and display progression
     const uint32_t totalSectors = flashSize / sectorSize;
-    terminalView.print("In progress ");
+    terminalView.print("In progress");
     for (uint32_t i = 0; i < totalSectors; ++i) {
         uint32_t addr = i * sectorSize;
         spiService.eraseSector(addr, freq);
@@ -328,6 +323,22 @@ void SpiController::handleFlashErase(const TerminalCommand& cmd) {
     }
 
     terminalView.println("\r\nSPI Flash Erase: Complete.\n");
+}
+
+/*
+Help
+*/
+void SpiController::handleHelp() {
+    terminalView.println("");
+    terminalView.println("Unknown SPI command. Usage:");
+    terminalView.println("  sniff");
+    terminalView.println("  flash probe");
+    terminalView.println("  flash read <addr> <len>");
+    terminalView.println("  flash write <addr> <data>");
+    terminalView.println("  flash erase");
+    terminalView.println("  config");
+    terminalView.println("  raw instructions, e.g: [0x9F r:3]");
+    terminalView.println("");
 }
 
 /*

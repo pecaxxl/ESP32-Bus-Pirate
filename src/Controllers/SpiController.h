@@ -55,4 +55,7 @@ private:
     // Configure SPI bus parameters
     void handleConfig();
 
+    // Available commands
+    void handleHelp();
+
 };

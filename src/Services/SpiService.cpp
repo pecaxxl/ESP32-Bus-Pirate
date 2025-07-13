@@ -166,3 +166,59 @@ void SpiService::writeFlashPatch(uint32_t address, const std::vector<uint8_t>& d
         writeFlashPage(sectorStart + i, page, freq);
     }
 }
+
+std::string SpiService::executeByteCode(const std::vector<ByteCode>& bytecodes) {
+    std::string result;
+    bool inTransaction = false;
+
+    for (const auto& code : bytecodes) {
+        switch (code.getCommand()) {
+            case ByteCodeEnum::Start:
+                if (!inTransaction) {
+                    beginTransaction();
+                    inTransaction = true;
+                }
+                break;
+
+            case ByteCodeEnum::Stop:
+                if (inTransaction) {
+                    endTransaction();
+                    inTransaction = false;
+                }
+                break;
+
+            case ByteCodeEnum::Write:
+                for (uint32_t i = 0; i < code.getRepeat(); ++i) {
+                    transfer(code.getData());
+                }
+                break;
+
+            case ByteCodeEnum::Read:
+                for (uint32_t i = 0; i < code.getRepeat(); ++i) {
+                    uint8_t val = transfer(0x00);  // dummy byte
+                    char hex[5];
+                    snprintf(hex, sizeof(hex), "%02X ", val);
+                    result += hex;
+                }
+                break;
+
+            case ByteCodeEnum::DelayMs:
+                delay(code.getRepeat());
+                break;
+
+            case ByteCodeEnum::DelayUs:
+                delayMicroseconds(code.getRepeat());
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    // Close transaction if left open
+    if (inTransaction) {
+        endTransaction();
+    }
+
+    return result;
+}

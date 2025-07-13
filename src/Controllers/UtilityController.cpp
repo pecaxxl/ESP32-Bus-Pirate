@@ -233,10 +233,10 @@ void UtilityController::handleHelp() {
     terminalView.println("  sdcard               - SD operations");
     terminalView.println("  flash probe          - Identify chip");
     terminalView.println("  flash read <ad> <ln> - Read content");
-    terminalView.println("  flash write          - Write to flash");
+    terminalView.println("  flash write <ad> <d> - Write to flash");
     terminalView.println("  flash erase          - Erase flash");
     terminalView.println("  config               - Configure settings");
-    terminalView.println("  [..]                 - Instruction syntax");
+    terminalView.println("  [0x9F r:3]           - Instruction syntax");
 
     terminalView.println("");
     terminalView.println(" 7. 2WIRE:");

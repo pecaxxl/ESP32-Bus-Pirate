@@ -1,9 +1,10 @@
 #pragma once
 
+#include <vector>
 #include <Arduino.h>
 #include <SPI.h>
 #include <Data/FlashDatabase.h>
-#include <vector>
+#include <Models/ByteCode.h>
 
 class SpiService {
 public:
@@ -27,6 +28,8 @@ public:
 
     // Write patch, we save a sector data, modify data, erase sector, write modified data to sector
     void writeFlashPatch(uint32_t address, const std::vector<uint8_t>& data, uint32_t freq);
+
+    std::string executeByteCode(const std::vector<ByteCode>& bytecodes);
 private:
     uint8_t csPin;
     uint32_t spiFrequency = 1000000;
