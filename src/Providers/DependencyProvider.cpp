@@ -34,7 +34,7 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       infraredController(terminalView, terminalInput, infraredService, argTransformer, userInputManager),
       utilityController(terminalView, terminalInput, pinService, userInputManager),
       hdUartController(terminalView, terminalInput, deviceInput, hdUartService, uartService, argTransformer, userInputManager),
-      spiController(terminalView, terminalInput, spiService, argTransformer, userInputManager),
+      spiController(terminalView, terminalInput, spiService, sdService, argTransformer, userInputManager),
       jtagController(terminalView, terminalInput),
       twoWireController(terminalView, terminalInput),
       threeWireController(terminalView, terminalInput),

@@ -1,9 +1,9 @@
 #include "SpiController.h"
 
 SpiController::SpiController(ITerminalView& terminalView, IInput& terminalInput, 
-                             SpiService& service, ArgTransformer& argTransformer,
+                             SpiService& spiService, SdService& sdService, ArgTransformer& argTransformer,
                              UserInputManager& userInputManager)
-    : terminalView(terminalView), terminalInput(terminalInput), spiService(service), argTransformer(argTransformer), userInputManager(userInputManager) {}
+    : terminalView(terminalView), terminalInput(terminalInput), spiService(spiService), sdService(sdService), argTransformer(argTransformer), userInputManager(userInputManager) {}
 
 /*
 Entry point for command
@@ -14,6 +14,10 @@ void SpiController::handleCommand(const TerminalCommand& cmd) {
         handleSniff();
     }
 
+    else if(cmd.getRoot() == "sdcard") {
+        handleSdCard();
+    }
+
     else if (cmd.getRoot() == "flash") {
         if (cmd.getSubcommand() == "probe") {
             handleFlashProbe();
@@ -21,6 +25,8 @@ void SpiController::handleCommand(const TerminalCommand& cmd) {
             handleFlashRead(cmd);
         } else if (cmd.getSubcommand() == "write") {
             handleFlashWrite(cmd);
+        } else if (cmd.getRoot() == "sdcard") {
+            handleSdCard();
         } else if (cmd.getSubcommand() == "erase") {
             handleFlashErase(cmd);
         } else {
@@ -148,6 +154,9 @@ void SpiController::handleFlashRead(const TerminalCommand& cmd) {
     terminalView.println("");
 }
 
+/*
+Flash Read In Chunks
+*/
 void SpiController::readFlashInChunks(uint32_t address, uint32_t length) {
     uint8_t buffer[1024];
     uint32_t remaining = length;
@@ -339,6 +348,47 @@ void SpiController::handleHelp() {
     terminalView.println("  config");
     terminalView.println("  raw instructions, e.g: [0x9F r:3]");
     terminalView.println("");
+}
+
+/*
+SD Card
+*/
+void SpiController::handleSdCard() {
+
+    terminalView.println("SD Card: Mounting...");
+    delay(500); // let the user see this ^
+
+    bool success = sdService.configure(
+            state.getSpiCLKPin(), 
+            state.getSpiMISOPin(),
+            state.getSpiMOSIPin(), 
+            state.getSpiCSPin()
+    );
+
+    if (!success) {
+        terminalView.println("SD Card: Mount failed. Check config and wiring and try again.\n");
+        return;
+    }
+
+    terminalView.println("SD Card: Mounted successfully.\n");
+
+    // Root content
+    auto elements = sdService.listElements("/");
+    if (elements.empty()) {
+        terminalView.println("[Root is empty]");
+    } else {
+        terminalView.println("Root content:");
+        for (const auto& item : elements) {
+            terminalView.println("  - " + item);
+        }
+    }
+
+    terminalView.println("");
+    terminalView.println("  [INFO] SD card interface is not yet fully implemented.");
+    terminalView.println("         You can use the USB Stick mode to mount the card");
+    terminalView.println("         as a USB drive and access it from your computer.\n");
+
+    sdService.close();
 }
 
 /*

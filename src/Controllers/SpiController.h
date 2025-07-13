@@ -5,6 +5,7 @@
 #include <vector>
 #include "Interfaces/ITerminalView.h"
 #include "Services/SpiService.h" 
+#include "Services/SdService.h"
 #include "Interfaces/IInput.h"
 #include "Models/TerminalCommand.h"
 #include "Models/ByteCode.h"
@@ -16,7 +17,7 @@
 class SpiController {
 public:
     // Constructor
-    SpiController(ITerminalView& terminalView, IInput& terminalInput, SpiService& service, ArgTransformer& argTransformer, UserInputManager& userInputManager); 
+    SpiController(ITerminalView& terminalView, IInput& terminalInput, SpiService& spiService, SdService& sdService, ArgTransformer& argTransformer, UserInputManager& userInputManager); 
 
     // Entry point for handle raw user command
     void handleCommand(const TerminalCommand& cmd);
@@ -31,6 +32,7 @@ private:
     ITerminalView& terminalView;
     IInput& terminalInput;
     SpiService& spiService;
+    SdService& sdService;
     ArgTransformer& argTransformer;
     UserInputManager& userInputManager;
     GlobalState& state = GlobalState::getInstance();
@@ -51,6 +53,9 @@ private:
 
     // Erase flash memory
     void handleFlashErase(const TerminalCommand& cmd);
+
+    // SD operations
+    void handleSdCard();
 
     // Configure SPI bus parameters
     void handleConfig();
