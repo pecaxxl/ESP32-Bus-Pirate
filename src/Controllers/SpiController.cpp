@@ -22,7 +22,7 @@ void SpiController::handleCommand(const TerminalCommand& cmd) {
         } else if (cmd.getSubcommand() == "write") {
             handleFlashWrite();
         } else if (cmd.getSubcommand() == "erase") {
-            handleFlashErase();
+            handleFlashErase(cmd);
         } else {
             terminalView.println("Unknown SPI flash command. Use: probe, read, write, erase");
         }
@@ -226,8 +226,52 @@ void SpiController::handleFlashWrite() {
 /*
 Flash Erase
 */
-void SpiController::handleFlashErase() {
-    terminalView.println("SPI flash erase [NYI]");
+void SpiController::handleFlashErase(const TerminalCommand& cmd) {
+    terminalView.println("");
+
+    if (!userInputManager.readYesNo("SPI Flash Erase: Erase entire flash memory?", false)) {
+        terminalView.println("SPI Flash Erase: Cancelled.\n");
+        return;
+    }
+
+    // Check chip presence
+    uint8_t id[3];
+    spiService.readFlashIdRaw(id);
+    if ((id[0] == 0xFF && id[1] == 0xFF && id[2] == 0xFF) ||
+        (id[0] == 0x00 && id[1] == 0x00 && id[2] == 0x00)) {
+        terminalView.println("No SPI flash detected. Aborting.\n");
+        return;
+    }
+
+    // Get infos about the chip
+    const FlashChipInfo* chip = findFlashInfo(id[0], id[1], id[2]);
+    uint32_t freq = state.getSpiFrequency();
+    const uint32_t sectorSize = 4096; // standard
+    uint32_t flashSize = 0;
+    
+    // Known
+    if (chip) {
+        flashSize = chip->capacityBytes;
+        terminalView.println("Flash: " + std::string(chip->modelName));
+    // Unknown
+    } else {
+        flashSize = spiService.calculateFlashCapacity(id[2]);
+        terminalView.println("Erasing unknown flash chip.");
+    }
+    terminalView.println("Capacity: " + std::to_string(flashSize >> 20) + " MB");
+
+    // Erase sectors and display progression
+    const uint32_t totalSectors = flashSize / sectorSize;
+    terminalView.print("In progress ");
+    for (uint32_t i = 0; i < totalSectors; ++i) {
+        uint32_t addr = i * sectorSize;
+        spiService.eraseSector(addr, freq);
+
+        // Display a dot
+        if (i % 64 == 0) terminalView.print(".");
+    }
+
+    terminalView.println("\r\nSPI Flash Erase: Complete.\n");
 }
 
 /*

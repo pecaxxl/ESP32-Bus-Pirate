@@ -50,7 +50,7 @@ private:
     void handleFlashWrite();
 
     // Erase flash memory
-    void handleFlashErase();
+    void handleFlashErase(const TerminalCommand& cmd);
 
     // Configure SPI bus parameters
     void handleConfig();

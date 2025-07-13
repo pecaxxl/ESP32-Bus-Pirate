@@ -66,3 +66,46 @@ void SpiService::readFlashData(uint32_t address, uint8_t* buffer, size_t length)
     }
     endTransaction();
 }
+
+void SpiService::eraseSector(uint32_t address, uint32_t freq) {
+    enableWrite(freq);  // 0x06
+
+    SPI.beginTransaction(SPISettings(freq, MSBFIRST, SPI_MODE0));
+    digitalWrite(csPin, LOW);
+
+    SPI.transfer(0x20); // Sector erase
+    SPI.transfer((address >> 16) & 0xFF);
+    SPI.transfer((address >> 8) & 0xFF);
+    SPI.transfer(address & 0xFF);
+
+    digitalWrite(csPin, HIGH);
+    SPI.endTransaction();
+
+    waitForWriteComplete(freq);
+}
+
+void SpiService::enableWrite(uint32_t freq) {
+
+    SPI.beginTransaction(SPISettings(freq, MSBFIRST, SPI_MODE0));
+    digitalWrite(csPin, LOW);
+
+    SPI.transfer(0x06); // Write Enable
+
+    digitalWrite(csPin, HIGH);
+    SPI.endTransaction();
+}
+
+void SpiService::waitForWriteComplete(uint32_t freq) {
+    SPI.beginTransaction(SPISettings(freq, MSBFIRST, SPI_MODE0));
+    digitalWrite(csPin, LOW);
+
+    SPI.transfer(0x05); // Read Status Register
+    while (true) {
+        uint8_t status = SPI.transfer(0x00); // Dummy byte to receive status
+        if ((status & 0x01) == 0) break;     // Wait until WIP bit is cleared
+        delay(1);
+    }
+
+    digitalWrite(csPin, HIGH);
+    SPI.endTransaction();
+}
