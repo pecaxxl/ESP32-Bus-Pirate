@@ -341,6 +341,7 @@ void SpiController::handleHelp() {
     terminalView.println("");
     terminalView.println("Unknown SPI command. Usage:");
     terminalView.println("  sniff");
+    terminalView.println("  sdcard");
     terminalView.println("  flash probe");
     terminalView.println("  flash read <addr> <len>");
     terminalView.println("  flash write <addr> <data>");
