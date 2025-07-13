@@ -109,3 +109,60 @@ void SpiService::waitForWriteComplete(uint32_t freq) {
     digitalWrite(csPin, HIGH);
     SPI.endTransaction();
 }
+
+void SpiService::writeFlashPage(uint32_t address, const std::vector<uint8_t>& data, uint32_t freq) {
+    const size_t maxPerPage = 256; // Page size (standard)
+
+    size_t offset = 0;
+    while (offset < data.size()) {
+        size_t chunkSize = std::min(maxPerPage, data.size() - offset);
+
+        enableWrite(freq);
+
+        SPI.beginTransaction(SPISettings(freq, MSBFIRST, SPI_MODE0));
+        digitalWrite(csPin, LOW);
+
+        SPI.transfer(0x02); // Page Program
+        SPI.transfer((address >> 16) & 0xFF);
+        SPI.transfer((address >> 8) & 0xFF);
+        SPI.transfer(address & 0xFF);
+
+        for (size_t i = 0; i < chunkSize; ++i) {
+            SPI.transfer(data[offset + i]);
+        }
+
+        digitalWrite(csPin, HIGH);
+        SPI.endTransaction();
+
+        waitForWriteComplete(freq);
+
+        address += chunkSize;
+        offset += chunkSize;
+    }
+}
+
+void SpiService::writeFlashPatch(uint32_t address, const std::vector<uint8_t>& data, uint32_t freq) {
+    const uint32_t sectorSize = 4096;
+    uint32_t sectorStart = address & ~(sectorSize - 1);
+    uint32_t offsetInSector = address - sectorStart;
+
+    // Read the concerned sector
+    std::vector<uint8_t> sectorData(sectorSize, 0xFF);
+    readFlashData(sectorStart, sectorData.data(), sectorSize);
+
+    // Modify data
+    for (size_t i = 0; i < data.size(); ++i) {
+        if ((offsetInSector + i) < sectorSize) {
+            sectorData[offsetInSector + i] = data[i];
+        }
+    }
+
+    // Erase the sector
+    eraseSector(sectorStart, freq);
+
+    // Write modified data
+    for (uint32_t i = 0; i < sectorSize; i += 256) {
+        std::vector<uint8_t> page(sectorData.begin() + i, sectorData.begin() + i + 256);
+        writeFlashPage(sectorStart + i, page, freq);
+    }
+}

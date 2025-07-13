@@ -208,6 +208,7 @@ std::string ArgTransformer::decodeEscapes(const std::string& input) {
                 case 'n': out << '\n'; break;
                 case 'r': out << '\r'; break;
                 case 't': out << '\t'; break;
+                case '0': out << '\0'; break;
                 case '\\': out << '\\'; break;
                 case 'x':
                     if (i + 2 < input.length()) {
@@ -231,4 +232,10 @@ std::string ArgTransformer::decodeEscapes(const std::string& input) {
         }
     }
     return out.str();
+}
+
+std::string ArgTransformer::toHex(uint32_t value, int width) {
+    std::stringstream ss;
+    ss << std::hex << std::uppercase << std::setfill('0') << std::setw(width) << value;
+    return ss.str();
 }

@@ -20,7 +20,7 @@ void SpiController::handleCommand(const TerminalCommand& cmd) {
         } else if (cmd.getSubcommand() == "read") {
             handleFlashRead(cmd);
         } else if (cmd.getSubcommand() == "write") {
-            handleFlashWrite();
+            handleFlashWrite(cmd);
         } else if (cmd.getSubcommand() == "erase") {
             handleFlashErase(cmd);
         } else {
@@ -219,8 +219,64 @@ void SpiController::readFlashInChunks(uint32_t address, uint32_t length) {
 /*
 Flash Write
 */
-void SpiController::handleFlashWrite() {
-    terminalView.println("SPI flash write [NYI]");
+void SpiController::handleFlashWrite(const TerminalCommand& cmd) {
+    // Confirm
+    if (!userInputManager.readYesNo("SPI Flash Write: Confirm write operation?", false)) {
+        terminalView.println("SPI Flash Write: Cancelled.\n");
+        return;
+    }
+
+    // Split args
+    std::vector<std::string> args = argTransformer.splitArgs(cmd.getArgs());
+    if (args.size() < 2) {
+        terminalView.println("Usage: flash write <address> <data>");
+        return;
+    }
+    
+    // Validate addr
+    if (!argTransformer.isValidNumber(args[0])) {
+        terminalView.println("Invalid address format.");
+        return;
+    }
+
+    // Parse addr
+    uint32_t address = argTransformer.parseHexOrDec32(args[0]);
+    std::vector<uint8_t> data;
+
+    // Parse data, ascii string
+    if (args[1].front() == '"') {
+        std::string joined = cmd.getArgs();
+        size_t start = joined.find('"') + 1;
+        size_t end = joined.find('"', start);
+        if (end == std::string::npos) {
+            terminalView.println("Missing closing quote for ASCII string.");
+            return;
+        }
+        std::string raw = joined.substr(start, end - start);
+        std::string decoded = argTransformer.decodeEscapes(raw);
+        data.assign(decoded.begin(), decoded.end());
+    // Dec or Hex
+    } else {
+        for (size_t i = 1; i < args.size(); ++i) {
+            if (!argTransformer.isValidNumber(args[i])) continue;
+            data.push_back(argTransformer.parseHexOrDec(args[i]));
+        }
+    }
+
+    // Validate data
+    if (data.empty()) {
+        terminalView.println("SPI Flash Write: Invalid Data format.");
+        return;
+    }
+
+    // Write data
+    terminalView.println("Writing " + std::to_string(data.size()) + " byte(s) at address 0x" + 
+                         argTransformer.toHex(address, 6));
+
+    uint32_t freq = state.getSpiFrequency();
+    spiService.writeFlashPatch(address, data, freq); // patch the entire sector
+
+    terminalView.println("SPI Flash Write: Complete.\n");
 }
 
 /*

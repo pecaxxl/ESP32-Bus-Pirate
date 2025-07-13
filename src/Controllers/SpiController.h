@@ -47,7 +47,7 @@ private:
     void readFlashInChunks(uint32_t address, uint32_t length);
 
     // Write data to flash memory
-    void handleFlashWrite();
+    void handleFlashWrite(const TerminalCommand& cmd);
 
     // Erase flash memory
     void handleFlashErase(const TerminalCommand& cmd);

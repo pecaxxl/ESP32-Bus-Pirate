@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <Data/FlashDatabase.h>
+#include <vector>
 
 class SpiService {
 public:
@@ -21,6 +22,11 @@ public:
     void enableWrite(uint32_t freq);
     void waitForWriteComplete(uint32_t freq);
 
+    // Write page
+    void writeFlashPage(uint32_t address, const std::vector<uint8_t>& data, uint32_t freq);
+
+    // Write patch, we save a sector data, modify data, erase sector, write modified data to sector
+    void writeFlashPatch(uint32_t address, const std::vector<uint8_t>& data, uint32_t freq);
 private:
     uint8_t csPin;
     uint32_t spiFrequency = 1000000;

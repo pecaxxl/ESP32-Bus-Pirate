@@ -26,4 +26,5 @@ public:
     std::string decodeEscapes(const std::string& input);
     int8_t toClampedInt8(const std::string& input);
     bool isValidSignedNumber(const std::string& input);
+    std::string toHex(uint32_t value, int width = 2);
 };
