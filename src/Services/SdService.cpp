@@ -17,6 +17,7 @@ bool SdService::configure(uint8_t clkPin, uint8_t misoPin, uint8_t mosiPin, uint
 
 void SdService::close() {
     SD.end();
+    sdCardSPI.end();
     sdCardMounted = false;
 }
 

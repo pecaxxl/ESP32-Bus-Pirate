@@ -57,6 +57,9 @@ private:
     // SD operations
     void handleSdCard();
 
+    // Slave mode
+    void handleSlave();
+
     // Configure SPI bus parameters
     void handleConfig();
 

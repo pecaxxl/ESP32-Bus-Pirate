@@ -1,4 +1,5 @@
 #include "Services/SpiService.h"
+#include <ESP32SPISlave.h>
 
 void SpiService::configure(uint8_t mosi, uint8_t miso, uint8_t sclk, uint8_t cs, uint32_t frequency) {
     csPin = cs;
@@ -6,6 +7,10 @@ void SpiService::configure(uint8_t mosi, uint8_t miso, uint8_t sclk, uint8_t cs,
     SPI.begin(sclk, miso, mosi, cs);
     pinMode(cs, OUTPUT);
     digitalWrite(cs, HIGH);
+}
+
+void SpiService::end() {
+    SPI.end();
 }
 
 void SpiService::beginTransaction() {
@@ -221,4 +226,73 @@ std::string SpiService::executeByteCode(const std::vector<ByteCode>& bytecodes) 
     }
 
     return result;
+}
+
+// #### SPI SLAVE ######
+
+static ESP32SPISlave spiSlave;
+static constexpr size_t SLAVE_BUFFER_SIZE = 8;
+static std::atomic<bool> slave{false};
+
+static uint8_t slave_tx_buf[SLAVE_BUFFER_SIZE] = {0};
+static uint8_t slave_rx_buf[SLAVE_BUFFER_SIZE] = {0};
+
+static std::deque<std::vector<uint8_t>> slaveBuffer;
+static std::mutex slaveBufferMutex;
+
+void IRAM_ATTR slaveTransactionCallback(spi_slave_transaction_t* trans, void* arg) {
+    // Copy to vector
+    size_t length_bytes = (trans->trans_len + 7) / 8; // trans_len in bits
+    std::vector<uint8_t> received(slave_rx_buf, slave_rx_buf + length_bytes);
+
+    {
+        // Push thread safe
+        std::lock_guard<std::mutex> lock(slaveBufferMutex);
+        slaveBuffer.push_back(std::move(received));
+
+        // Limit
+        if (slaveBuffer.size() > 100) slaveBuffer.pop_front();
+    }
+
+    // Relaunch
+    if (slave) {
+        spiSlave.queue(slave_tx_buf, slave_rx_buf, SLAVE_BUFFER_SIZE);
+        spiSlave.trigger();
+    }
+}
+
+void SpiService::startSlave(int sclk, int miso, int mosi, int cs) {
+    if (slave) return;
+    slave = true;
+
+    if (!slaveConfigured) {
+        spiSlave.setDataMode(SPI_MODE0);
+        spiSlave.setQueueSize(1);
+        spiSlave.setUserPostTransCbAndArg(slaveTransactionCallback, nullptr);
+        spiSlave.begin(FSPI, sclk, miso, mosi, cs);
+        slaveConfigured = true;
+    }
+
+    // First launch then it loops until slave is true
+    spiSlave.queue(slave_tx_buf, slave_rx_buf, SLAVE_BUFFER_SIZE);
+    spiSlave.trigger();
+}
+
+void SpiService::stopSlave(int sclk, int miso, int mosi, int cs) {
+    slave = false;
+    slaveBuffer.clear();
+    memset(slave_rx_buf, 0, SLAVE_BUFFER_SIZE);
+    memset(slave_tx_buf, 0, SLAVE_BUFFER_SIZE);
+    //Calling spiSlave.end() and then reallocate it cause crashes
+}
+
+bool SpiService::isSlave() const {
+    return slave;
+}
+
+std::vector<std::vector<uint8_t>> SpiService::getSlaveData() {
+    std::lock_guard<std::mutex> lock(slaveBufferMutex);
+    std::vector<std::vector<uint8_t>> data(slaveBuffer.begin(), slaveBuffer.end());
+    slaveBuffer.clear();
+    return data;
 }

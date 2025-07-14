@@ -180,7 +180,7 @@ Scan
 void UartController::handleScan() {
     terminalView.println("UART Scan: in progress... Press [ENTER] to cancel");
     terminalView.println("");
-    terminalView.println("[INFOS]");
+    terminalView.println("[INFO]");
     terminalView.println("  The UART scanner attempts to detect the correct baudrate");
     terminalView.println("  by iteratively switching speeds, sending predefined probes");
     terminalView.println("");

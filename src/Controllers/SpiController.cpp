@@ -18,6 +18,10 @@ void SpiController::handleCommand(const TerminalCommand& cmd) {
         handleSdCard();
     }
 
+    else if(cmd.getRoot() == "slave") {
+        handleSlave();
+    }
+
     else if (cmd.getRoot() == "flash") {
         if (cmd.getSubcommand() == "probe") {
             handleFlashProbe();
@@ -335,20 +339,50 @@ void SpiController::handleFlashErase(const TerminalCommand& cmd) {
 }
 
 /*
-Help
+Slave
 */
-void SpiController::handleHelp() {
+void SpiController::handleSlave() {
+#ifdef DEVICE_M5STICK
+    terminalView.println("SPI Slave: Not supported on M5Stick devices due to shared SPI bus.");
+    return;
+#endif
+    spiService.end(); // Stop master mode if active
+    
+    int sclk = state.getSpiCLKPin();
+    int miso = state.getSpiMISOPin();
+    int mosi = state.getSpiMOSIPin();
+    int cs   = state.getSpiCSPin();
+
+    terminalView.println("SPI Slave: In progress... Press [ENTER] to stop.");
+    spiService.startSlave(sclk, miso, mosi, cs);
+
     terminalView.println("");
-    terminalView.println("Unknown SPI command. Usage:");
-    terminalView.println("  sniff");
-    terminalView.println("  sdcard");
-    terminalView.println("  flash probe");
-    terminalView.println("  flash read <addr> <len>");
-    terminalView.println("  flash write <addr> <data>");
-    terminalView.println("  flash erase");
-    terminalView.println("  config");
-    terminalView.println("  raw instructions, e.g: [0x9F r:3]");
+    terminalView.println("  [INFO]");
+    terminalView.println("    SPI Slave mode listens passively on the SPI bus.");
+    terminalView.println("    Any command sent by a SPI master will be captured and logged");
+    terminalView.println("    Data is only captured when CS (chip select) is active.");
     terminalView.println("");
+
+    while (true) {
+        char c = terminalInput.readChar();
+        if (c == '\n' || c == '\r') break;
+
+        // Read slave data from master
+        auto packets = spiService.getSlaveData();
+        for (const auto& packet : packets) {
+            std::stringstream ss;
+            ss << "[MOSI] ";
+            for (uint8_t b : packet) {
+                ss << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << (int)b << " ";
+            }
+            terminalView.println(ss.str());
+        }
+        delay(1);
+    }
+
+    spiService.stopSlave(sclk, miso, mosi, cs);
+    spiService.configure(mosi, miso, sclk, cs, state.getI2cFrequency()); // Reconfigure master
+    terminalView.println("SPI Slave: Cancelled by user.");
 }
 
 /*
@@ -371,7 +405,7 @@ void SpiController::handleSdCard() {
         return;
     }
 
-    terminalView.println("SD Card: Mounted successfully.\n");
+    terminalView.println("SD Card: Mounted successfully. Loading...\n");
 
     // Root content
     auto elements = sdService.listElements("/");
@@ -390,6 +424,24 @@ void SpiController::handleSdCard() {
     terminalView.println("         as a USB drive and access it from your computer.\n");
 
     sdService.close();
+}
+
+/*
+Help
+*/
+void SpiController::handleHelp() {
+    terminalView.println("");
+    terminalView.println("Unknown SPI command. Usage:");
+    terminalView.println("  sniff");
+    terminalView.println("  sdcard");
+    terminalView.println("  slave");
+    terminalView.println("  flash probe");
+    terminalView.println("  flash read <addr> <len>");
+    terminalView.println("  flash write <addr> <data>");
+    terminalView.println("  flash erase");
+    terminalView.println("  config");
+    terminalView.println("  raw instructions, e.g: [0x9F r:3]");
+    terminalView.println("");
 }
 
 /*

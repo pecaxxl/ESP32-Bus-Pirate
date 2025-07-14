@@ -231,6 +231,7 @@ void UtilityController::handleHelp() {
     terminalView.println(" 6. SPI:");
     terminalView.println("  sniff                - View traffic");
     terminalView.println("  sdcard               - SD operations");
+    terminalView.println("  slave                - Emulate SPI slave");
     terminalView.println("  flash probe          - Identify chip");
     terminalView.println("  flash read <ad> <ln> - Read content");
     terminalView.println("  flash write <ad> <d> - Write to flash");
