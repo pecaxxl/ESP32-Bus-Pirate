@@ -42,6 +42,9 @@ private:
     // Reset pin to default state
     void handleResetPin(const TerminalCommand& cmd);
 
+    // Toggle pin state every ms
+    void handleTogglePin(const TerminalCommand& cmd);
+
     // Display DIO help info
     void handleHelp();
 };

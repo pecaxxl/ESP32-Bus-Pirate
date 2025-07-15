@@ -32,6 +32,10 @@ void DioController::handleCommand(const TerminalCommand& cmd) {
         handlePwm(cmd);
     }
 
+    else if (cmd.getRoot() == "toggle") {
+        handleTogglePin(cmd);
+    }
+
     else if (cmd.getRoot() == "reset") {
         handleResetPin(cmd);
     }
@@ -197,6 +201,61 @@ void DioController::handlePwm(const TerminalCommand& cmd) {
 }
 
 /*
+Toggle
+*/
+void DioController::handleTogglePin(const TerminalCommand& cmd) {
+    auto args = argTransformer.splitArgs(cmd.getArgs());
+
+    if (cmd.getSubcommand().empty() || args.empty()) {
+        terminalView.println("Usage: toggle <pin> <ms>");
+        return;
+    }
+
+    if (!argTransformer.isValidNumber(cmd.getSubcommand()) ||
+        !argTransformer.isValidNumber(args[0])) {
+        terminalView.println("DIO Toggle: Invalid arguments.");
+        return;
+    }
+
+    uint8_t pin = argTransformer.toUint8(cmd.getSubcommand());
+    uint32_t intervalMs = argTransformer.toUint32(args[0]);
+
+    pinService.setOutput(pin);
+    bool state = false;
+
+    terminalView.println("DIO Toggle: Pin " + std::to_string(pin) + " every " + std::to_string(intervalMs) + "ms...Press [ENTER] to stop.");
+    terminalView.println("");
+
+    unsigned long lastToggle = millis();
+    unsigned long lastCheck = millis();
+
+    while (true) {
+        unsigned long now = millis();
+
+        // check ENTER press every 10ms
+        if (now - lastCheck > 10) {
+            lastCheck = now;
+            char c = terminalInput.readChar();
+            if (c == '\r' || c == '\n') {
+                terminalView.println("DIO Toggle: Stopped.\n");
+                break;
+            }
+        }
+
+        // toggle pin at defined interval
+        if (now - lastToggle >= intervalMs) {
+            lastToggle = now;
+            state = !state;
+            if (state) {
+                pinService.setHigh(pin);
+            } else {
+                pinService.setLow(pin);
+            }
+        }
+    }
+}
+
+/*
 Reset
 */
 void DioController::handleResetPin(const TerminalCommand& cmd) {
@@ -231,5 +290,6 @@ void DioController::handleHelp() {
     terminalView.println("  set <pin> <H/L/I/O>");
     terminalView.println("  pullup <pin>");
     terminalView.println("  pwm <pin> <freq> <duty>");
+    terminalView.println("  toggle <pin> <ms>");
     terminalView.println("  reset <pin>");
 }
