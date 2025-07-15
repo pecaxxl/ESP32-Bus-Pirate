@@ -20,6 +20,7 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       pinService(),
       bluetoothService(),
       wifiService(),
+      i2sService(),
       commandTransformer(),
       instructionTransformer(),
       argTransformer(),
@@ -42,6 +43,7 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       dioController(terminalView, terminalInput, pinService, argTransformer),
       ledController(terminalView, terminalInput, ledService),
       bluetoothController(terminalView, terminalInput, bluetoothService, argTransformer),
+      i2sController(terminalView, terminalInput, i2sService, argTransformer, userInputManager),
       wifiController(terminalView, terminalInput, wifiService, nvsService, argTransformer)
 {}
 
@@ -66,6 +68,7 @@ HdUartService& DependencyProvider::getHdUartService() { return hdUartService; }
 PinService& DependencyProvider::getPinService() { return pinService; }
 WifiService& DependencyProvider::getWifiService() { return wifiService; }
 BluetoothService& DependencyProvider::getBluetoothService() { return bluetoothService; }
+I2sService& DependencyProvider::getI2sService() { return i2sService; }
 
 // Controllers
 UartController& DependencyProvider::getUartController() { return uartController; }
@@ -83,6 +86,7 @@ DioController& DependencyProvider::getDioController() { return dioController; }
 LedController& DependencyProvider::getLedController() { return ledController; }
 WifiController& DependencyProvider::getWifiController() { return wifiController; }
 BluetoothController& DependencyProvider::getBluetoothController() { return bluetoothController; }
+I2sController& DependencyProvider::getI2sController() { return i2sController; }
 
 // Transformers
 TerminalCommandTransformer& DependencyProvider::getCommandTransformer() { return commandTransformer; }
@@ -100,6 +104,7 @@ HorizontalSelector& DependencyProvider::getHorizontalSelector() { return horizon
 
 // Config
 TerminalTypeConfigurator& DependencyProvider::getTerminalTypeConfigurator() { return terminalTypeConfigurator ;}
+
 
 
 // Disable interfaces

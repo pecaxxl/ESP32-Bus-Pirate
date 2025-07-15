@@ -22,6 +22,8 @@ enum class ModeEnum {
     Bluetooth,
     WiFi,
     JTAG,
+    I2S,
+    COUNT
 };
 
 class ModeEnumMapper {
@@ -43,7 +45,8 @@ public:
             {ModeEnum::USB,        "USB"},
             {ModeEnum::Bluetooth,  "BLUETOOTH"},
             {ModeEnum::WiFi,       "WIFI"},
-            {ModeEnum::JTAG,       "JTAG"}
+            {ModeEnum::JTAG,       "JTAG"},
+            {ModeEnum::I2S,        "I2S"}
         };
 
         auto it = map.find(proto);
@@ -74,7 +77,8 @@ public:
             {"USB",        ModeEnum::USB},
             {"BLUETOOTH",  ModeEnum::Bluetooth},
             {"WIFI",       ModeEnum::WiFi},
-            {"JTAG",       ModeEnum::JTAG}
+            {"JTAG",       ModeEnum::JTAG},
+            {"I2S",        ModeEnum::I2S}
         };
 
         std::string upper;

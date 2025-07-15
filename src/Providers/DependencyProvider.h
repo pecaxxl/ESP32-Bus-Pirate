@@ -24,6 +24,7 @@ and injecting shared instances of core components
 #include "Services/PinService.h"
 #include "Services/BluetoothService.h"
 #include "Services/WifiService.h"
+#include "Services/I2sService.h"
 #include "Controllers/UartController.h"
 #include "Controllers/I2cController.h"
 #include "Controllers/OneWireController.h"
@@ -39,6 +40,7 @@ and injecting shared instances of core components
 #include "Controllers/LedController.h"
 #include "Controllers/BluetoothController.h"
 #include "Controllers/WifiController.h"
+#include "Controllers/I2sController.h"
 #include "Transformers/TerminalCommandTransformer.h"
 #include "Transformers/InstructionTransformer.h"
 #include "Transformers/ArgTransformer.h"
@@ -77,7 +79,8 @@ public:
     PinService& getPinService();
     BluetoothService& getBluetoothService();
     WifiService& getWifiService();
-
+    I2sService& getI2sService();
+    
     // Controllers
     UartController& getUartController();
     I2cController& getI2cController();
@@ -94,6 +97,7 @@ public:
     LedController& getLedController();
     BluetoothController& getBluetoothController();
     WifiController& getWifiController();
+    I2sController& getI2sController();
 
     // Transformers
     TerminalCommandTransformer& getCommandTransformer();
@@ -137,6 +141,7 @@ private:
     PinService pinService;
     WifiService wifiService;
     BluetoothService bluetoothService;
+    I2sService i2sService;
 
     // Controllers
     UartController uartController;
@@ -153,7 +158,8 @@ private:
     LedController ledController;
     WifiController wifiController;
     BluetoothController bluetoothController;
-    
+    I2sController i2sController;
+
     // Transformers
     TerminalCommandTransformer commandTransformer;
     InstructionTransformer instructionTransformer;

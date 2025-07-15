@@ -129,6 +129,10 @@ void ActionDispatcher::dispatchCommand(const TerminalCommand& cmd) {
         case ModeEnum::JTAG:
             provider.getJtagController().handleCommand(cmd);
             break;
+        case ModeEnum::I2S:
+            provider.getI2sController().handleCommand(cmd);
+            break;
+
     }
 
    // Config was handled in specific mode, we need to rerender the pinout view
@@ -378,6 +382,15 @@ void ActionDispatcher::setCurrentMode(ModeEnum newMode) {
         case ModeEnum::JTAG:
             config.setMappings({ "TCK GPIOX", "TMS GPIOY", "TDO GPIOZ", "TDI GPIOW" }); // TODO
             provider.getJtagController().ensureConfigured();
+            break;
+        case ModeEnum::I2S:
+            provider.getI2sController().ensureConfigured();
+            config.setMappings({
+                "BCLK GPIO " + std::to_string(state.getI2sBclkPin()),
+                "LRCLK GPIO " + std::to_string(state.getI2sLrckPin()),
+                "DATA GPIO " + std::to_string(state.getI2sDataPin()),
+                "RATE " + std::to_string(state.getI2sSampleRate())
+            });
             break;
     }
 

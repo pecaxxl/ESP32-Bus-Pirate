@@ -77,6 +77,13 @@ private:
     uint8_t infraredRxPin = 1;
     InfraredProtocolEnum infraredProtocol = InfraredProtocolEnum::_NEC;
 
+    // I2S Default Configuration
+    uint8_t i2sBclkPin = 41;
+    uint8_t i2sLrckPin = 43;
+    uint8_t i2sDataPin = 42;
+    uint32_t i2sSampleRate = 44100;
+    uint8_t i2sBitsPerSample = 16;
+
     // SD Card File Limits
     size_t fileCountLimit = 512;
     size_t fileCacheLimit = 64;
@@ -190,6 +197,19 @@ public:
     InfraredProtocolEnum getInfraredProtocol() const { return infraredProtocol ; }
     void setInfraredProtocol(InfraredProtocolEnum prot) {  infraredProtocol = prot; }
 
+    // I2S
+    uint8_t getI2sBclkPin() const { return i2sBclkPin; }
+    uint8_t getI2sLrckPin() const { return i2sLrckPin; }
+    uint8_t getI2sDataPin() const { return i2sDataPin; }
+    uint32_t getI2sSampleRate() const { return i2sSampleRate; }
+    uint8_t getI2sBitsPerSample() const { return i2sBitsPerSample; }
+
+    void setI2sBclkPin(uint8_t pin) { i2sBclkPin = pin; }
+    void setI2sLrckPin(uint8_t pin) { i2sLrckPin = pin; }
+    void setI2sDataPin(uint8_t pin) { i2sDataPin = pin; }
+    void setI2sSampleRate(uint32_t rate) { i2sSampleRate = rate; }
+    void setI2sBitsPerSample(uint8_t bits) { i2sBitsPerSample = bits; }
+
     // SD File Limits
     size_t getFileCountLimit() const { return fileCountLimit; }
     size_t getFileCacheLimit() const { return fileCacheLimit; }
@@ -265,6 +285,21 @@ public:
         #endif
         #ifdef IR_RX_PIN
             infraredRxPin = IR_RX_PIN;
+        #endif
+        #ifdef I2S_BCLK_PIN
+            i2sBclkPin = I2S_BCLK_PIN;
+        #endif
+        #ifdef I2S_LRCK_PIN
+            i2sLrckPin = I2S_LRCK_PIN;
+        #endif
+        #ifdef I2S_DATA_PIN
+            i2sDataPin = I2S_DATA_PIN;
+        #endif
+        #ifdef I2S_SAMPLE_RATE
+            i2sSampleRate = I2S_SAMPLE_RATE;
+        #endif
+        #ifdef I2S_BITS
+            i2sBitsPerSample = I2S_BITS;
         #endif
 
         #ifdef PROTECTED_PINS

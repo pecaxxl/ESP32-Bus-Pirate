@@ -63,7 +63,7 @@ ModeEnum UtilityController::handleModeSelect() {
     terminalView.println("Select mode:");
     std::vector<ModeEnum> modes;
 
-    for (int i = 0; i <= static_cast<int>(ModeEnum::JTAG); ++i) {
+    for (int i = 0; i < static_cast<int>(ModeEnum::COUNT); ++i) {
         ModeEnum mode = static_cast<ModeEnum>(i);
         std::string name = ModeEnumMapper::toString(mode);
         if (!name.empty()) {
@@ -374,6 +374,13 @@ void UtilityController::handleHelp() {
     terminalView.println("");
     terminalView.println(" 15. JTAG:");
     terminalView.println("  scan                 - Scan JTAG/SWD pins");
+
+    terminalView.println("");
+    terminalView.println(" 16. I2S:");
+    terminalView.println("  play <freq> <ms>     - Play sine wave for ms");
+    terminalView.println("  record               - Read mic continuously");
+    terminalView.println("  reset                - Reset to default");
+    terminalView.println("  config               - Configure settings");
 
     terminalView.println("");
     terminalView.println(" Instructions (available in most modes):");
