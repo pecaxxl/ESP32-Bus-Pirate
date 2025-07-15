@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <M5Unified.h>
 #include "Interfaces/IDeviceView.h"
 #include "Enums/ModeEnum.h"
@@ -30,6 +31,7 @@ public:
     void clear() override;
     void setRotation(uint8_t rotation);
     void topBar(const std::string& title, bool submenu, bool searchBar) override;
+    void drawLogicTrace(uint8_t pin, const std::vector<uint8_t>& buffer);
     void horizontalSelection(
         const std::vector<std::string>& options,
         uint16_t selectedIndex,
@@ -43,4 +45,5 @@ private:
     void drawRect(bool selected, uint8_t margin, uint16_t startY, uint16_t sizeX, uint16_t sizeY);
     void showModeName(std::string& mode, int y);
     void noMapping();
+    
 };

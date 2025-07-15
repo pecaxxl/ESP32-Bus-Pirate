@@ -254,3 +254,35 @@ void M5DeviceView::loading() {
     M5.Lcd.setTextColor(TEXT_COLOR);
     M5.Lcd.drawString("Loading...", 75, 60);
 }
+
+void M5DeviceView::drawLogicTrace(uint8_t pin, const std::vector<uint8_t>& buffer) {
+    static constexpr int canvasWidth = 240;
+    static constexpr int canvasHeight = 60;
+    static constexpr int midY = canvasHeight / 2;
+
+    // Canvas
+    M5Canvas canvas(&M5.Lcd);
+    canvas.setColorDepth(8);
+    canvas.createSprite(canvasWidth, canvasHeight);
+    canvas.fillSprite(BACKGROUND_COLOR);
+
+    // Trace
+    for (size_t i = 1; i < buffer.size() && i < canvasWidth; ++i) {
+        int x0 = i - 1;
+        int x1 = i;
+        int y0 = buffer[i - 1] ? midY - 10 : midY + 10;
+        int y1 = buffer[i]     ? midY - 10 : midY + 10;
+
+        canvas.drawLine(x0, y0, x1, y1, PRIMARY_COLOR);
+    }
+
+    // Pin num
+    canvas.drawString("Pin " + String(pin), 5, 2);
+
+    // Center
+    int x = (M5.Lcd.width() - canvasWidth) / 2;
+    int y = 60;  // vertical offset
+    canvas.pushSprite(x, y);
+
+    canvas.deleteSprite();
+}

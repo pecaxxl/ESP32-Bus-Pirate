@@ -3,8 +3,8 @@
 /*
 Constructor
 */
-UtilityController::UtilityController(ITerminalView& terminalView, IInput& terminalInput, PinService& pinService, UserInputManager& userInputManager)
-    : terminalView(terminalView), terminalInput(terminalInput), pinService(pinService), userInputManager(userInputManager) {}
+UtilityController::UtilityController(ITerminalView& terminalView, IDeviceView& deviceView, IInput& terminalInput, PinService& pinService, UserInputManager& userInputManager, ArgTransformer& ArgTransformer)
+    : terminalView(terminalView), deviceView(deviceView), terminalInput(terminalInput), pinService(pinService), userInputManager(userInputManager), argTransformer(argTransformer) {}
 
 /*
 Entry point for command
@@ -21,6 +21,10 @@ void UtilityController::handleCommand(const TerminalCommand& cmd) {
     else if (cmd.getRoot() == "p") {
         handleDisablePullups();
     }
+
+    else if (cmd.getRoot() == "logic") {
+        handleLogicAnalyzer(cmd);
+    } 
 
     else {
         terminalView.println("Unknown command. Try 'help'.");
@@ -172,6 +176,52 @@ void UtilityController::handleEnablePullups() {
 }
 
 /*
+Logic
+*/
+void UtilityController::handleLogicAnalyzer(const TerminalCommand& cmd) {
+    if (cmd.getSubcommand().empty() || !argTransformer.isValidNumber(cmd.getSubcommand())) {
+        terminalView.println("Usage: logic <pin>");
+        return;
+    }
+
+    uint8_t pin = argTransformer.toUint8(cmd.getSubcommand());
+
+    terminalView.println("\nLogic Analyzer: Monitoring pin " + std::to_string(pin) + "... Press [ENTER] to stop.");
+    terminalView.println(" Displaying waveform on ESP32 screen...\n");
+
+
+
+    pinService.setInput(pin);
+    std::vector<uint8_t> buffer;
+    buffer.reserve(240); // 240 samples
+
+    unsigned long lastCheck = millis();
+    deviceView.clear();
+    deviceView.topBar("Logic Analyzer", false, false);
+
+    while (true) {
+        // Enter press
+        if (millis() - lastCheck > 10) {
+            lastCheck = millis();
+            char c = terminalInput.readChar();
+            if (c == '\r' || c == '\n') {
+                terminalView.println("Logic Analyzer: Stopped by user.");
+                break;
+            }
+        }
+
+        // Draw
+        if (buffer.size() >= 240) {
+            deviceView.drawLogicTrace(pin, buffer);
+            buffer.clear();
+        }
+
+        buffer.push_back(pinService.read(pin));
+        delayMicroseconds(500);
+    }
+}
+
+/*
 Help
 */
 void UtilityController::handleHelp() {
@@ -182,9 +232,10 @@ void UtilityController::handleHelp() {
     terminalView.println(" General:");
     terminalView.println("  help                 - Show this help");
     terminalView.println("  mode <name>          - Set active mode");
+    terminalView.println("  logic <pin>          - Logic analyzer");
     terminalView.println("  P                    - Enable pull-up");
     terminalView.println("  p                    - Disable pull-up");
-    
+
     terminalView.println("");
     terminalView.println(" 1. HiZ:");
     terminalView.println("  (default mode)       - All lines disabled");
@@ -207,6 +258,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  read                 - Read at current baud");
     terminalView.println("  write <text>         - Send at current baud");
     terminalView.println("  bridge               - Full-duplex mode");
+    terminalView.println("  spam <text> <ms>     - Write text envery ms");
     terminalView.println("  glitch               - Timing attack");
     terminalView.println("  config               - Configure settings");
     terminalView.println("  ['Hello'] [r:64]...  - Instruction syntax");
@@ -329,6 +381,6 @@ void UtilityController::handleHelp() {
 bool UtilityController::isGlobalCommand(const TerminalCommand& cmd) {
     std::string root = cmd.getRoot();
     return (root == "help" || root == "h" || root == "?" ||
-            root == "mode" || root == "m" || root == "l"
-                           || root == "P" || root == "p");
+            root == "mode" || root == "m" || root == "l" ||
+            root == "logic" || root == "P" || root == "p");
 }

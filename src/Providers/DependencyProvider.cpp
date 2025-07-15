@@ -33,7 +33,7 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       i2cController(terminalView, terminalInput, i2cService, argTransformer, userInputManager),
       oneWireController(terminalView, terminalInput, oneWireService, argTransformer, userInputManager),
       infraredController(terminalView, terminalInput, infraredService, argTransformer, userInputManager),
-      utilityController(terminalView, terminalInput, pinService, userInputManager),
+      utilityController(terminalView, deviceView, terminalInput, pinService, userInputManager, argTransformer),
       hdUartController(terminalView, terminalInput, deviceInput, hdUartService, uartService, argTransformer, userInputManager),
       spiController(terminalView, terminalInput, spiService, sdService, argTransformer, userInputManager, binaryAnalyzeManager),
       jtagController(terminalView, terminalInput),

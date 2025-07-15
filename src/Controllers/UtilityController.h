@@ -8,22 +8,27 @@
 #include "Models/TerminalCommand.h"
 #include "Interfaces/ITerminalView.h"
 #include "Interfaces/IInput.h"
+#include "Interfaces/IDeviceView.h"
 #include "States/GlobalState.h"
 #include "Enums/ModeEnum.h"
 #include "Services/PinService.h"
 #include "Managers/UserInputManager.h"
+#include "Transformers/ArgTransformer.h"
 
 class UtilityController {
 public:
     // Constructor
-    UtilityController(ITerminalView& terminalView, IInput& terminalInput, 
-                      PinService& pinService, UserInputManager& userInputManager);
+    UtilityController(ITerminalView& terminalView, IDeviceView& deviceView, IInput& terminalInput, 
+                      PinService& pinService, UserInputManager& userInputManager, ArgTransformer& ArgTransformer);
 
     // Entry point for global utility commands
     void handleCommand(const TerminalCommand& cmd);
 
     // Process mode change command and return new mode
     ModeEnum handleModeChangeCommand(const TerminalCommand& cmd);
+
+    // Loic Analyzer on device screen
+    void handleLogicAnalyzer(const TerminalCommand& cmd);
 
     // Check if a command is a global utility command
     bool isGlobalCommand(const TerminalCommand& cmd);
@@ -42,8 +47,10 @@ private:
     void handleDisablePullups();
 
     ITerminalView& terminalView;
+    IDeviceView& deviceView;
     IInput& terminalInput;
     PinService& pinService;
     UserInputManager& userInputManager;
+    ArgTransformer& argTransformer;
     GlobalState& state = GlobalState::getInstance();
 };

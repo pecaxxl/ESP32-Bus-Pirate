@@ -28,6 +28,9 @@ public:
     // Clear the view
     virtual void clear() = 0;
 
+    // Logic analyzer
+    virtual void drawLogicTrace(uint8_t pin, const std::vector<uint8_t>& buffer) = 0;
+
     // Set screen rotation
     virtual void setRotation(uint8_t rotation) = 0;
 
