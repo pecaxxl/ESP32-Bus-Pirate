@@ -671,28 +671,30 @@ void SpiController::handleSdCard() {
 
     if (!success) {
         terminalView.println("SD Card: Mount failed. Check config and wiring and try again.\n");
-        return;
-    }
-
-    terminalView.println("SD Card: Mounted successfully. Loading...\n");
-
-    // Root content
-    auto elements = sdService.listElements("/");
-    if (elements.empty()) {
-        terminalView.println("[Root is empty]");
     } else {
-        terminalView.println("Root content:");
-        for (const auto& item : elements) {
-            terminalView.println("  - " + item);
+        terminalView.println("SD Card: Mounted successfully. Loading...\n");
+    
+        // Root content
+        auto elements = sdService.listElements("/");
+        if (elements.empty()) {
+            terminalView.println("[Root is empty]");
+        } else {
+            terminalView.println("Root content:");
+            for (const auto& item : elements) {
+                terminalView.println("  - " + item);
+            }
         }
+    
+        terminalView.println("");
+        terminalView.println("  [INFO] SD card interface is not yet fully implemented.");
+        terminalView.println("         You can use the USB Stick mode to mount the card");
+        terminalView.println("         as a USB drive and access it from your computer.\n");
     }
 
-    terminalView.println("");
-    terminalView.println("  [INFO] SD card interface is not yet fully implemented.");
-    terminalView.println("         You can use the USB Stick mode to mount the card");
-    terminalView.println("         as a USB drive and access it from your computer.\n");
-
+    // Close and reconfigure
     sdService.close();
+    spiService.end();
+    ensureConfigured();
 }
 
 /*
@@ -749,4 +751,12 @@ void SpiController::ensureConfigured() {
         handleConfig();
         configured = true;
     }
+
+    // Reconfigure, user could have used these pins for another mode
+    uint8_t sclk = state.getSpiCLKPin();
+    uint8_t miso = state.getSpiMISOPin();
+    uint8_t mosi = state.getSpiMOSIPin();
+    uint8_t cs   = state.getSpiCSPin();
+    int freq   = state.getSpiFrequency();
+    spiService.configure(mosi, miso, sclk, cs, freq);
 }
