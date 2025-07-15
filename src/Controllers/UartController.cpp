@@ -20,10 +20,11 @@ void UartController::handleCommand(const TerminalCommand& cmd) {
         handlePing();
     }
 
+    
     else if (cmd.getRoot() == "read") {
         handleRead();
     } 
-
+    
     else if (cmd.getRoot() == "write") {
         handleWrite(cmd);
     } 
@@ -31,6 +32,10 @@ void UartController::handleCommand(const TerminalCommand& cmd) {
     else if (cmd.getRoot() == "bridge") {
         handleBridge();
     } 
+
+    else if (cmd.getRoot() == "spam") {
+        handleSpam(cmd);
+    }
 
     else if (cmd.getRoot() == "glitch") {
         handleGlitch();
@@ -298,6 +303,47 @@ float UartController::computeEntropy(const std::string& data) {
 }
 
 /*
+Spam
+*/
+void UartController::handleSpam(const TerminalCommand& cmd) {
+    if (cmd.getSubcommand().empty() || cmd.getArgs().empty()) {
+        terminalView.println("Usage: spam <text> <ms>");
+        return;
+    }
+
+    std::string text = argTransformer.decodeEscapes(cmd.getSubcommand());
+    std::vector<std::string> args = argTransformer.splitArgs(cmd.getArgs());
+
+    if (args.empty() || !argTransformer.isValidNumber(args[0])) {
+        terminalView.println("Usage: spam <text> <ms>");
+        return;
+    }
+
+    uint32_t delayMs = std::stoi(args[0]);
+    unsigned long lastSend = 0;
+
+    terminalView.println("UART Spam: Sending \"" + cmd.getSubcommand() + "\" every " + std::to_string(delayMs) + " ms... Press [ENTER] to stop.");
+
+    while (true) {
+        // Stop if ENTER pressed
+        char c = terminalInput.readChar();
+        if (c == '\r' || c == '\n') {
+            terminalView.println("\nUART Spam: Stopped by user.\n");
+            break;
+        }
+
+        // Send if delay elapsed
+        unsigned long now = millis();
+        if (now - lastSend >= delayMs) {
+            uartService.print(text);
+            lastSend = now;
+        }
+
+        delay(1);
+    }
+}
+
+/*
 Config
 */
 void UartController::handleConfig() {
@@ -347,6 +393,7 @@ void UartController::handleHelp() {
     terminalView.println("  read");
     terminalView.println("  write <text>");
     terminalView.println("  bridge");
+    terminalView.println("  spam <text> <ms>");
     terminalView.println("  glitch");
     terminalView.println("  config");
     terminalView.println("  raw instructions, ['AT' D:100 r:128]");

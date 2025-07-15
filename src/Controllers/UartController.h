@@ -58,6 +58,9 @@ public:
     // Scan to find the right baudrate
     void handleScan();
 
+    // Spam given input every given ms
+    void handleSpam(const TerminalCommand& cmd);
+
     // Scan a baudrate
     bool scanAtBaudrate(int baud);
 
