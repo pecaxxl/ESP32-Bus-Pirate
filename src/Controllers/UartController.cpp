@@ -322,13 +322,18 @@ void UartController::handleSpam(const TerminalCommand& cmd) {
     uint32_t delayMs = std::stoi(args[0]);
     unsigned long lastSend = 0;
 
-    terminalView.println("UART Spam: Sending \"" + cmd.getSubcommand() + "\" every " + std::to_string(delayMs) + " ms... Press [ENTER] to stop.");
+    terminalView.println(
+        "UART Spam: Sending \"" + cmd.getSubcommand() + 
+        "\" every " + std::to_string(delayMs) + 
+        " ms at baud " + std::to_string(state.getUartBaudRate()) + 
+        "... Press [ENTER] to stop."
+    );
 
     while (true) {
         // Stop if ENTER pressed
         char c = terminalInput.readChar();
         if (c == '\r' || c == '\n') {
-            terminalView.println("\nUART Spam: Stopped by user.\n");
+            terminalView.println("\nUART Spam: Stopped by user.");
             break;
         }
 

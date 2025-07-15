@@ -79,17 +79,14 @@ void ActionDispatcher::dispatchCommand(const TerminalCommand& cmd) {
         return;
     }
 
-    // Global command (help, P, p...)
+    // Global command (help, logic, mode, P, p...)
     if (provider.getUtilityController().isGlobalCommand(cmd)) {
         provider.getUtilityController().handleCommand(cmd);
-        return;
+        if (cmd.getRoot() != "logic") return; // need rerender pinout view
     }
 
     // Mode specific command
     switch (state.getCurrentMode()) {
-        case ModeEnum::HIZ:
-            provider.getUtilityController().handleCommand(cmd);
-            break;
         case ModeEnum::OneWire:
             provider.getOneWireController().handleCommand(cmd);
             break;
@@ -135,7 +132,7 @@ void ActionDispatcher::dispatchCommand(const TerminalCommand& cmd) {
     }
 
    // Config was handled in specific mode, we need to rerender the pinout view
-   if (cmd.getRoot() == "config" || cmd.getRoot() == "setprotocol") {
+   if (cmd.getRoot() == "config" || cmd.getRoot() == "setprotocol" || cmd.getRoot() == "logic") {
         setCurrentMode(state.getCurrentMode());
    } 
 }

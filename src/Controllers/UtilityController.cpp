@@ -187,7 +187,7 @@ void UtilityController::handleLogicAnalyzer(const TerminalCommand& cmd) {
     uint8_t pin = argTransformer.toUint8(cmd.getSubcommand());
 
     terminalView.println("\nLogic Analyzer: Monitoring pin " + std::to_string(pin) + "... Press [ENTER] to stop.");
-    terminalView.println(" Displaying waveform on ESP32 screen...\n");
+    terminalView.println("Displaying waveform on the ESP32 screen...\n");
 
 
 
