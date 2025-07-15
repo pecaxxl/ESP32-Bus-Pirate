@@ -233,6 +233,9 @@ void UtilityController::handleHelp() {
     terminalView.println("  sdcard               - SD operations");
     terminalView.println("  slave                - Emulate SPI slave");
     terminalView.println("  flash probe          - Identify chip");
+    terminalView.println("  flash analyze [addr] - Identify content");
+    terminalView.println("  flash strings [len]  - Extract strings");
+    terminalView.println("  flash search <str>   - Search strings");
     terminalView.println("  flash read <ad> <ln> - Read content");
     terminalView.println("  flash write <ad> <d> - Write to flash");
     terminalView.println("  flash erase          - Erase flash");

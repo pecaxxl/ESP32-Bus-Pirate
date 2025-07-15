@@ -1,5 +1,7 @@
 #include "Services/SpiService.h"
+
 #include <ESP32SPISlave.h>
+
 
 void SpiService::configure(uint8_t mosi, uint8_t miso, uint8_t sclk, uint8_t cs, uint32_t frequency) {
     csPin = cs;

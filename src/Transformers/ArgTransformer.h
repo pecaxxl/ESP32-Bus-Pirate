@@ -27,4 +27,5 @@ public:
     int8_t toClampedInt8(const std::string& input);
     bool isValidSignedNumber(const std::string& input);
     std::string toHex(uint32_t value, int width = 2);
+    std::string formatFloat(double value, int decimals);
 };

@@ -28,7 +28,7 @@ void UsbCardputerController::handleCommand(const TerminalCommand& cmd) {
 
     else if (cmd.getRoot() == "gamepad") {
         handleGamepad(cmd);
-    } 
+    }  
 
     else if (cmd.getRoot() == "reset") {
         handleReset();

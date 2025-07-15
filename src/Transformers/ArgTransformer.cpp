@@ -239,3 +239,9 @@ std::string ArgTransformer::toHex(uint32_t value, int width) {
     ss << std::hex << std::uppercase << std::setfill('0') << std::setw(width) << value;
     return ss.str();
 }
+
+std::string ArgTransformer::formatFloat(double value, int decimals) {
+    char buf[32];
+    snprintf(buf, sizeof(buf), ("%." + std::to_string(decimals) + "f").c_str(), value);
+    return std::string(buf);
+}

@@ -25,6 +25,7 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       argTransformer(),
       webRequestTransformer(),
       commandHistoryManager(),
+      binaryAnalyzeManager(spiService, terminalView, terminalInput),
       userInputManager(terminalView, terminalInput, argTransformer),
       horizontalSelector(deviceView, deviceInput),
       terminalTypeConfigurator(horizontalSelector),
@@ -34,7 +35,7 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       infraredController(terminalView, terminalInput, infraredService, argTransformer, userInputManager),
       utilityController(terminalView, terminalInput, pinService, userInputManager),
       hdUartController(terminalView, terminalInput, deviceInput, hdUartService, uartService, argTransformer, userInputManager),
-      spiController(terminalView, terminalInput, spiService, sdService, argTransformer, userInputManager),
+      spiController(terminalView, terminalInput, spiService, sdService, argTransformer, userInputManager, binaryAnalyzeManager),
       jtagController(terminalView, terminalInput),
       twoWireController(terminalView, terminalInput),
       threeWireController(terminalView, terminalInput),
@@ -92,6 +93,7 @@ WebRequestTransformer& DependencyProvider::getWebRequestTransformer() {return we
 // Managers
 CommandHistoryManager& DependencyProvider::getCommandHistoryManager() { return commandHistoryManager ;}
 UserInputManager& DependencyProvider::getUserInputManager() { return userInputManager; }
+BinaryAnalyzeManager& DependencyProvider::getFlashAnalyzeManager() { return binaryAnalyzeManager; }
 
 // Selectors
 HorizontalSelector& DependencyProvider::getHorizontalSelector() { return horizontalSelector ;}

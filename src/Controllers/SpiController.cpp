@@ -2,8 +2,15 @@
 
 SpiController::SpiController(ITerminalView& terminalView, IInput& terminalInput, 
                              SpiService& spiService, SdService& sdService, ArgTransformer& argTransformer,
-                             UserInputManager& userInputManager)
-    : terminalView(terminalView), terminalInput(terminalInput), spiService(spiService), sdService(sdService), argTransformer(argTransformer), userInputManager(userInputManager) {}
+                             UserInputManager& userInputManager, BinaryAnalyzeManager& binaryAnalyzeManager)
+    : terminalView(terminalView),
+      terminalInput(terminalInput),
+      spiService(spiService),
+      sdService(sdService),
+      argTransformer(argTransformer),
+      userInputManager(userInputManager),
+      binaryAnalyzeManager(binaryAnalyzeManager)
+{}
 
 /*
 Entry point for command
@@ -25,16 +32,20 @@ void SpiController::handleCommand(const TerminalCommand& cmd) {
     else if (cmd.getRoot() == "flash") {
         if (cmd.getSubcommand() == "probe") {
             handleFlashProbe();
+        } else if (cmd.getSubcommand() == "analyze") {
+            handleFlashAnalyze(cmd);
+        } else if (cmd.getSubcommand() == "strings") {
+            handleFlashStrings(cmd);
+        } else if (cmd.getSubcommand() == "search") {
+            handleFlashSearch(cmd);
         } else if (cmd.getSubcommand() == "read") {
             handleFlashRead(cmd);
         } else if (cmd.getSubcommand() == "write") {
             handleFlashWrite(cmd);
-        } else if (cmd.getRoot() == "sdcard") {
-            handleSdCard();
         } else if (cmd.getSubcommand() == "erase") {
             handleFlashErase(cmd);
         } else {
-            terminalView.println("Unknown SPI flash command. Use: probe, read, write, erase");
+            terminalView.println("Unknown SPI flash command. Use: probe, analyze, strings, read, write, erase");
         }
     } 
 
@@ -116,12 +127,264 @@ void SpiController::handleFlashProbe() {
 }
 
 /*
+Flash Analyze
+*/
+void SpiController::handleFlashAnalyze(const TerminalCommand& cmd) {
+    if (!checkFlashPresent()) return;
+
+    // Start address if any
+    uint32_t start = 0;
+    std::vector<std::string> args = argTransformer.splitArgs(cmd.getArgs());
+    if (!args.empty()) start = argTransformer.parseHexOrDec32(args[0]);
+
+    terminalView.println("\nSPI Flash Analyze: SPI Flash from 0x" + argTransformer.toHex(start, 6) + "... Press [ENTER] to stop.");
+
+    // Get flash size
+    uint8_t id[3];
+    spiService.readFlashIdRaw(id);
+    const FlashChipInfo* chip = findFlashInfo(id[0], id[1], id[2]);
+    uint32_t flashSize = chip ? chip->capacityBytes : spiService.calculateFlashCapacity(id[2]);
+
+    // Analyze
+    BinaryAnalyzeManager::AnalysisResult result = binaryAnalyzeManager.analyze(start, flashSize);
+
+    // Calculate Summary
+    float printablePct = 100.0f * result.printableTotal / result.totalBytes;
+    float nullsPct     = 100.0f * result.nullsTotal     / result.totalBytes;
+    float ffPct        = 100.0f * result.ffTotal        / result.totalBytes;
+    uint32_t dataBytes = result.totalBytes - (result.nullsTotal + result.ffTotal);
+    float dataPct      = 100.0f * dataBytes / result.totalBytes;
+    float normalizedEntropy = result.avgEntropy / 8.0f;
+    std::string bar = "[";
+    int barLength = 20;
+    int filled = std::round(normalizedEntropy * barLength);
+    for (int i = 0; i < barLength; ++i)
+        bar += (i < filled) ? '#' : '.';
+    bar += "]";
+
+    // Entropy infos
+    std::string interpretation;
+    if (normalizedEntropy >= 0.95f)
+        interpretation = "→ likely encrypted/compressed";
+    else if (normalizedEntropy >= 0.85f)
+        interpretation = "→ mostly compressed";
+    else if (normalizedEntropy >= 0.65f)
+        interpretation = "→ mixed content";
+    else if (normalizedEntropy >= 0.4f)
+        interpretation = "→ partially structured";
+    else if (normalizedEntropy >= 0.2f)
+        interpretation = "→ contains padding";
+    else
+        interpretation = "→ likely empty";
+
+    // Display Summary
+    terminalView.println("");
+    terminalView.println("\nSPI Flash Analysis Summary:");
+    terminalView.println("  Blocks analyzed     : " + std::to_string(result.blocks));
+    terminalView.println("  Total bytes         : " + std::to_string(result.totalBytes));
+    terminalView.println("  Avg entropy (0-1)   : " + argTransformer.formatFloat(normalizedEntropy, 2) + " " + bar + " " + interpretation);
+    terminalView.println("  Printable ASCII     : " + std::to_string(result.printableTotal) + " (" + argTransformer.formatFloat(printablePct, 1) + "%)");
+    terminalView.println("  Null bytes (0x00)   : " + std::to_string(result.nullsTotal)     + " (" + argTransformer.formatFloat(nullsPct, 1) + "%)");
+    terminalView.println("  FF bytes (0xFF)     : " + std::to_string(result.ffTotal)         + " (" + argTransformer.formatFloat(ffPct, 1) + "%)");
+    terminalView.println("  Likely useful data  : " + std::to_string(dataBytes)              + " (" + argTransformer.formatFloat(dataPct, 1) + "%)");
+
+    // Secrets
+    if (!result.foundSecrets.empty()) {
+        terminalView.println("\n  Detected sensitive patterns:");
+        for (const auto& entry : result.foundSecrets) {
+            terminalView.println("    " + entry);
+        }
+    }
+
+    // Files
+    if (!result.foundFiles.empty()) {
+        terminalView.println("\n  Detected file signatures:");
+        for (const auto& entry : result.foundFiles) {
+            terminalView.println("    " + entry);
+        }
+    } else {
+        terminalView.println("\n  No known file signatures found.");
+    }
+
+    terminalView.println("\n  SPI Flash Analyze: Done.\n");
+}
+
+/*
+Flash Strings
+*/
+void SpiController::handleFlashStrings(const TerminalCommand& cmd) {
+    // Check chip presence
+    if (!checkFlashPresent()) return;
+
+    terminalView.println("\nSPI Flash: Extracting strings... Press [ENTER] to stop.\n");
+
+    // Validate and parse args
+    std::vector<std::string> args = argTransformer.splitArgs(cmd.getArgs());
+    uint8_t minStringLen = 7; // default
+    if (!args.empty() && argTransformer.isValidNumber(args[0])) {
+        minStringLen = argTransformer.parseHexOrDec(args[0]);
+        if (minStringLen < 1) minStringLen = 1;
+        if (minStringLen > 255) minStringLen = 255;
+    }
+
+    const uint32_t blockSize = 512;
+    uint8_t buffer[blockSize];
+    std::string currentStr;
+    uint32_t currentAddr = 0;
+    uint32_t stringStartAddr = 0;
+    bool inString = false;
+
+    // Get flash size
+    uint8_t id[3];
+    spiService.readFlashIdRaw(id);
+    const FlashChipInfo* chip = findFlashInfo(id[0], id[1], id[2]);
+    uint32_t flashSize = chip ? chip->capacityBytes : spiService.calculateFlashCapacity(id[2]);
+
+    // Read flash in chuncks
+    for (uint32_t addr = 0; addr < flashSize; addr += blockSize) {
+        spiService.readFlashData(addr, buffer, blockSize);
+
+        // Read blocks
+        for (uint32_t i = 0; i < blockSize; ++i) {
+            uint8_t b = buffer[i];
+            uint32_t absoluteAddr = addr + i;
+
+            if (b >= 32 && b <= 126) {  // printable ASCII
+                if (!inString) {
+                    inString = true;
+                    stringStartAddr = absoluteAddr;
+                }
+                currentStr += static_cast<char>(b);
+            } else {
+                if (inString && currentStr.length() >= minStringLen) {
+                    terminalView.println(
+                        "0x" + argTransformer.toHex(stringStartAddr, 6) + ": " + currentStr
+                    );
+                }
+                currentStr.clear();
+                inString = false;
+            }
+
+            // Quit if user presses ENTER
+            char c = terminalInput.readChar();
+            if (c == '\r' || c == '\n') {
+                terminalView.println("\nSPI Flash: Extraction cancelled by user.");
+                return;
+            }
+        }
+    }
+
+    // if remaining string
+    if (inString && currentStr.length() >= minStringLen) {
+        terminalView.println(
+            "0x" + argTransformer.toHex(stringStartAddr, 6) + ": " + currentStr
+        );
+    }
+
+    terminalView.println("\nSPI Flash: String extraction complete.\n");
+}
+
+/*
+Flash Search
+*/
+void SpiController::handleFlashSearch(const TerminalCommand& cmd) {
+    // Check chip presence
+    if (!checkFlashPresent()) return;
+
+    // Checks args
+    std::vector<std::string> args = argTransformer.splitArgs(cmd.getArgs());
+    if (args.empty() || args[0].empty()) {
+        terminalView.println("Usage: flash search <string> [start_address]");
+        return;
+    }
+
+    // Parse
+    std::string needle = args[0];
+    std::vector<uint8_t> pattern(needle.begin(), needle.end());
+    uint32_t startAddr = 0;
+    if (args.size() >= 2 && argTransformer.isValidNumber(args[1])) {
+        startAddr = argTransformer.parseHexOrDec32(args[1]);
+    }
+
+    terminalView.println("\nSearching for \"" + needle + "\" in SPI flash from 0x" + argTransformer.toHex(startAddr, 6) + "... Press [ENTER] to stop.\n");
+
+    const uint32_t blockSize = 512;
+    const uint32_t contextSize = 16;  // characters before and after
+    uint8_t buffer[blockSize + 32];
+
+    // Get flash size
+    uint8_t id[3];
+    spiService.readFlashIdRaw(id);
+    const FlashChipInfo* chip = findFlashInfo(id[0], id[1], id[2]);
+    uint32_t flashSize = chip ? chip->capacityBytes : spiService.calculateFlashCapacity(id[2]);
+
+    // Read flash in chunks
+    for (uint32_t addr = startAddr; addr < flashSize; addr += blockSize - pattern.size()) {
+        spiService.readFlashData(addr, buffer, blockSize + pattern.size() - 1);
+        
+        // Read block
+        for (uint32_t i = 0; i <= blockSize; ++i) {
+            if (i + pattern.size() > blockSize + pattern.size() - 1) break;
+
+            bool match = true;
+            for (size_t j = 0; j < pattern.size(); ++j) {
+                if (buffer[i + j] != pattern[j]) {
+                    match = false;
+                    break;
+                }
+            }
+            
+            // Found a matching string
+            if (match) {
+                uint32_t matchAddr = addr + i;
+                std::string context;
+
+                // Before the pattern
+                for (int j = (int)i - (int)contextSize; j < (int)i; ++j) {
+                    if (j >= 0) {
+                        char c = (char)buffer[j];
+                        context += (isprint(c) ? c : '.');
+                    }
+                }
+
+                // Pattern
+                context += "[";
+                for (size_t j = 0; j < pattern.size(); ++j) {
+                    char c = (char)buffer[i + j];
+                    context += (isprint(c) ? c : '.');
+                }
+                context += "]";
+
+                // After the pattern
+                for (uint32_t j = i + pattern.size(); j < i + pattern.size() + contextSize && j < blockSize + pattern.size(); ++j) {
+                    char c = (char)buffer[j];
+                    context += (isprint(c) ? c : '.');
+                }
+
+                terminalView.println("0x" + argTransformer.toHex(matchAddr, 6) + ": " + context);
+            }
+
+            // Allow user to interrupt
+            char c = terminalInput.readChar();
+            if (c == '\r' || c == '\n') {
+                terminalView.println("\nSPI Flash Search: Cancelled by user.\n");
+                return;
+            }
+        }
+    }
+
+    terminalView.println("\nSearch complete.");
+}
+
+/*
 Flash Read
 */
 void SpiController::handleFlashRead(const TerminalCommand& cmd) {
+    // Check chip presence
+    if (!checkFlashPresent()) return;
+    
     // Args (addr, length)
     std::vector<std::string> args = argTransformer.splitArgs(cmd.getArgs());
-    
     if (args.size() < 2) {
         terminalView.println("Usage: flash read <address> <length>");
         return;
@@ -140,16 +403,6 @@ void SpiController::handleFlashRead(const TerminalCommand& cmd) {
         terminalView.println("Error: Length must be greater than 0.\n");
         return;
     }
-    
-    // Detect flash
-    uint8_t id[3];
-    spiService.readFlashIdRaw(id);
-    if ((id[0] == 0xFF && id[1] == 0xFF && id[2] == 0xFF) ||
-    (id[0] == 0x00 && id[1] == 0x00 && id[2] == 0x00)) {
-        terminalView.println("No SPI flash detected (bus error or missing chip).\n");
-        return;
-    }
-
     
     // Read flash in chunks
     terminalView.println("SPI Flash Read: In progress... Press [ENTER] to stop");
@@ -228,6 +481,9 @@ void SpiController::readFlashInChunks(uint32_t address, uint32_t length) {
 Flash Write
 */
 void SpiController::handleFlashWrite(const TerminalCommand& cmd) {
+    // Check chip presence
+    if (!checkFlashPresent()) return;
+
     // Confirm
     if (!userInputManager.readYesNo("SPI Flash Write: Confirm write operation?", false)) {
         terminalView.println("SPI Flash Write: Cancelled.\n");
@@ -291,23 +547,18 @@ void SpiController::handleFlashWrite(const TerminalCommand& cmd) {
 Flash Erase
 */
 void SpiController::handleFlashErase(const TerminalCommand& cmd) {
+    // Check chip presence
+    if (!checkFlashPresent()) return;
+    
     terminalView.println("");
-
     if (!userInputManager.readYesNo("SPI Flash Erase: Erase entire flash memory?", false)) {
         terminalView.println("SPI Flash Erase: Cancelled.\n");
         return;
     }
 
-    // Check chip presence
+    // Get infos about the chip
     uint8_t id[3];
     spiService.readFlashIdRaw(id);
-    if ((id[0] == 0xFF && id[1] == 0xFF && id[2] == 0xFF) ||
-        (id[0] == 0x00 && id[1] == 0x00 && id[2] == 0x00)) {
-        terminalView.println("No SPI flash detected. Aborting.\n");
-        return;
-    }
-
-    // Get infos about the chip
     const FlashChipInfo* chip = findFlashInfo(id[0], id[1], id[2]);
     uint32_t freq = state.getSpiFrequency();
     const uint32_t sectorSize = 4096; // standard
@@ -336,6 +587,24 @@ void SpiController::handleFlashErase(const TerminalCommand& cmd) {
     }
 
     terminalView.println("\r\nSPI Flash Erase: Complete.\n");
+}
+
+/*
+Check Chip
+*/
+bool SpiController::checkFlashPresent() {
+    uint8_t id[3];
+    spiService.readFlashIdRaw(id);
+
+    bool invalid = (id[0] == 0xFF && id[1] == 0xFF && id[2] == 0xFF) ||
+                   (id[0] == 0x00 && id[1] == 0x00 && id[2] == 0x00);
+
+    if (invalid) {
+        terminalView.println("No SPI flash detected (bus error or missing chip).\n");
+        return false;
+    }
+
+    return true;
 }
 
 /*
@@ -381,7 +650,7 @@ void SpiController::handleSlave() {
     }
 
     spiService.stopSlave(sclk, miso, mosi, cs);
-    spiService.configure(mosi, miso, sclk, cs, state.getI2cFrequency()); // Reconfigure master
+    spiService.configure(mosi, miso, sclk, cs, state.getSpiFrequency()); // Reconfigure master
     terminalView.println("SPI Slave: Cancelled by user.");
 }
 
@@ -436,6 +705,9 @@ void SpiController::handleHelp() {
     terminalView.println("  sdcard");
     terminalView.println("  slave");
     terminalView.println("  flash probe");
+    terminalView.println("  flash analyze [start address]");
+    terminalView.println("  flash strings [length]");
+    terminalView.println("  flash search <text>");
     terminalView.println("  flash read <addr> <len>");
     terminalView.println("  flash write <addr> <data>");
     terminalView.println("  flash erase");

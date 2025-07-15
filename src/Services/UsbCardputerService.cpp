@@ -168,6 +168,9 @@ bool UsbCardputerService::isMouseActive() const {
     return mouseActive;
 }
 
+bool UsbCardputerService::isGamepadActive() const {
+    return gamepadActive;
+}
 
 int32_t UsbCardputerService::storageReadCallback(uint32_t lba, uint32_t offset, void* buffer, uint32_t bufsize) {
     const uint32_t secSize = SD.sectorSize();
@@ -243,10 +246,5 @@ void UsbCardputerService::reset() {
         gamepadActive = false;
     }
 }
-
-bool UsbCardputerService::isGamepadActive() const {
-    return gamepadActive;
-}
-
 
 #endif
