@@ -184,11 +184,16 @@ void UtilityController::handleLogicAnalyzer(const TerminalCommand& cmd) {
         return;
     }
 
+    // Verify protected pin
     uint8_t pin = argTransformer.toUint8(cmd.getSubcommand());
+    auto forbidden = state.getProtectedPins();
+    if (std::find(forbidden.begin(), forbidden.end(), pin) != forbidden.end()) {
+        terminalView.println("Logic Analyzer: This pin is protected or reserved.");
+        return;
+    }
 
     terminalView.println("\nLogic Analyzer: Monitoring pin " + std::to_string(pin) + "... Press [ENTER] to stop.");
     terminalView.println("Displaying waveform on the ESP32 screen...\n");
-
 
 
     pinService.setInput(pin);

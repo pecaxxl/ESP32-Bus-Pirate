@@ -55,6 +55,7 @@ void DioController::handleReadPin(const TerminalCommand& cmd) {
     }
 
     uint8_t pin = argTransformer.toUint8(cmd.getSubcommand());
+    if (!isPinAllowed(pin, "Read")) return;
     int value = pinService.read(pin);
     terminalView.println("Pin " + std::to_string(pin) + " = " + std::to_string(value));
 }
@@ -75,6 +76,7 @@ void DioController::handleSetPin(const TerminalCommand& cmd) {
     }
 
     uint8_t pin = argTransformer.toUint8(cmd.getSubcommand());
+    if (!isPinAllowed(pin, "Set")) return;
     char c = std::toupper(arg[0]);
 
     switch (c) {
@@ -112,6 +114,7 @@ void DioController::handlePullup(const TerminalCommand& cmd) {
     }
 
     int pin = argTransformer.toUint8(cmd.getSubcommand());
+    if (!isPinAllowed(pin, "Pullup")) return;
     pinService.setInputPullup(pin);
 
     terminalView.println("DIO Pullup: Set on pin " + std::to_string(pin));
@@ -127,6 +130,7 @@ void DioController::handleSniff(const TerminalCommand& cmd) {
     }
 
     uint8_t pin = argTransformer.toUint8(cmd.getSubcommand());
+    if (!isPinAllowed(pin, "Sniff")) return;
     pinService.setInput(pin);
 
     terminalView.println("DIO Sniff: Pin " + std::to_string(pin) + "... Press [ENTER] to stop");
@@ -179,6 +183,7 @@ void DioController::handlePwm(const TerminalCommand& cmd) {
     }
 
     uint8_t pin = argTransformer.toUint8(sub);
+    if (!isPinAllowed(pin, "PWM")) return;
     uint32_t freq = argTransformer.toUint32(args[0]);
     uint8_t duty = argTransformer.toUint8(args[1]);
 
@@ -204,22 +209,25 @@ void DioController::handlePwm(const TerminalCommand& cmd) {
 Toggle
 */
 void DioController::handleTogglePin(const TerminalCommand& cmd) {
+    
     auto args = argTransformer.splitArgs(cmd.getArgs());
-
+    
     if (cmd.getSubcommand().empty() || args.empty()) {
         terminalView.println("Usage: toggle <pin> <ms>");
         return;
     }
-
+    
     if (!argTransformer.isValidNumber(cmd.getSubcommand()) ||
-        !argTransformer.isValidNumber(args[0])) {
+    !argTransformer.isValidNumber(args[0])) {
         terminalView.println("DIO Toggle: Invalid arguments.");
         return;
     }
-
+    
     uint8_t pin = argTransformer.toUint8(cmd.getSubcommand());
-    uint32_t intervalMs = argTransformer.toUint32(args[0]);
+    if (!isPinAllowed(pin, "Toggle")) return;
 
+    uint32_t intervalMs = argTransformer.toUint32(args[0]);
+    
     pinService.setOutput(pin);
     bool state = false;
 
@@ -270,6 +278,7 @@ void DioController::handleResetPin(const TerminalCommand& cmd) {
     }
 
     uint8_t pin = argTransformer.toUint8(cmd.getSubcommand());
+    if (!isPinAllowed(pin, "Reset")) return;
 
     // Detacher PWM
     ledcDetachPin(pin);
@@ -292,4 +301,13 @@ void DioController::handleHelp() {
     terminalView.println("  pwm <pin> <freq> <duty>");
     terminalView.println("  toggle <pin> <ms>");
     terminalView.println("  reset <pin>");
+}
+
+bool DioController::isPinAllowed(uint8_t pin, const std::string& context) {
+    const auto& protectedPins = state.getProtectedPins();
+    if (std::find(protectedPins.begin(), protectedPins.end(), pin) != protectedPins.end()) {
+        terminalView.println("DIO " + context + ": Pin " + std::to_string(pin) + " is protected and cannot be used.");
+        return false;
+    }
+    return true;
 }

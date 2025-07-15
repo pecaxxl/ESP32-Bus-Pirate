@@ -47,4 +47,7 @@ private:
 
     // Display DIO help info
     void handleHelp();
+
+    // Check protected pin
+    bool isPinAllowed(uint8_t pin, const std::string& context);
 };
