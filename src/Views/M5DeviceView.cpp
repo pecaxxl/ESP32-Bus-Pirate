@@ -257,7 +257,7 @@ void M5DeviceView::loading() {
 
 void M5DeviceView::drawLogicTrace(uint8_t pin, const std::vector<uint8_t>& buffer) {
     static constexpr int canvasWidth = 240;
-    static constexpr int canvasHeight = 60;
+    static constexpr int canvasHeight = 65;
     static constexpr int midY = canvasHeight / 2;
 
     // Canvas
@@ -270,14 +270,15 @@ void M5DeviceView::drawLogicTrace(uint8_t pin, const std::vector<uint8_t>& buffe
     for (size_t i = 1; i < buffer.size() && i < canvasWidth; ++i) {
         int x0 = i - 1;
         int x1 = i;
-        int y0 = buffer[i - 1] ? midY - 10 : midY + 10;
-        int y1 = buffer[i]     ? midY - 10 : midY + 10;
+        int amplitude = 20;
+        int y0 = buffer[i - 1] ? midY - amplitude : midY + amplitude;
+        int y1 = buffer[i]     ? midY - amplitude : midY + amplitude;
 
         canvas.drawLine(x0, y0, x1, y1, PRIMARY_COLOR);
     }
 
     // Pin num
-    canvas.drawString("Pin " + String(pin), 5, 2);
+    canvas.drawString("Pin " + String(pin), 5, 0);
 
     // Center
     int x = (M5.Lcd.width() - canvasWidth) / 2;
