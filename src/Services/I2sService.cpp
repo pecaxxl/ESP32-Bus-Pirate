@@ -104,6 +104,13 @@ void I2sService::playToneInterruptible(uint16_t freq, uint32_t durationMs, std::
     }
 }
 
+void I2sService::playPcm(const int16_t* data, size_t numBytes) {
+    if (!initialized || data == nullptr || numBytes == 0) return;
+
+    size_t bytesWritten = 0;
+    i2s_write(port, data, numBytes, &bytesWritten, portMAX_DELAY);
+}
+
 size_t I2sService::recordSamples(int16_t* outBuffer, size_t sampleCount) {
     if (!initialized) return 0;
 
@@ -118,12 +125,6 @@ size_t I2sService::recordSamples(int16_t* outBuffer, size_t sampleCount) {
     }
 
     return totalRead / sizeof(int16_t);
-}
-
-void I2sService::playRaw(const int16_t* samples, size_t count) {
-    if (!initialized) return;
-    size_t written;
-    i2s_write(port, samples, count * sizeof(int16_t), &written, portMAX_DELAY);
 }
 
 void I2sService::stop() {

@@ -14,7 +14,7 @@ public:
 
     void playTone(uint16_t freq, uint16_t durationMs);
     void playToneInterruptible(uint16_t freq, uint32_t durationMs, std::function<bool()> shouldStop);
-    void playRaw(const int16_t* samples, size_t count);
+    void playPcm(const int16_t* data, size_t numBytes);
     size_t recordSamples(int16_t* outBuffer, size_t sampleCount);
     void stop();
     bool isInitialized() const;

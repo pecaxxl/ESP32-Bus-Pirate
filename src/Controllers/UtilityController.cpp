@@ -377,8 +377,9 @@ void UtilityController::handleHelp() {
 
     terminalView.println("");
     terminalView.println(" 16. I2S:");
-    terminalView.println("  play <freq> <ms>     - Play sine wave for ms");
+    terminalView.println("  play <freq> [ms]     - Play sine wave for ms");
     terminalView.println("  record               - Read mic continuously");
+    terminalView.println("  test <speaker|mic>   - Run basic audio tests");
     terminalView.println("  reset                - Reset to default");
     terminalView.println("  config               - Configure settings");
 
