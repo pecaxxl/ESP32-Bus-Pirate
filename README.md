@@ -23,6 +23,7 @@ It supports sniffing, sending, scripting, and interacting with various digital p
   - Wi-Fi (scan, AP, connect, sniff, spoofing)
   - JTAG
   - LED control
+  - I2S
 
 - **Protocol sniffers** for I2C, Wi-Fi, Bluetooth, 1Wire.
 - Baudrate **auto-detection** and various tools for UART.
