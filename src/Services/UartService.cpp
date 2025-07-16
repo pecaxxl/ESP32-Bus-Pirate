@@ -195,16 +195,18 @@ void UartService::blockLookupHandler(void* blk_id, size_t idSize, byte* data, si
     }
 
     size_t offset = blockId * dataSize;
-
     if (!currentFile->seek(offset)) {
         return;
     }
 
+    // Read
     size_t readBytes = currentFile->read(data, dataSize);
-
     if (readBytes < dataSize) {
         memset(data + readBytes, 0x1A, dataSize - readBytes);
     }
+
+    // Progression
+    Serial.printf("Sending bloc: %u\n\r", (unsigned int)blockId);
 }
 
 bool UartService::receiveBlockHandler(void* blk_id, size_t idSize, byte* data, size_t dataSize) {
@@ -212,6 +214,14 @@ bool UartService::receiveBlockHandler(void* blk_id, size_t idSize, byte* data, s
         return false;
     }
 
+    // Progression
+    uint32_t blockId = 0;
+    for (size_t i = 0; i < idSize; ++i) {
+        blockId = (blockId << 8) | ((uint8_t*)blk_id)[i];
+    }
+    Serial.printf("Receiving bloc: %u\r\n", (unsigned int)blockId);
+
+    // Write
     return currentFile->write(data, dataSize) == dataSize;
 }
 

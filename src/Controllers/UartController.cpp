@@ -420,7 +420,8 @@ void UartController::handleXmodemSend(const std::string& path) {
     }
 
     // Infos
-    terminalView.println(" [INFO]  No progress bar will be shown.");
+    terminalView.println(" [INFO]  No progress bar will be shown on WEBUI.");
+    terminalView.println("         Progress bar is only visible over USB Serial.");
     terminalView.println("         Please be patient during the transfer.\n");
     std::stringstream ss;
     ss << "         Estimated duration: ~" 
@@ -459,7 +460,8 @@ void UartController::handleXmodemReceive(const std::string& path) {
     // Infos
     terminalView.println("");
     terminalView.println("  [INFO] XMODEM receive mode is blocking.");
-    terminalView.println("         No progress bar will be shown.");
+    terminalView.println("         No progress bar will be shown on WEBUI.");
+    terminalView.println("         Progress bar is only visible over USB Serial.");
     terminalView.println("         The device will wait for incoming data");
     terminalView.println("         for up to 2 minutes. Once started,");
     terminalView.println("         the transfer must complete before exiting.\n");
