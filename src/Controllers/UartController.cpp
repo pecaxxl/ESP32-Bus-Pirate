@@ -4,8 +4,8 @@
 Constructor
 */
 UartController::UartController(ITerminalView& terminalView, IInput& terminalInput, IInput& deviceInput, 
-                               UartService& uartService, HdUartService& hDUartService, ArgTransformer& argTransformer, UserInputManager& userInputManager)
-    : terminalView(terminalView), terminalInput(terminalInput), deviceInput(deviceInput), uartService(uartService), hdUartService(hdUartService), argTransformer(argTransformer), userInputManager(userInputManager) {}
+                               UartService& uartService, SdService& sdService, HdUartService& hDUartService, ArgTransformer& argTransformer, UserInputManager& userInputManager)
+    : terminalView(terminalView), terminalInput(terminalInput), deviceInput(deviceInput), uartService(uartService), sdService(sdService), hdUartService(hdUartService), argTransformer(argTransformer), userInputManager(userInputManager) {}
 
 
 /*
@@ -40,6 +40,10 @@ void UartController::handleCommand(const TerminalCommand& cmd) {
     else if (cmd.getRoot() == "glitch") {
         handleGlitch();
     } 
+
+    else if (cmd.getRoot() == "xmodem") {
+        handleXmodem(cmd);
+    }
 
     else if (cmd.getRoot() == "config") {
         handleConfig();
@@ -349,6 +353,131 @@ void UartController::handleSpam(const TerminalCommand& cmd) {
 }
 
 /*
+Xmodem
+*/
+void UartController::handleXmodem(const TerminalCommand& cmd) {
+    std::string action = cmd.getSubcommand();
+    std::string path = cmd.getArgs();
+
+    if (action.empty()) {
+        terminalView.println("Usage: xmodem <recv/send> <path>");
+        return;
+    }
+
+    if (path.empty()) {
+        terminalView.println("Error: missing path argument (ex: /file.txt)");
+        return;
+    }
+    
+    // Normalize path
+    if (!path.empty() && path[0] != '/') {
+        path = "/" + path;
+    }
+
+    terminalView.println("\nXmodem Configuration:");
+
+    // Xmodem block size
+    uint8_t defaultBlockSize = uartService.getXmodemBlockSize();
+    uint8_t blockSize = userInputManager.readValidatedUint8("Block size (typ. 128 or 1024)", defaultBlockSize, 1, 128);
+    uartService.setXmodemBlockSize(blockSize);
+
+    // Xmodem id size
+    uint8_t defaultIdSize = uartService.getXmodemIdSize();
+    uint8_t idSize = userInputManager.readValidatedUint8("Block ID size in bytes (1-4)", defaultIdSize, 1, 4);
+    uartService.setXmodemIdSize(idSize);
+
+    // Xmodem CRC
+    bool useCrc = userInputManager.readYesNo("Use CRC?", true);
+    uartService.setXmodemCrc(useCrc);
+
+    terminalView.println("\nXmodem configured\n");
+
+    if (action == "recv") {
+        handleXmodemReceive(path);
+    } else if (action == "send") {
+        handleXmodemSend(path);
+    } else {
+        terminalView.println("Usage: xmodem <recv/send> <path>");
+    }
+}
+
+void UartController::handleXmodemSend(const std::string& path) {
+    // Open SD with SPI pin
+    auto sdMounted = sdService.configure(state.getSpiCLKPin(), state.getSpiMISOPin(), 
+                    state.getSpiMOSIPin(), state.getSpiCSPin());
+
+    //Check SD mounted
+    if (!sdMounted) {
+        terminalView.println("UART XMODEM: No SD card detected. Check SPI pins");
+        return;
+    }
+
+    // Open the file
+    File file = sdService.openFileRead(path);
+    if (!file) {
+        terminalView.println("UART XMODEM: Could not open file");
+        return;
+    }
+
+    // Infos
+    terminalView.println(" [INFO]  No progress bar will be shown.");
+    terminalView.println("         Please be patient during the transfer.\n");
+    std::stringstream ss;
+    ss << "         Estimated duration: ~" 
+    << (uint32_t)((file.size() * 10.0) / state.getUartBaudRate()) 
+    << " seconds.\n";
+    terminalView.println(ss.str());
+
+    // Send it
+    terminalView.println("UART XMODEM: Sending...");
+    bool ok = uartService.xmodemSendFile(file);
+    file.close();
+    sdService.close();
+
+    // result
+    terminalView.println(ok ? "UART XMODEM: Success, file is transferred" : "UART XMODEM: Failed to transfer file");
+}
+
+void UartController::handleXmodemReceive(const std::string& path) {
+    // Open sd card with SPI pin
+    auto sdMounted = sdService.configure(state.getSpiCLKPin(), state.getSpiMISOPin(), 
+                    state.getSpiMOSIPin(), state.getSpiCSPin());
+
+    //Check SD mounted
+    if (!sdMounted) {
+        terminalView.println("UART XMODEM: No SD card detected. Check SPI pins");
+        return;
+    }
+
+    // Create target file
+    File file = sdService.openFileWrite(path);
+    if (!file) {
+        terminalView.println("UART XMODEM: Could not create file.");
+        return;
+    }
+
+    // Infos
+    terminalView.println("");
+    terminalView.println("  [INFO] XMODEM receive mode is blocking.");
+    terminalView.println("         No progress bar will be shown.");
+    terminalView.println("         The device will wait for incoming data");
+    terminalView.println("         for up to 2 minutes. Once started,");
+    terminalView.println("         the transfer must complete before exiting.\n");
+
+    // Receive
+    terminalView.println("UART XMODEM: Receiving...");
+    bool ok = uartService.xmodemReceiveToFile(file);
+    file.close();
+    sdService.close();
+
+    // Result
+    terminalView.println(ok ? 
+        ("UART XMODEM: Receive OK, File saved to " + path) :
+        "UART XMODEM: Receive failed");
+    terminalView.println("");
+}
+
+/*
 Config
 */
 void UartController::handleConfig() {
@@ -400,6 +529,8 @@ void UartController::handleHelp() {
     terminalView.println("  bridge");
     terminalView.println("  spam <text> <ms>");
     terminalView.println("  glitch");
+    terminalView.println("  xmodem recv <dest path>");
+    terminalView.println("  xmodem send <file path>");
     terminalView.println("  config");
     terminalView.println("  raw instructions, ['AT' D:100 r:128]");
     terminalView.println("");

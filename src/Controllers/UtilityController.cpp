@@ -265,6 +265,8 @@ void UtilityController::handleHelp() {
     terminalView.println("  bridge               - Full-duplex mode");
     terminalView.println("  spam <text> <ms>     - Write text envery ms");
     terminalView.println("  glitch               - Timing attack");
+    terminalView.println("  xmodem <send> <path> - Send file via XMODEM");
+    terminalView.println("  xmodem <recv> <path> - Receive file via XMODEM");
     terminalView.println("  config               - Configure settings");
     terminalView.println("  ['Hello'] [r:64]...  - Instruction syntax");
  

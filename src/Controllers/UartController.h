@@ -7,6 +7,7 @@
 #include "Models/ByteCode.h"
 #include "Services/UartService.h"
 #include "Services/HdUartService.h"
+#include "Services/SdService.h"
 #include "Interfaces/ITerminalView.h"
 #include "Interfaces/IInput.h"
 #include "States/GlobalState.h"
@@ -20,11 +21,12 @@ public:
                    IInput& terminalInput,
                    IInput& deviceInput,
                    UartService& uartService, 
+                   SdService& sdService,
                    HdUartService& hdUartService, 
                    ArgTransformer& argTransformer,
                    UserInputManager& userInputManager);
     
-    // Entry pooint for UART command
+    // Entry point for UART command
     void handleCommand(const TerminalCommand& cmd);
 
     //  Entry point for handle parsed bytecode instructions
@@ -40,7 +42,7 @@ public:
     // Perform a simple read
     void handleRead();
     
-    // Send simple ping command
+    // Send probes to get a response
     void handlePing();
     
     // Write data to UART
@@ -60,6 +62,15 @@ public:
 
     // Spam given input every given ms
     void handleSpam(const TerminalCommand& cmd);
+
+    // Xmodem cmd handler
+    void handleXmodem(const TerminalCommand& cmd);
+
+    // Receive file from xmodem
+    void handleXmodemReceive(const std::string& path);
+
+    // Send file to xmodem
+    void handleXmodemSend(const std::string& path);
 
     // Scan a baudrate
     bool scanAtBaudrate(int baud);
@@ -83,6 +94,7 @@ public:
     IInput& terminalInput;
     IInput& deviceInput;
     UartService& uartService;
+    SdService& sdService;
     HdUartService& hdUartService;
     ArgTransformer& argTransformer;
     UserInputManager& userInputManager;

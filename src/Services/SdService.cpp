@@ -225,3 +225,13 @@ bool SdService::ensureDirectory(const std::string& directory) {
     }
     return true; // Folder already exists
 }
+
+File SdService::openFileRead(const std::string& path) {
+    if (!sdCardMounted) return File();
+    return SD.open(path.c_str(), FILE_READ);
+}
+
+File SdService::openFileWrite(const std::string& path) {
+    if (!sdCardMounted) return File();
+    return SD.open(path.c_str(), FILE_WRITE);
+}

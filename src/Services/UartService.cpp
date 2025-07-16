@@ -144,3 +144,140 @@ uint32_t UartService::buildUartConfig(uint8_t dataBits, char parity, uint8_t sto
 
     return config;
 }
+
+/*
+XMODEM
+*/
+File* UartService::currentFile = nullptr;
+
+void UartService::setXmodemBlockSize(int32_t size) {
+    xmodemBlockSize = size;
+}
+
+void UartService::setXmodemIdSize(int8_t size) {
+    xmodemIdSize = size;
+}
+
+int32_t UartService::getXmodemBlockSize() const {
+    return xmodemBlockSize;
+}
+
+int8_t UartService::getXmodemIdSize() const {
+    return xmodemIdSize;
+}
+
+void UartService::setXmodemCrc(bool enabled) {
+    xmodemProtocol = enabled ? XModem::ProtocolType::CRC_XMODEM : XModem::ProtocolType::XMODEM;
+}
+
+void UartService::setXmodemReceiveHandler(bool (*handler)(void*, size_t, byte*, size_t)) {
+    xmodem.setRecieveBlockHandler(handler);
+}
+
+void UartService::setXmodemSendHandler(void (*handler)(void*, size_t, byte*, size_t)) {
+    xmodem.setBlockLookupHandler(handler);
+}
+
+void UartService::initXmodem() {
+    xmodem.begin(Serial1, xmodemProtocol);
+    xmodem.setDataSize(xmodemBlockSize);
+    xmodem.setIdSize(xmodemIdSize);
+}
+
+void UartService::blockLookupHandler(void* blk_id, size_t idSize, byte* data, size_t dataSize) {
+    if (!currentFile) {
+        return;
+    }
+
+    uint32_t blockId = 0;
+    for (size_t i = 0; i < idSize; ++i) {
+        blockId = (blockId << 8) | ((uint8_t*)blk_id)[i];
+    }
+
+    size_t offset = blockId * dataSize;
+
+    if (!currentFile->seek(offset)) {
+        return;
+    }
+
+    size_t readBytes = currentFile->read(data, dataSize);
+
+    if (readBytes < dataSize) {
+        memset(data + readBytes, 0x1A, dataSize - readBytes);
+    }
+}
+
+bool UartService::receiveBlockHandler(void* blk_id, size_t idSize, byte* data, size_t dataSize) {
+    if (!currentFile) {
+        return false;
+    }
+
+    return currentFile->write(data, dataSize) == dataSize;
+}
+
+bool UartService::xmodemSendFile(File& file) {
+    if (!file || file.isDirectory()) return false;
+
+    // Xmodem Init
+    initXmodem();
+    currentFile = &file;
+    xmodem.setBlockLookupHandler(blockLookupHandler);
+
+    // Calculate
+    size_t fileSize = file.size();
+    size_t blockSize = xmodemBlockSize;
+    size_t totalBlocks = (fileSize + blockSize - 1) / blockSize;
+    const size_t idSize = xmodemIdSize;
+
+    // Construct Ids
+    byte* all_ids = (byte*)malloc(totalBlocks * idSize);
+    for (size_t i = 0; i < totalBlocks; ++i) {
+        unsigned long long blk_id = i + 1;
+        for (size_t j = 0; j < idSize; ++j) {
+            all_ids[i * idSize + j] = (blk_id >> (8 * (idSize - j - 1))) & 0xFF;
+        }
+    }
+
+    // Data, lookup_handler will deal with empty data
+    byte** dummy_data = (byte**)malloc(sizeof(byte*) * totalBlocks);
+    size_t* dummy_lens = (size_t*)malloc(sizeof(size_t) * totalBlocks);
+    for (size_t i = 0; i < totalBlocks; ++i) {
+        dummy_data[i] = nullptr;
+        dummy_lens[i] = blockSize;
+    }
+
+    // Configure container for send_bulk_data
+    struct XModem::bulk_data container = {
+        .data_arr = dummy_data,
+        .len_arr = dummy_lens,
+        .id_arr = all_ids,
+        .count = totalBlocks
+    };
+
+    // Send
+    bool result = xmodem.send_bulk_data(container);
+
+    // Release
+    free(all_ids);
+    free(dummy_data);
+    free(dummy_lens);
+    currentFile = nullptr;
+
+    return result;
+}
+
+
+bool UartService::xmodemReceiveToFile(File& file) {
+    if (!file || file.isDirectory()) return false;
+
+    // Init
+    initXmodem();
+    currentFile = &file;
+
+    // Receive
+    xmodem.setRecieveBlockHandler(receiveBlockHandler);
+    bool ok = xmodem.receive();
+
+    currentFile = nullptr;
+    return ok;
+}

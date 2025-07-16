@@ -29,7 +29,6 @@ public:
     bool writeBinaryFile(const std::string& filePath, const std::vector<uint8_t>& data);
     bool appendToFile(const std::string& filePath, const std::string& data);
     bool deleteFile(const std::string& filePath);
-    bool validateVaultFile(const std::string& filePath);
     bool ensureDirectory(const std::string& directory);
 
     std::string getFileExt(const std::string& path);
@@ -38,6 +37,10 @@ public:
     std::vector<std::string> getCachedDirectoryElements(const std::string& path);
     void setCachedDirectoryElements(const std::string& path, const std::vector<std::string>& elements);
     void removeCachedPath(const std::string& path);
+
+    File openFileRead(const std::string& path);
+    File openFileWrite(const std::string& path);
+
 };
 
 #endif // SD_SERVICE_H
