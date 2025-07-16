@@ -473,10 +473,10 @@ void UartController::handleXmodemReceive(const std::string& path) {
     sdService.close();
 
     // Result
+    terminalView.println("");
     terminalView.println(ok ? 
         ("UART XMODEM: Receive OK, File saved to " + path) :
         "UART XMODEM: Receive failed");
-    terminalView.println("");
 }
 
 /*
