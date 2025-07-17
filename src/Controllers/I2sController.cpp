@@ -142,17 +142,21 @@ void I2sController::handleRecord(const TerminalCommand& cmd) {
     terminalView.println("\nI2S Record: Stopped by user.\n");
 }
 
-
 /*
 Test
 */
 void I2sController::handleTest(const TerminalCommand& cmd) {
     std::string mode = cmd.getSubcommand();
 
-    if (mode == "speaker") {
+    if (mode.empty()) {
+        terminalView.println("Usage: test <speaker|mic>");
+        return;
+    }
+
+    if (mode[0] == 's') {
         handleTestSpeaker();
     }
-    else if (mode == "mic") {
+    else if (mode[0] == 'm') {
         handleTestMic();
     }
     else {
@@ -160,12 +164,18 @@ void I2sController::handleTest(const TerminalCommand& cmd) {
     }
 }
 
-
 /*
 Test Speaker
 */
 void I2sController::handleTestSpeaker() {
-    terminalView.println("I2S Speaker Test: Running full diagnostics...\n");
+    terminalView.println("I2S Speaker Test: Running full tests...\n");
+
+    // Show pin config
+    terminalView.println("Using pins:");
+    terminalView.println("  BCLK : " + std::to_string(state.getI2sBclkPin()));
+    terminalView.println("  LRCK : " + std::to_string(state.getI2sLrckPin()));
+    terminalView.println("  DATA : " + std::to_string(state.getI2sDataPin()));
+    terminalView.println("");
 
     // Melody
     terminalView.println("  Melody...");
@@ -222,7 +232,7 @@ void I2sController::handleTestSpeaker() {
         state.getI2sBitsPerSample()
     );
 
-    terminalView.println("\nI2S Speaker Test: Done.\n");
+    terminalView.println("\nI2S Speaker Test: Done.");
 }
 
 /*
@@ -238,6 +248,13 @@ void I2sController::handleTestMic() {
         state.getI2sSampleRate(),
         state.getI2sBitsPerSample()
     );
+
+    // Show pin config
+    terminalView.println("Using pins:");
+    terminalView.println("  BCLK : " + std::to_string(state.getI2sBclkPin()));
+    terminalView.println("  LRCK : " + std::to_string(state.getI2sLrckPin()));
+    terminalView.println("  DATA : " + std::to_string(state.getI2sDataPin()));
+    terminalView.println("");
 
     constexpr size_t sampleCount = 4096;
     std::vector<int16_t> buffer(sampleCount);
@@ -289,7 +306,7 @@ void I2sController::handleTestMic() {
         state.getI2sBitsPerSample()
     );
 
-    terminalView.println("\nI2S Micro: Done.\n");
+    terminalView.println("\nI2S Micro: Done.");
 }
 
 /*
@@ -338,7 +355,7 @@ void I2sController::handleHelp() {
 Reset
 */
 void I2sController::handleReset() {
-    i2sService.stop();
+    i2sService.end();
 
     // Config output
     i2sService.configureOutput(state.getI2sBclkPin(),
@@ -360,7 +377,7 @@ void I2sController::ensureConfigured() {
         configured = true;
     } else {
         // Reapply
-        i2sService.stop();
+        i2sService.end();
         i2sService.configureOutput(state.getI2sBclkPin(), state.getI2sLrckPin(),
                              state.getI2sDataPin(), state.getI2sSampleRate(),
                              state.getI2sBitsPerSample());

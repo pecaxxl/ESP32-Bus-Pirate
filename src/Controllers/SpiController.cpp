@@ -752,6 +752,7 @@ void SpiController::ensureConfigured() {
         configured = true;
     }
 
+    spiService.end();
     // Reconfigure, user could have used these pins for another mode
     uint8_t sclk = state.getSpiCLKPin();
     uint8_t miso = state.getSpiMISOPin();
