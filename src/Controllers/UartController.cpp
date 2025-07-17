@@ -441,6 +441,9 @@ void UartController::handleXmodemSend(const std::string& path) {
     // Close Xmodem
     uartService.end();
     ensureConfigured();
+
+    // Close SD
+    sdService.end();
 }
 
 void UartController::handleXmodemReceive(const std::string& path) {
@@ -485,6 +488,12 @@ void UartController::handleXmodemReceive(const std::string& path) {
     // Close Xmodem
     uartService.end();
     ensureConfigured();
+
+    // Close SD
+    if (!ok) {
+        sdService.deleteFile(path); // delete created file
+    }
+    sdService.end();
 }
 
 /*

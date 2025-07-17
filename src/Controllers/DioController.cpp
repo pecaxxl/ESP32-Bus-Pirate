@@ -231,7 +231,7 @@ void DioController::handleTogglePin(const TerminalCommand& cmd) {
     pinService.setOutput(pin);
     bool state = false;
 
-    terminalView.println("DIO Toggle: Pin " + std::to_string(pin) + " every " + std::to_string(intervalMs) + "ms...Press [ENTER] to stop.");
+    terminalView.println("\nDIO Toggle: Pin " + std::to_string(pin) + " every " + std::to_string(intervalMs) + "ms...Press [ENTER] to stop.");
     terminalView.println("");
 
     unsigned long lastToggle = millis();
@@ -245,7 +245,7 @@ void DioController::handleTogglePin(const TerminalCommand& cmd) {
             lastCheck = now;
             char c = terminalInput.readChar();
             if (c == '\r' || c == '\n') {
-                terminalView.println("DIO Toggle: Stopped.\n");
+                terminalView.println("DIO Toggle: Stopped.");
                 break;
             }
         }
