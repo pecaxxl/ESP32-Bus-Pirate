@@ -433,10 +433,14 @@ void UartController::handleXmodemSend(const std::string& path) {
     terminalView.println("UART XMODEM: Sending...");
     bool ok = uartService.xmodemSendFile(file);
     file.close();
-    sdService.close();
+    sdService.end();
 
-    // result
-    terminalView.println(ok ? "UART XMODEM: Success, file is transferred" : "UART XMODEM: Failed to transfer file");
+    // Result
+    terminalView.println(ok ? "\nUART XMODEM: Success, file is transferred" : "\nUART XMODEM: Failed to transfer file");
+
+    // Close Xmodem
+    uartService.end();
+    ensureConfigured();
 }
 
 void UartController::handleXmodemReceive(const std::string& path) {
@@ -470,13 +474,17 @@ void UartController::handleXmodemReceive(const std::string& path) {
     terminalView.println("UART XMODEM: Receiving...");
     bool ok = uartService.xmodemReceiveToFile(file);
     file.close();
-    sdService.close();
+    sdService.end();
 
     // Result
     terminalView.println("");
     terminalView.println(ok ? 
         ("UART XMODEM: Receive OK, File saved to " + path) :
         "UART XMODEM: Receive failed");
+
+    // Close Xmodem
+    uartService.end();
+    ensureConfigured();
 }
 
 /*

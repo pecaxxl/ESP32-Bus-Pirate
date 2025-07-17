@@ -36,7 +36,6 @@ void setup() {
         auto cfg = M5.config();
         M5Cardputer.begin(cfg, true);
         deviceView.setRotation(1);
-        M5Cardputer.Speaker.end();
         CardputerInput deviceInput;
     #endif
 

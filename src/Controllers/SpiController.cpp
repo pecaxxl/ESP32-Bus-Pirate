@@ -662,6 +662,7 @@ void SpiController::handleSdCard() {
     terminalView.println("SD Card: Mounting...");
     delay(500); // let the user see this ^
 
+    spiService.end();
     bool success = sdService.configure(
             state.getSpiCLKPin(), 
             state.getSpiMISOPin(),
@@ -692,7 +693,7 @@ void SpiController::handleSdCard() {
     }
 
     // Close and reconfigure
-    sdService.close();
+    sdService.end();
     spiService.end();
     ensureConfigured();
 }
@@ -753,6 +754,7 @@ void SpiController::ensureConfigured() {
     }
 
     spiService.end();
+    sdService.end();
     // Reconfigure, user could have used these pins for another mode
     uint8_t sclk = state.getSpiCLKPin();
     uint8_t miso = state.getSpiMISOPin();

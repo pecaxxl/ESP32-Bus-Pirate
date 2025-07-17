@@ -48,7 +48,7 @@ void SerialTerminalView::clear() {
 }
 
 void SerialTerminalView::waitPress() {
-    Serial.println("\n\nPress any key to start...");
+    Serial.println("\n\n\rPress any key to start...");
 }
 
 void SerialTerminalView::setBaudrate(unsigned long baud) {
