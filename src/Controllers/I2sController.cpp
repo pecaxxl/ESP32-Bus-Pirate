@@ -40,15 +40,16 @@ void I2sController::handlePlay(const TerminalCommand& cmd) {
 
     uint16_t freq = argTransformer.parseHexOrDec32(cmd.getSubcommand());
 
+    // Infinite until ENTER press
     if (args.empty()) {
-        // Lecture infinie
         terminalView.println("\nI2S Play: Tone @ " + std::to_string(freq) + " Hz (Press [ENTER] to stop)...\n");
 
         i2sService.playToneInterruptible(state.getI2sSampleRate(), freq, 0xFFFF, [&]() -> bool {
             char ch = terminalInput.readChar();
             return ch == '\n' || ch == '\r';
         });
-
+    
+    // Duration or until ENTER press
     } else if (args.size() == 1 && argTransformer.isValidNumber(args[0])) {
         uint16_t duration = argTransformer.parseHexOrDec32(args[0]);
 
@@ -67,14 +68,13 @@ void I2sController::handlePlay(const TerminalCommand& cmd) {
     terminalView.println("I2S Play: Done.");
 }
 
-
 /*
 Record
 */
 void I2sController::handleRecord(const TerminalCommand& cmd) {
     terminalView.println("I2S Record: In progress... Press [Enter] to stop.\n");
 
-    // Config input
+    // Configure input
     i2sService.configureInput(
         state.getI2sBclkPin(),
         state.getI2sLrckPin(),
@@ -84,53 +84,51 @@ void I2sController::handleRecord(const TerminalCommand& cmd) {
     );
 
     constexpr size_t batchSize = 2048;
-    constexpr size_t groupSize = 16;
+    constexpr size_t groupCount = 16;
     std::vector<int16_t> buffer(batchSize);
 
+    int16_t dynamicMax = 5000; // initial value
+
     while (true) {
-        // Read samples
         size_t samplesRead = i2sService.recordSamples(buffer.data(), batchSize);
+        size_t samplesPerGroup = samplesRead / groupCount;
 
-        // Compress data
+        // Find peak on the batch
+        int16_t batchPeak = 0;
+        for (size_t i = 0; i < samplesRead; ++i) {
+            int16_t val = abs(buffer[i]);
+            if (val > batchPeak) batchPeak = val;
+        }
+
+        // Progressive update
+        if (batchPeak > dynamicMax) dynamicMax = batchPeak;
+        else dynamicMax = (dynamicMax * 9 + batchPeak) / 10;
+
         std::string line;
-        size_t samplesPerGroup = samplesRead / groupSize;
-
-        for (size_t g = 0; g < groupSize; ++g) {
-            int32_t mean = 0;
+        for (size_t g = 0; g < groupCount; ++g) {
+            int16_t peak = 0;
             for (size_t i = 0; i < samplesPerGroup; ++i) {
                 size_t idx = g * samplesPerGroup + i;
-                mean += buffer[idx];
+                int16_t val = abs(buffer[idx]);
+                if (val > peak) peak = val;
             }
-            mean /= samplesPerGroup;
 
-            int32_t energy = 0;
-            for (size_t i = 0; i < samplesPerGroup; ++i) {
-                size_t idx = g * samplesPerGroup + i;
-                int32_t deviation = buffer[idx] - mean;
-                energy += abs(deviation);
-            }
-            int avg = energy / samplesPerGroup;
-
-            int level = map(avg, 0, 32767, 0, 99);
+            int level = (peak * 100) / (dynamicMax == 0 ? 1 : dynamicMax);
+            if (level > 100) level = 100;
             if (level < 0) level = 0;
-            else if (level > 99) level = 99;
 
-            if (level < 10)
-                line += "[0" + std::to_string(level) + "] ";
-            else
-                line += "[" + std::to_string(level) + "] ";
+            char buf[6];
+            sprintf(buf, "%03d ", level);
+            line += buf;
         }
 
         terminalView.println(line);
 
-        // Enter press
         char ch = terminalInput.readChar();
-        if (ch == '\n' || ch == '\r') {
-            break;
-        }
+        if (ch == '\n' || ch == '\r') break;
     }
 
-    // Reconfig ouput
+    // Reconfigure output
     i2sService.configureOutput(
         state.getI2sBclkPin(),
         state.getI2sLrckPin(),
@@ -186,27 +184,49 @@ void I2sController::handleTestSpeaker() {
         i2sService.playTone(rate, f, 200);
         delay(50);
     }
-    delay(400);
+    delay(1000);
 
     // Frequency Sweep
     terminalView.println("  Frequency Sweep...");
-    for (uint16_t f = 100; f <= 2000; f += 200) {
+    for (uint16_t f = 100; f <= 3000; f += 300) {
         i2sService.playTone(rate, f, 100);
     }
-    delay(400);
+    delay(800);
+
+    // Low Freq
+    terminalView.println("  Low Frequency...");
+    for (uint16_t f : {50, 100, 150, 200, 250, 300, 350, 400, 450, 500}) {
+        i2sService.playTone(rate, f, 400);
+        delay(100);
+    }
+    delay(800);
+
+    // High Freq
+    terminalView.println("  High Frequency...");
+    for (uint16_t f = 10000; f <= 16000; f += 1000) {
+        i2sService.playTone(rate, f, 300);
+        delay(100);
+    }
+    delay(800);
 
     // Beep Pattern
     terminalView.println("  Beep Pattern (short/long)...");
     i2sService.playTone(rate, 800, 100);
     delay(100);
-    i2sService.playTone(rate, 800, 400);
-    delay(200);
     i2sService.playTone(rate, 800, 100);
-    delay(600);
+    delay(100);
+    i2sService.playTone(rate, 800, 100);
+    delay(100);
+    i2sService.playTone(rate, 800, 400);
+    delay(100);
+    i2sService.playTone(rate, 800, 400);
+    delay(100);
+    i2sService.playTone(rate, 800, 400);
+    delay(800);
 
     // Binary pattern (square wave)
     terminalView.println("  Binary tone pattern...");
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 15; ++i) {
         i2sService.playTone(rate, 1000, 50);
         delay(50);
     }
