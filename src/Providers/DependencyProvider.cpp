@@ -112,4 +112,7 @@ void DependencyProvider::disableAllProtocols() {
     getUartService().end();
     getHdUartService().end();
     getI2cService().end();
+    getSpiService().end();
+    getI2sService().end();
+    getTwoWireService().end();
 }
