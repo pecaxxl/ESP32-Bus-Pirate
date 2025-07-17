@@ -61,10 +61,9 @@ void I2sService::configureInput(uint8_t bclk, uint8_t lrck, uint8_t din, uint32_
     initialized = true;
 }
 
-void I2sService::playTone(uint16_t freq, uint16_t durationMs) {
+void I2sService::playTone(uint32_t sampleRate, uint16_t freq, uint16_t durationMs) {
     if (!initialized) return;
 
-    const int sampleRate = 44100;
     int samples = (sampleRate * durationMs) / 1000;
     int16_t buffer[2];
 
@@ -78,8 +77,7 @@ void I2sService::playTone(uint16_t freq, uint16_t durationMs) {
     }
 }
 
-void I2sService::playToneInterruptible(uint16_t freq, uint32_t durationMs, std::function<bool()> shouldStop) {
-    const int sampleRate = 44100;
+void I2sService::playToneInterruptible(uint32_t sampleRate, uint16_t freq, uint32_t durationMs, std::function<bool()> shouldStop) {
     const int16_t amplitude = 32767;
     const int chunkDurationMs = 20;
     const int samplesPerChunk = (sampleRate * chunkDurationMs) / 1000;

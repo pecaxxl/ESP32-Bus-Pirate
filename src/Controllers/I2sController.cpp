@@ -44,7 +44,7 @@ void I2sController::handlePlay(const TerminalCommand& cmd) {
         // Lecture infinie
         terminalView.println("\nI2S Play: Tone @ " + std::to_string(freq) + " Hz (Press [ENTER] to stop)...\n");
 
-        i2sService.playToneInterruptible(freq, 0xFFFF, [&]() -> bool {
+        i2sService.playToneInterruptible(state.getI2sSampleRate(), freq, 0xFFFF, [&]() -> bool {
             char ch = terminalInput.readChar();
             return ch == '\n' || ch == '\r';
         });
@@ -54,7 +54,7 @@ void I2sController::handlePlay(const TerminalCommand& cmd) {
 
         terminalView.println("\nI2S Play: Tone @ " + std::to_string(freq) + " Hz for " + std::to_string(duration) + " ms (or press [ENTER] to stop early)...\n");
 
-        i2sService.playToneInterruptible(freq, duration, [&]() -> bool {
+        i2sService.playToneInterruptible(state.getI2sSampleRate(), freq, duration, [&]() -> bool {
             char ch = terminalInput.readChar();
             return ch == '\n' || ch == '\r';
         });
@@ -177,11 +177,13 @@ void I2sController::handleTestSpeaker() {
     terminalView.println("  DATA : " + std::to_string(state.getI2sDataPin()));
     terminalView.println("");
 
+    auto rate = state.getI2sSampleRate();
+
     // Melody
     terminalView.println("  Melody...");
     const uint16_t melody[] = {262, 294, 330, 349, 392, 440, 494, 523}; // C major
     for (uint16_t f : melody) {
-        i2sService.playTone(f, 200);
+        i2sService.playTone(rate, f, 200);
         delay(50);
     }
     delay(400);
@@ -189,23 +191,23 @@ void I2sController::handleTestSpeaker() {
     // Frequency Sweep
     terminalView.println("  Frequency Sweep...");
     for (uint16_t f = 100; f <= 2000; f += 200) {
-        i2sService.playTone(f, 100);
+        i2sService.playTone(rate, f, 100);
     }
     delay(400);
 
     // Beep Pattern
     terminalView.println("  Beep Pattern (short/long)...");
-    i2sService.playTone(800, 100);
+    i2sService.playTone(rate, 800, 100);
     delay(100);
-    i2sService.playTone(800, 400);
+    i2sService.playTone(rate, 800, 400);
     delay(200);
-    i2sService.playTone(800, 100);
+    i2sService.playTone(rate, 800, 100);
     delay(600);
 
     // Binary pattern (square wave)
     terminalView.println("  Binary tone pattern...");
     for (int i = 0; i < 5; ++i) {
-        i2sService.playTone(1000, 50);
+        i2sService.playTone(rate, 1000, 50);
         delay(50);
     }
     delay(800);
