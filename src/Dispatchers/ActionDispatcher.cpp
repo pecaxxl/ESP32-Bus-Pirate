@@ -82,7 +82,11 @@ void ActionDispatcher::dispatchCommand(const TerminalCommand& cmd) {
     // Global command (help, logic, mode, P, p...)
     if (provider.getUtilityController().isGlobalCommand(cmd)) {
         provider.getUtilityController().handleCommand(cmd);
-        if (cmd.getRoot() != "logic") return; // need rerender pinout view
+        if (cmd.getRoot() == "logic"){
+            // hack to rerender the pinout view after logic analyzer cmd
+            setCurrentMode(state.getCurrentMode());
+        } 
+        return;
     }
 
     // Mode specific command
@@ -136,7 +140,7 @@ void ActionDispatcher::dispatchCommand(const TerminalCommand& cmd) {
     }
 
    // Config was handled in specific mode, we need to rerender the pinout view
-   if (cmd.getRoot() == "config" || cmd.getRoot() == "setprotocol" || cmd.getRoot() == "logic") {
+   if (cmd.getRoot() == "config" || cmd.getRoot() == "setprotocol") {
         setCurrentMode(state.getCurrentMode());
    } 
 }
