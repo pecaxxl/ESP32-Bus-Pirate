@@ -315,6 +315,15 @@ public:
         #ifdef I2S_BITS
             i2sBitsPerSample = I2S_BITS;
         #endif
+        #ifdef TWOWIRE_CLK_PIN
+            twoWireClkPin = TWOWIRE_CLK_PIN;
+        #endif
+        #ifdef TWOWIRE_IO_PIN
+            twoWireIoPin = TWOWIRE_IO_PIN;
+        #endif
+        #ifdef TWOWIRE_RST_PIN
+            twoWireRstPin = TWOWIRE_RST_PIN;
+        #endif
 
         #ifdef PROTECTED_PINS
         {
