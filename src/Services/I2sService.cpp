@@ -127,7 +127,7 @@ size_t I2sService::recordSamples(int16_t* outBuffer, size_t sampleCount) {
     return totalRead / sizeof(int16_t);
 }
 
-void I2sService::stop() {
+void I2sService::end() {
     if (initialized) {
         i2s_driver_uninstall(port);
         initialized = false;
