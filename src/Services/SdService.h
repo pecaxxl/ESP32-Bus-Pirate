@@ -9,14 +9,13 @@
 
 class SdService {
 private:
-    SPIClass sdCardSPI;
     bool sdCardMounted = false;
     std::unordered_map<std::string, std::vector<std::string>> cachedDirectoryElements;
 public:
     SdService();
 
     bool configure(uint8_t clkPin, uint8_t misoPin, uint8_t mosiPin, uint8_t csPin);
-    void close();
+    void end();
     bool isFile(const std::string& filePath);
     bool isDirectory(const std::string& path);
     bool getSdState();

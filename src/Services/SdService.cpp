@@ -3,10 +3,12 @@
 SdService::SdService() {}
 
 bool SdService::configure(uint8_t clkPin, uint8_t misoPin, uint8_t mosiPin, uint8_t csPin) {
-    sdCardSPI.begin(clkPin, misoPin, mosiPin, csPin);
+    if (sdCardMounted) return true;
+
+    SPI.begin(clkPin, misoPin, mosiPin, csPin);
     delay(10);
 
-    if (!SD.begin(csPin, sdCardSPI)) {
+    if (!SD.begin(csPin, SPI)) {
         sdCardMounted = false;
         return false;
     }
@@ -15,9 +17,9 @@ bool SdService::configure(uint8_t clkPin, uint8_t misoPin, uint8_t mosiPin, uint
     return sdCardMounted;
 }
 
-void SdService::close() {
+void SdService::end() {
     SD.end();
-    sdCardSPI.end();
+    SPI.end();
     sdCardMounted = false;
 }
 
