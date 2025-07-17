@@ -91,6 +91,9 @@ void ActionDispatcher::dispatchCommand(const TerminalCommand& cmd) {
 
     // Mode specific command
     switch (state.getCurrentMode()) {
+        case ModeEnum::HIZ:
+            provider.getTerminalView().println("Type 'help' or 'mode'");
+            break;
         case ModeEnum::OneWire:
             provider.getOneWireController().handleCommand(cmd);
             break;
