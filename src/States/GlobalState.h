@@ -46,6 +46,11 @@ private:
     // OneWire Default Pin
     uint8_t oneWirePin = 1; // pin par défaut
 
+    // TwoWire Default Configuration
+    uint8_t twoWireClkPin = 1;
+    uint8_t twoWireIoPin = 2;
+    uint8_t twoWireRstPin = 3;
+
     // UART Default Configuration
     unsigned long uartBaudRate = 9600;
     uint32_t uartConfig = 0x800001c; // SERIAL_8N1 by default
@@ -139,6 +144,15 @@ public:
     // OneWire
     uint8_t getOneWirePin() const { return oneWirePin; }
     void setOneWirePin(uint8_t pin) { oneWirePin = pin; }
+
+    // TwoWire
+    uint8_t getTwoWireClkPin() const { return twoWireClkPin; }
+    uint8_t getTwoWireIoPin() const { return twoWireIoPin; }
+    uint8_t getTwoWireRstPin() const { return twoWireRstPin; }
+
+    void setTwoWireClkPin(uint8_t pin) { twoWireClkPin = pin; }
+    void setTwoWireIoPin(uint8_t pin) { twoWireIoPin = pin; }
+    void setTwoWireRstPin(uint8_t pin) { twoWireRstPin = pin; }
 
     // UART
     unsigned long getUartBaudRate() const { return uartBaudRate; }

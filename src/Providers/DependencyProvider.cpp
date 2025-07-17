@@ -15,6 +15,7 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       uartService(),
       i2cService(),
       oneWireService(),
+      twoWireService(),
       infraredService(),
       spiService(),
       pinService(),
@@ -38,7 +39,7 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       hdUartController(terminalView, terminalInput, deviceInput, hdUartService, uartService, argTransformer, userInputManager),
       spiController(terminalView, terminalInput, spiService, sdService, argTransformer, userInputManager, binaryAnalyzeManager),
       jtagController(terminalView, terminalInput),
-      twoWireController(terminalView, terminalInput),
+      twoWireController(terminalView, terminalInput, userInputManager, twoWireService),
       threeWireController(terminalView, terminalInput),
       dioController(terminalView, terminalInput, pinService, argTransformer),
       ledController(terminalView, terminalInput, ledService),
@@ -61,6 +62,7 @@ LedService& DependencyProvider::getLedService() { return ledService; }
 I2cService& DependencyProvider::getI2cService() { return i2cService; }
 UartService& DependencyProvider::getUartService() { return uartService; }
 OneWireService& DependencyProvider::getOneWireService() { return oneWireService; }
+TwoWireService& DependencyProvider::getTwoWireService() { return twoWireService; }
 InfraredService& DependencyProvider::getInfraredService() { return infraredService; }
 IUsbService& DependencyProvider::getUsbService() { return usbService; }
 SpiService& DependencyProvider::getSpiService() { return spiService; }
@@ -97,15 +99,13 @@ WebRequestTransformer& DependencyProvider::getWebRequestTransformer() {return we
 // Managers
 CommandHistoryManager& DependencyProvider::getCommandHistoryManager() { return commandHistoryManager ;}
 UserInputManager& DependencyProvider::getUserInputManager() { return userInputManager; }
-BinaryAnalyzeManager& DependencyProvider::getFlashAnalyzeManager() { return binaryAnalyzeManager; }
+BinaryAnalyzeManager& DependencyProvider::getBinaryAnalyzeManager() { return binaryAnalyzeManager; }
 
 // Selectors
 HorizontalSelector& DependencyProvider::getHorizontalSelector() { return horizontalSelector ;}
 
 // Config
 TerminalTypeConfigurator& DependencyProvider::getTerminalTypeConfigurator() { return terminalTypeConfigurator ;}
-
-
 
 // Disable interfaces
 void DependencyProvider::disableAllProtocols() {

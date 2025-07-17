@@ -72,6 +72,7 @@ public:
     UartService& getUartService();
     I2cService& getI2cService();
     OneWireService& getOneWireService();
+    TwoWireService& getTwoWireService();
     InfraredService& getInfraredService();
     IUsbService& getUsbService();
     SpiService& getSpiService();
@@ -108,7 +109,7 @@ public:
     // Managers
     CommandHistoryManager& getCommandHistoryManager();
     UserInputManager& getUserInputManager();
-    BinaryAnalyzeManager& getFlashAnalyzeManager();
+    BinaryAnalyzeManager& getBinaryAnalyzeManager();
 
     // Selectors
     HorizontalSelector& getHorizontalSelector();
@@ -135,6 +136,7 @@ private:
     UartService uartService;
     I2cService i2cService;
     OneWireService oneWireService;
+    TwoWireService twoWireService;
     InfraredService infraredService;
     HdUartService hdUartService;
     SpiService spiService;
