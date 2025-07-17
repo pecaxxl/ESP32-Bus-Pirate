@@ -6,6 +6,7 @@
 class TwoWireService {
 public:
     void configure(uint8_t clkPin, uint8_t ioPin, uint8_t rstPin);
+    void end();
 
     void setRST(bool level);
     void setCLK(bool level);

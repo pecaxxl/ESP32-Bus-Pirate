@@ -19,6 +19,20 @@ void TwoWireService::configure(uint8_t clk, uint8_t io, uint8_t rst) {
     gpio_set_level((gpio_num_t)ioPin, 1); // release
 }
 
+void TwoWireService::end() {
+    gpio_set_level((gpio_num_t)clkPin, 0);
+    gpio_set_level((gpio_num_t)rstPin, 0);
+
+    gpio_set_direction((gpio_num_t)clkPin, GPIO_MODE_INPUT);
+    gpio_set_pull_mode((gpio_num_t)clkPin, GPIO_FLOATING);
+
+    gpio_set_direction((gpio_num_t)rstPin, GPIO_MODE_INPUT);
+    gpio_set_pull_mode((gpio_num_t)rstPin, GPIO_FLOATING);
+
+    gpio_set_direction((gpio_num_t)ioPin, GPIO_MODE_INPUT);
+    gpio_set_pull_mode((gpio_num_t)ioPin, GPIO_FLOATING);
+}
+
 void TwoWireService::setRST(bool level) {
     gpio_set_level((gpio_num_t)rstPin, level ? 1 : 0);
 }
