@@ -16,7 +16,7 @@ void SerialTerminalView::welcome(TerminalTypeEnum& terminalType, std::string& te
     Serial.println(" | |_) | |_| \\__ \\ | |_) | | | | (_| | ||  __/");
     Serial.println(" |____/ \\__,_|___/ | .__/|_|_|  \\__,_|\\__\\___|");
     Serial.println("                   |_|                        ");
-    Serial.println("     Version 0.1           Ready to board");
+    Serial.println("     Version 0.2           Ready to board");
     Serial.println("");
     Serial.println(" Type 'mode' to start or 'help' for commands");
     Serial.println("");

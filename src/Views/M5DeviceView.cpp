@@ -27,7 +27,7 @@ void M5DeviceView::logo() {
     M5.Lcd.setTextSize(1.6);
     M5.Lcd.setCursor(43, 80);
     M5.Lcd.setTextColor(TEXT_COLOR);
-    M5.Lcd.printf("Version 0.1 - Geo");
+    M5.Lcd.printf("Version 0.2 - Geo");
 
     delay(3000);
 }
