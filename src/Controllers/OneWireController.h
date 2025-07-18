@@ -67,4 +67,7 @@ private:
 
     // Write to scratchpad memory
     void handleScratchpadWrite(std::vector<uint8_t> scratchpadBytes);
+
+    // Read temperature sensor
+    void handleTemperature();
 };

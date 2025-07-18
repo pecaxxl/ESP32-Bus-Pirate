@@ -33,6 +33,10 @@ void OneWireController::handleCommand(const TerminalCommand& command) {
         handleWrite(command);
     }
 
+    else if (command.getRoot() == "temp") {
+        handleTemperature();
+    }
+
     else if (command.getRoot() == "config") {
         handleConfig();
     }
@@ -435,6 +439,78 @@ void OneWireController::handleSniff() {
 }
 
 /*
+Temp
+*/
+void OneWireController::handleTemperature() {
+    terminalView.println("OneWire Temp: Searching for DS18B20...");
+
+    uint8_t rom[8];
+    bool found = false;
+
+    oneWireService.resetSearch();
+
+    // Search captor type 0x28
+    while (oneWireService.search(rom)) {
+        if (rom[0] == 0x28) { // DS18B20
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        terminalView.println("OneWire Temp: No DS18B20 device found.");
+        return;
+    }
+
+    // Display ID
+    std::ostringstream oss;
+    oss << "\nDS18B20 ROM: ";
+    for (int i = 0; i < 8; ++i) {
+        oss << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(rom[i]) << " ";
+    }
+    terminalView.println(oss.str());
+
+    // Start temp read process
+    if (!oneWireService.reset()) {
+        terminalView.println("OneWire Temp: Reset failed.");
+        return;
+    }
+
+    // Select and write CONVERT T
+    oneWireService.select(rom);
+    oneWireService.write(0x44);  // CONVERT T
+    delay(750); // wait conversion max 750ms
+
+    if (!oneWireService.reset()) {
+        terminalView.println("OneWire Temp: Reset failed before scratchpad read.");
+        return;
+    }
+
+    // Read sratchpad
+    oneWireService.select(rom);
+    oneWireService.write(0xBE); // READ SCRATCHPAD
+
+    uint8_t data[9];
+    oneWireService.readBytes(data, 9);
+
+    // CRC check
+    uint8_t crc = oneWireService.crc8(data, 8);
+    if (crc != data[8]) {
+        terminalView.println("OneWire Temp: CRC error in scratchpad.");
+        return;
+    }
+
+    // Extract temp
+    int16_t raw = (data[1] << 8) | data[0];
+    float tempC = raw / 16.0f;
+
+    // Display converted temp
+    std::ostringstream tempStr;
+    tempStr << "Temperature: " << std::fixed << std::setprecision(2) << tempC << " °C\n";
+    terminalView.println(tempStr.str());
+}
+
+/*
 Help
 */
 void OneWireController::handleHelp() {
@@ -445,6 +521,7 @@ void OneWireController::handleHelp() {
     terminalView.println("  read");
     terminalView.println("  write id <8 bytes>");
     terminalView.println("  write sp <8 bytes>");
+    terminalView.println("  temp");
     terminalView.println("  config");
     terminalView.println("  raw instructions, [0X33 r:8] ...");
 }

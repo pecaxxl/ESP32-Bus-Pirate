@@ -253,6 +253,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  read                 - Read ID + SP");
     terminalView.println("  write id <8 bytes>   - Write ibutton ID");
     terminalView.println("  write sp <8 bytes>   - Write scratchpad");
+    terminalView.println("  temp                 - Read temperature");
     terminalView.println("  config               - Configure settings");
     terminalView.println("  [0xAA r:8] ...       - Instruction syntax");
 
