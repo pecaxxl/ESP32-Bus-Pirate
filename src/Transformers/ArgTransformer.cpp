@@ -60,6 +60,11 @@ uint8_t ArgTransformer::parseHexOrDec(const std::string& str) const {
     return static_cast<uint8_t>(value);
 }
 
+uint16_t ArgTransformer::parseHexOrDec16(const std::string& str) const {
+    uint32_t value = parseHexOrDec32(str);
+    return static_cast<uint16_t>(value & 0xFFFF);
+}
+
 uint32_t ArgTransformer::parseHexOrDec32(const std::string& str) const {
     if (str.empty()) return 0;
 
@@ -82,6 +87,8 @@ uint32_t ArgTransformer::parseHexOrDec32(const std::string& str) const {
     unsigned long value = strtoul(str.c_str(), nullptr, base);
     return static_cast<uint32_t>(value);
 }
+
+
 
 std::vector<std::string> ArgTransformer::splitArgs(const std::string& input) {
     std::vector<std::string> result;

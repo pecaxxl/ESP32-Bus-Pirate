@@ -282,8 +282,10 @@ void UtilityController::handleHelp() {
     terminalView.println("  scan                 - Find devices");
     terminalView.println("  ping <addr>          - Check ACK");
     terminalView.println("  sniff                - View traffic");
+    terminalView.println("  slave <addr>         - Emulate I2C device");
     terminalView.println("  read <addr> <reg>    - Read register");
     terminalView.println("  write <a> <r> <val>  - Write register");
+    terminalView.println("  dump <addr> [len]    - Read all registers");
     terminalView.println("  config               - Configure settings");
     terminalView.println("  [0x13 0x4B 0x1]      - Instruction syntax");
 

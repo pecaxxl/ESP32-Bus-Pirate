@@ -29,6 +29,14 @@ void I2cController::handleCommand(const TerminalCommand& cmd) {
         handleRead(cmd);
     }
 
+    else if (cmd.getRoot() == "dump") {
+        handleDump(cmd);
+    }
+
+    else if (cmd.getRoot() == "slave") {
+        handleSlave(cmd);
+    }
+
     else if (cmd.getRoot() == "config") {
         handleConfig();
     }
@@ -269,6 +277,234 @@ void I2cController::handleConfig() {
 }
 
 /*
+Slave
+*/
+void I2cController::handleSlave(const TerminalCommand& cmd) {
+    if (!argTransformer.isValidNumber(cmd.getSubcommand())) {
+        terminalView.println("Usage: slave <addr>");
+        return;
+    }
+
+    // Parse arg
+    uint8_t addr = argTransformer.parseHexOrDec(cmd.getSubcommand());
+    uint8_t sda = state.getI2cSdaPin();
+    uint8_t scl = state.getI2cSclPin();
+
+    // Validate arg
+    if (addr < 0x08 || addr > 0x77) {
+        terminalView.println("I2C Slave: Invalid address. Must be between 0x08 and 0x77.");
+        return;
+    }
+
+    terminalView.println("I2C Slave: Listening on address 0x" + argTransformer.toHex(addr) +
+                         "... Press [ENTER] to stop.\n");
+    
+    // Start slave
+    i2cService.clearSlaveLog();
+    i2cService.beginSlave(addr, sda, scl);
+
+    std::vector<std::string> lastLog;
+    while (true) {
+        // Enter press
+        char key = terminalInput.readChar();
+        if (key == '\r' || key == '\n') break;
+
+        // Get master log from slave and display it
+        auto currentLog = i2cService.getSlaveLog();
+        if (currentLog.size() > lastLog.size()) {
+            for (size_t i = lastLog.size(); i < currentLog.size(); ++i) {
+                terminalView.println(currentLog[i]);
+            }
+            lastLog = currentLog;
+        }
+        delay(1);
+    }
+
+    // Close slave
+    i2cService.endSlave();
+    ensureConfigured();
+    terminalView.println("\nI2S Slave: Stopped by user.");
+}
+
+/*
+Dump
+*/
+void I2cController::handleDump(const TerminalCommand& cmd) {
+    // Validate sub
+    if (!argTransformer.isValidNumber(cmd.getSubcommand())) {
+        terminalView.println("Usage: dump <addr> [length]");
+        return;
+    }
+
+    // Parse addr
+    uint8_t addr = argTransformer.parseHexOrDec(cmd.getSubcommand());
+    uint16_t start = 0x00;
+    uint16_t len = 256;
+
+    // Check I2C device presence
+    i2cService.beginTransmission(addr);
+    if (i2cService.endTransmission()) {
+        terminalView.println("I2C Dump: No device found at " + cmd.getSubcommand());
+        return;
+    }
+    
+    // Validate and parse arg
+    auto args = argTransformer.splitArgs(cmd.getArgs());
+    if (args.size() >= 1 && argTransformer.isValidNumber(args[0])) {
+        len = argTransformer.parseHexOrDec16(args[0]);
+        if (len > 256) len = 256;
+    }
+
+    std::vector<uint8_t> values(len, 0xFF);
+    std::vector<bool> valid(len, false);
+
+    // Device registers are readable
+    if (i2cService.isReadableDevice(addr, start)) {
+        terminalView.println("I2C Dump: 0x" + argTransformer.toHex(addr) +
+                             " from 0x" + argTransformer.toHex(start) +
+                             " for " + std::to_string(len) + " bytes... Press [ENTER] to stop.\n");
+
+        performRegisterRead(addr, start, len, values, valid);
+
+    // Not readable
+    } else {
+        terminalView.println("I2C Dump: Device at 0x" + argTransformer.toHex(addr) +
+                             " may not use standard register access — trying raw read...");
+
+        performRawRead(addr, start, len, values, valid);
+    }
+
+    // Not able to read any data
+    if (std::all_of(valid.begin(), valid.end(), [](bool b) { return !b; })) {
+        terminalView.println("I2C Dump: Unable to read any data — device NACKed or unsupported protocol.\n");
+        return;
+    }
+
+    printHexDump(start, len, values, valid);
+}
+
+void I2cController::performRegisterRead(uint8_t addr, uint16_t start, uint16_t len,
+                                        std::vector<uint8_t>& values, std::vector<bool>& valid) {
+    const uint8_t CHUNK_SIZE = 16;
+    int consecutiveErrors = 0;
+
+    for (uint16_t offset = 0; offset < len; offset += CHUNK_SIZE) {
+        if (consecutiveErrors >= 3) {
+            terminalView.println("I2C Dump: Aborted after 3 consecutive errors.");
+            return;
+        }
+
+        uint8_t reg = start + offset;
+        uint8_t toRead = (offset + CHUNK_SIZE <= len) ? CHUNK_SIZE : (len - offset);
+
+        // Write start register
+        i2cService.beginTransmission(addr);
+        i2cService.write(reg);
+        bool writeOk = (i2cService.endTransmission(false) == 0);  // No stop
+        if (!writeOk) {
+            consecutiveErrors++;
+            continue;
+        }
+
+        // Read chunk
+        uint8_t received = i2cService.requestFrom(addr, toRead, true);
+        if (received == toRead) {
+            for (uint8_t i = 0; i < toRead; ++i) {
+                auto key = terminalInput.readChar();
+                if (key == '\r' || key == '\n') {
+                    terminalView.println("I2C Dump: Cancelled by user.");
+                    return;
+                }
+
+                if (i2cService.available()) {
+                    values[offset + i] = i2cService.read();
+                    valid[offset + i] = true;
+                }
+            }
+            consecutiveErrors = 0;
+        } else {
+            while (i2cService.available()) i2cService.read();  // Flush
+            consecutiveErrors++;
+        }
+
+        delay(1);
+    }
+}
+
+void I2cController::performRawRead(uint8_t addr, uint16_t start,
+                                   uint16_t len,
+                                   std::vector<uint8_t>& values,
+                                   std::vector<bool>& valid) {
+    values.assign(len, 0xFF);
+    valid.assign(len, false);
+
+    terminalView.println("I2C Dump: Trying read raw...");
+
+    // Write start register
+    i2cService.beginTransmission(addr);
+    i2cService.write(start);
+    if (i2cService.endTransmission(false) != 0) {
+        return;  // NACK
+    }
+
+    // Read len from register addr
+    uint16_t received = i2cService.requestFrom(addr, (uint8_t)len, true);
+    for (uint16_t i = 0; i < received && i < len; ++i) {
+        auto key = terminalInput.readChar();
+        if (key == '\r' || key == '\n') {
+            terminalView.println("I2C Dump: Cancelled by user.");
+            return;
+        }
+        if (i2cService.available()) {
+            values[i] = i2cService.read();
+            valid[i] = true;
+        }
+    }
+
+    while (i2cService.available()) i2cService.read();
+}
+
+void I2cController::printHexDump(uint16_t start, uint16_t len,
+                                 const std::vector<uint8_t>& values, const std::vector<bool>& valid) {
+    for (uint16_t lineStart = 0; lineStart < len; lineStart += 16) {
+        std::string line;
+        char addrStr[8];
+        snprintf(addrStr, sizeof(addrStr), "%02X:", start + lineStart);
+        line += addrStr;
+
+        for (uint8_t i = 0; i < 16; ++i) {
+            uint16_t idx = lineStart + i;
+            if (idx < len) {
+                if (valid[idx]) {
+                    char hex[4];
+                    snprintf(hex, sizeof(hex), " %02X", values[idx]);
+                    line += hex;
+                } else {
+                    line += " ??";
+                }
+            } else {
+                line += "   ";
+            }
+        }
+
+        line += "  ";
+
+        for (uint8_t i = 0; i < 16; ++i) {
+            uint16_t idx = lineStart + i;
+            if (idx < len && valid[idx]) {
+                char c = values[idx];
+                line += (c >= 32 && c <= 126) ? c : '.';
+            } else {
+                line += '.';
+            }
+        }
+
+        terminalView.println(line);
+    }
+    terminalView.println("");
+}
+
+/*
 Help
 */
 void I2cController::handleHelp() {
@@ -276,8 +512,10 @@ void I2cController::handleHelp() {
     terminalView.println("  scan");
     terminalView.println("  ping <addr>");
     terminalView.println("  sniff");
+    terminalView.println("  slave <addr>");
     terminalView.println("  read <addr> <reg>");
     terminalView.println("  write <addr> <reg> <val>");
+    terminalView.println("  dump <addr> [len]");
     terminalView.println("  config");
     terminalView.println("  raw instructions, e.g: [0x13 0x4B r:8]");
 }

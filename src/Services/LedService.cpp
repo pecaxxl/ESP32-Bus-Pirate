@@ -3,7 +3,7 @@
 #include <Enums/LedProtocolEnum.h>
 #include <Enums/LedChipsetEnum.h>
 
-extern CFastLED FastLED; // déclarer FastLED global explicitement
+extern CFastLED FastLED; // declare FastLED as global
 
 LedService::LedService() {}
 

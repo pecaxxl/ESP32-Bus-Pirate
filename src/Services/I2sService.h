@@ -17,8 +17,7 @@ public:
     void playPcm(const int16_t* data, size_t numBytes);
     size_t recordSamples(int16_t* outBuffer, size_t sampleCount);
     void end();
-    bool isInitialized() const;
-
+    bool isInitialized() const;    
 private:
     bool initialized = false;
     i2s_port_t port = I2S_NUM_0;

@@ -53,12 +53,21 @@ private:
     // Write data to an I2C device
     void handleWrite(const TerminalCommand& cmd);
 
+    // Emulate I2C slave device logging master command
+    void handleSlave(const TerminalCommand& cmd);
+
     // Configure I2C parameters
     void handleConfig();
 
     // Show I2C help message
     void handleHelp();
 
-    // Read user input from terminal
-    std::string getUserInput();
+    // Dump I2C registers content
+    void handleDump(const TerminalCommand& cmd);
+    void performRegisterRead(uint8_t addr, uint16_t, uint16_t len,
+                            std::vector<uint8_t>& values, std::vector<bool>& valid);
+    void performRawRead(uint8_t addr, uint16_t, uint16_t len,
+                        std::vector<uint8_t>& values, std::vector<bool>& valid);
+    void printHexDump(uint16_t, uint16_t len,
+                    const std::vector<uint8_t>& values, const std::vector<bool>& valid);
 };
