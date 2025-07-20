@@ -296,7 +296,7 @@ void LedController::handleSetProtocol() {
     std::string selectedProtocol = allProtocols[choice - 1];
     state.setLedProtocol(selectedProtocol);
     ensureConfigured();
-    terminalView.println("LED protocol changed.\n");
+    terminalView.println("LED protocol changed to " + selectedProtocol);
 }
 
 /*
