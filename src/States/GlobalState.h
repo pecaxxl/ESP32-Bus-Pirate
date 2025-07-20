@@ -82,6 +82,13 @@ private:
     uint8_t infraredRxPin = 1;
     InfraredProtocolEnum infraredProtocol = InfraredProtocolEnum::_NEC;
 
+    // LED Mode
+    uint8_t ledDataPin = 1;
+    uint8_t ledClockPin = 2;
+    uint16_t ledLength = 8;
+    std::string ledProtocol = "ws2812";
+    uint8_t ledBrightness = 128;
+
     // I2S Default Configuration
     uint8_t i2sBclkPin = 41;
     uint8_t i2sLrckPin = 43;
@@ -211,6 +218,19 @@ public:
     InfraredProtocolEnum getInfraredProtocol() const { return infraredProtocol ; }
     void setInfraredProtocol(InfraredProtocolEnum prot) {  infraredProtocol = prot; }
 
+    // LED Mode
+    uint8_t getLedDataPin() const { return ledDataPin; }
+    uint8_t getLedClockPin() const { return ledClockPin; }
+    uint16_t getLedLength() const { return ledLength; }
+    const std::string& getLedProtocol() const { return ledProtocol; }
+    uint8_t getLedBrightness() const { return ledBrightness; }
+
+    void setLedDataPin(uint8_t pin) { ledDataPin = pin; }
+    void setLedClockPin(uint8_t pin) { ledClockPin = pin; }
+    void setLedLength(uint16_t len) { ledLength = len; }
+    void setLedProtocol(const std::string& prot) { ledProtocol = prot; }
+    void setLedBrightness(uint8_t brightness) { ledBrightness = brightness; }
+
     // I2S
     uint8_t getI2sBclkPin() const { return i2sBclkPin; }
     uint8_t getI2sLrckPin() const { return i2sLrckPin; }
@@ -323,6 +343,12 @@ public:
         #endif
         #ifdef TWOWIRE_RST_PIN
             twoWireRstPin = TWOWIRE_RST_PIN;
+        #endif
+        #ifdef LED_DATA_PIN
+            ledDataPin = LED_DATA_PIN;
+        #endif
+        #ifdef LED_CLOCK_PIN
+            ledClockPin = LED_CLOCK_PIN;
         #endif
 
         #ifdef PROTECTED_PINS

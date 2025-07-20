@@ -323,11 +323,17 @@ void UtilityController::handleHelp() {
 
     terminalView.println("");
     terminalView.println(" 10. LED:");
-    terminalView.println("  write i <r> <g> <b>  - Set LED color");
-    terminalView.println("  setprotocol          - Select LED type");
-    terminalView.println("  test                 - Run animation");
-    terminalView.println("  config               - Configure settings");
+    terminalView.println("  scan                 - Try to detect LEDs type");
+    terminalView.println("  fill <color>         - Fill all LEDs with a color");
+    terminalView.println("  set <index> <color>  - Set specific LED color");
+    terminalView.println("  blink                - Blink all LEDs");
+    terminalView.println("  rainbow              - Rainbow animation");
+    terminalView.println("  chase                - Chasing light effect");
+    terminalView.println("  cycle                - Cycle through colors");
+    terminalView.println("  wave                 - Wave animation");
     terminalView.println("  reset                - Turn off all LEDs");
+    terminalView.println("  setprotocol          - Select LED protocol");
+    terminalView.println("  config               - Configure LED settings");
 
     terminalView.println("");
     terminalView.println(" 11. INFRARED:");

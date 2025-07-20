@@ -368,6 +368,12 @@ void ActionDispatcher::setCurrentMode(ModeEnum newMode) {
             break;
         case ModeEnum::LED:
             provider.getLedController().ensureConfigured();
+            config.setMappings({
+                "DATA GPIO " + std::to_string(state.getLedDataPin()),
+                "CLOCK GPIO " + std::to_string(state.getLedClockPin()),
+                "LED COUNT " + std::to_string(state.getLedLength()),
+                state.getLedProtocol()
+            });
             break;
         case ModeEnum::Infrared:
             provider.getInfraredController().ensureConfigured();

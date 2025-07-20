@@ -6,30 +6,59 @@
 #include "Models/TerminalCommand.h"
 #include "Models/ByteCode.h"
 #include "Services/LedService.h"
-
-// Placeholder implementation for LED controller
-// Future versions may support RGB patterns, animations, or PWM control
+#include "Transformers/ArgTransformer.h"
+#include "Managers/UserInputManager.h"
+#include "States/GlobalState.h"
 
 class LedController {
 public:
-    // Constructor
-    LedController(ITerminalView& terminalView, IInput& terminalInput, LedService& ledService);
+    LedController(ITerminalView& terminalView, IInput& terminalInput,
+                  LedService& ledService, ArgTransformer& argTransformer,
+                  UserInputManager& userInputManager);
 
-    // Entry point for dispatch incoming LED command
+    // Dispatch user command for LED mode
     void handleCommand(const TerminalCommand& cmd);
 
-    //  Entry point for handle bytecode-style instructions (parsed instructions)
+    // Execute LED instruction from bytecode
     void handleInstruction(const std::vector<ByteCode>& bytecodes);
 
-    // Ensure LED is properly configured before executing commands
+    // Ensure LED mode is properly configured before use
     void ensureConfigured();
 
 private:
-    // Run LED configuration routine (e.g. default pin setup)
+    // Try to autodetect LED protocol by scanning different types
+    void handleScan();
+
+    // Fill all LEDs with a single color
+    void handleFill(const TerminalCommand& cmd);
+
+    // Set a specific LED index to a specific color
+    void handleSet(const TerminalCommand& cmd);
+
+    // Turn off all LEDs and clear the strip
+    void handleReset(const TerminalCommand& cmd);
+
+    // Run a predefined LED animation
+    void handleAnimation(const TerminalCommand& cmd);
+
+    // Configure LED pin, length and protocol
     void handleConfig();
 
-    ITerminalView& terminalView;     // Output view for terminal
-    IInput& terminalInput;          // Input handler
-    LedService& ledService;        // Service for low-level LED operations
-    bool configured = false;      // Whether the controller is configured
+    // Change LED protocol interactively
+    void handleSetProtocol();
+
+    // Display help for available LED commands
+    void handleHelp();
+
+    // Convert color arguments to CRGB object
+    CRGB parseFlexibleColor(const std::vector<std::string>& args);
+
+    ITerminalView& terminalView;
+    IInput& terminalInput;
+    LedService& ledService;
+    ArgTransformer& argTransformer;
+    UserInputManager& userInputManager;
+    GlobalState& state = GlobalState::getInstance();
+
+    bool configured = false;
 };

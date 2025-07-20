@@ -42,7 +42,7 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       twoWireController(terminalView, terminalInput, userInputManager, twoWireService),
       threeWireController(terminalView, terminalInput),
       dioController(terminalView, terminalInput, pinService, argTransformer),
-      ledController(terminalView, terminalInput, ledService),
+      ledController(terminalView, terminalInput, ledService, argTransformer, userInputManager),
       bluetoothController(terminalView, terminalInput, bluetoothService, argTransformer),
       i2sController(terminalView, terminalInput, i2sService, argTransformer, userInputManager),
       wifiController(terminalView, terminalInput, wifiService, nvsService, argTransformer)

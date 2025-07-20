@@ -1,20 +1,29 @@
-#ifndef LED_SERVICE_H
-#define LED_SERVICE_H
+#pragma once
 
 #include <FastLED.h>
-#include <States/GlobalState.h>
-
-#define LED_PIN 21 // Builtin, TODO: use context
+#include <string>
+#include <vector>
+#include <map>
 
 class LedService {
 public:
-    void blink();
-    void showLed();
-    void clearLed();
+    LedService();
 
+    void configure(uint8_t dataPin, uint8_t clockPin, uint16_t length, const std::string& protocol, uint8_t brightness);
+    void fill(const CRGB& color);
+    void set(uint16_t index, const CRGB& color);
+    void reset();
+    void runAnimation(const std::string& type);
+    bool isAnimationRunning() const;
+    static std::vector<std::string> getSingleWireProtocols();
+    static std::vector<std::string> getSpiChipsets();
+    static std::vector<std::string> getSupportedProtocols();
+    static std::vector<std::string> getSupportedAnimations();
+    CRGB parseStringColor(const std::string& input);
+    CRGB parseHtmlColor(const std::string& input);
 private:
-    CRGB leds[1];
+    CRGB* leds = nullptr;
+    uint16_t ledCount = 0;
+    bool usesClock = false;
+    bool animationRunning = false;
 };
-
-
-#endif

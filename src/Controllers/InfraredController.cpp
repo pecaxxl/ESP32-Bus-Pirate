@@ -202,6 +202,11 @@ void InfraredController::handleConfig() {
     state.setInfraredRxPin(rxPin);
     infraredService.configure(txPin, rxPin);
 
+    // Protocol
+    auto selectedProtocol = InfraredProtocolMapper::toString(state.getInfraredProtocol());
+    terminalView.println("Current protocol: '" + selectedProtocol + "'");
+    terminalView.println("You can change it with 'setprotocol'");
+
     terminalView.println("Infrared configured.\n");
 }
 
