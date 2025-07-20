@@ -86,7 +86,7 @@ void LedController::handleScan() {
     for (const auto& proto : protocols) {
         terminalView.println("Trying protocol: " + proto);
         ledService.configure(dataPin, clockPin, length, proto, brightness);
-        ledService.reset();
+        ledService.resetLeds();
 
         terminalView.println(">>> PRESS [ENTER] if the LEDs chase in blue (auto-skip in 3s)...");
 
@@ -103,9 +103,11 @@ void LedController::handleScan() {
             }
             ledService.runAnimation("chase");
         }
+        ledService.resetLeds(); // in case of some anim persist in this mode
 
     }
     terminalView.println("\nLED: No protocol matched.");
+    ensureConfigured();
 }
 
 /*
@@ -159,9 +161,8 @@ void LedController::handleSet(const TerminalCommand& cmd) {
 Reset
 */
 void LedController::handleReset(const TerminalCommand& cmd) {
-
     if (cmd.getSubcommand().empty()) {
-        ledService.reset();
+        ledService.resetLeds();
         terminalView.println("LED: Reset all LEDs to default.");
         return;
     }
@@ -202,6 +203,7 @@ void LedController::handleConfig() {
 
     // LEDs count
     uint16_t length = userInputManager.readValidatedUint32("Number of LEDs", defaultLength);
+    if (length <= 0) length = 1;
 
     // LED Brightness
     uint8_t defaultBrightness = state.getLedBrightness();
@@ -215,6 +217,7 @@ void LedController::handleConfig() {
 
     // Configure
     ledService.configure(defaultDataPin, defaultClockPin, length, selectedProtocol, brightness);
+    ledService.resetLeds();
     terminalView.println("LEDs configured.\n");
 
     // Update state

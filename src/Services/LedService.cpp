@@ -3,16 +3,22 @@
 #include <Enums/LedProtocolEnum.h>
 #include <Enums/LedChipsetEnum.h>
 
+extern CFastLED FastLED; // déclarer FastLED global explicitement
+
 LedService::LedService() {}
 
 void LedService::configure(uint8_t dataPin, uint8_t clockPin, uint16_t length, const std::string& protocol, uint8_t brightness) {
     if (leds) {
+        FastLED.clear(true);
         delete[] leds;
         leds = nullptr;
+        FastLED = CFastLED();  // full reset of FastLED
+        delay(20);
     }
 
     ledCount = length;
     leds = new CRGB[ledCount];
+
     FastLED.clear();
     FastLED.clearData();
 
@@ -161,7 +167,7 @@ void LedService::set(uint16_t index, const CRGB& color) {
     FastLED.show();
 }
 
-void LedService::reset() {
+void LedService::resetLeds() {
     if (!leds) return;
     fill(CRGB::Black);
     FastLED.clear(true);
@@ -177,7 +183,7 @@ void LedService::runAnimation(const std::string& type) {
         for (int i = 0; i < 3 && animationRunning; ++i) {
             fill(CRGB::White);
             delay(50);
-            reset();
+            resetLeds();
             delay(50);
         }
     } else if (type == "rainbow") {

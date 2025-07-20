@@ -12,7 +12,7 @@ public:
     void configure(uint8_t dataPin, uint8_t clockPin, uint16_t length, const std::string& protocol, uint8_t brightness);
     void fill(const CRGB& color);
     void set(uint16_t index, const CRGB& color);
-    void reset();
+    void resetLeds();
     void runAnimation(const std::string& type);
     bool isAnimationRunning() const;
     static std::vector<std::string> getSingleWireProtocols();
