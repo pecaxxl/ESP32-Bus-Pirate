@@ -59,10 +59,20 @@ void WifiController::handleConnect(const TerminalCommand& cmd) {
     wifiService.connect(ssid, password);
     if (wifiService.isConnected()) {
         terminalView.println("");
-        terminalView.println("WiFi: Connected! WebUI IP " + wifiService.getLocalIP());
+        terminalView.println("WiFi: Connected to Wi-Fi!");
         terminalView.println("      Reset the device and choose WiFi Web,");
         terminalView.println("      if you want to use the web based CLI");
         terminalView.println("");
+        terminalView.println("[BAREBONE] To launch the WebUI without a screen:");
+        terminalView.println("  1. Reset the device (don’t hold the board button during boot)");
+        terminalView.println("  1. Once the device is powered, you have 3 seconds to press the board button");
+        terminalView.println("  3. The built-in LED shows the following status:");
+        terminalView.println("     • Blue  = No Wi-Fi credentials saved.");
+        terminalView.println("     • White = Connecting in progress");
+        terminalView.println("     • Green = Connected, open the WebUI in a browser");
+        terminalView.println("     • Red   = Connection failed, try connect again with serial");
+        terminalView.println("");
+        terminalView.println("WiFi Web UI: http://" + wifiService.getLocalIP());
 
         // Save creds
         nvsService.open();
@@ -270,6 +280,15 @@ void WifiController::handleWebUi(const TerminalCommand&) {
         terminalView.println("[WARNING] If you're connected via serial,");
         terminalView.println("          the web UI will not be active.");
         terminalView.println("          Reset the device and choose WiFi Web.");
+        terminalView.println("");
+        terminalView.println("[BAREBONE] To launch the WebUI without a screen:");
+        terminalView.println("  1. Reset the device (don’t hold the board button during boot)");
+        terminalView.println("  1. Once the device is powered, you have 3 seconds to press the board button");
+        terminalView.println("  3. The built-in LED shows the following status:");
+        terminalView.println("     • Blue  = No Wi-Fi credentials saved.");
+        terminalView.println("     • White = Connecting in progress");
+        terminalView.println("     • Green = Connected, open the WebUI in your browser.");
+        terminalView.println("     • Red   = Connection failed, try connect again with serial");
         terminalView.println("");
         terminalView.println("WiFi Web UI: http://" + ip);
     } else {
