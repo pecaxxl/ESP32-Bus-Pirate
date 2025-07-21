@@ -9,12 +9,18 @@ TerminalTypeEnum TerminalTypeConfigurator::configure() {
         TerminalTypeEnumMapper::toString(TerminalTypeEnum::Serial),
     };
 
-    int selected = selector.select(
-        "ESP32 Bus Pirate",
-        options,
-        "Select terminal type",
-        ""
-    );
+    int selected = 1; // Serial
+
+    #ifdef DEVICE_M5STAMPS3
+        selected = selector.selectHeadless();
+    #else
+        selected = selector.select(
+            "ESP32 Bus Pirate",
+            options,
+            "Select terminal type",
+            ""
+        );
+    #endif
 
     switch (selected) {
         case 0: return TerminalTypeEnum::WiFiClient;

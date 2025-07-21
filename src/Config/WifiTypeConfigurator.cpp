@@ -14,6 +14,12 @@ std::string WifiTypeConfigurator::configure(TerminalTypeEnum& terminalType) {
             // Use this standalone setup for now
             setupStickWifi(); // check stored creds
         #endif
+
+        #ifdef DEVICE_M5STAMPS3
+            // Use this standalone setup for now
+            setupS3Wifi(); // check stored creds
+        #endif
+
         return std::string(WiFi.localIP().toString().c_str());
 
     case TerminalTypeEnum::WiFiAp: {
