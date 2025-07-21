@@ -22,6 +22,7 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       bluetoothService(),
       wifiService(),
       i2sService(),
+      sshService(),
       commandTransformer(),
       instructionTransformer(),
       argTransformer(),
@@ -45,7 +46,7 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       ledController(terminalView, terminalInput, ledService, argTransformer, userInputManager),
       bluetoothController(terminalView, terminalInput, bluetoothService, argTransformer),
       i2sController(terminalView, terminalInput, i2sService, argTransformer, userInputManager),
-      wifiController(terminalView, terminalInput, wifiService, nvsService, argTransformer)
+      wifiController(terminalView, terminalInput, deviceInput, wifiService, sshService, nvsService, argTransformer)
 {}
 
 // Accessors for core components
@@ -71,6 +72,7 @@ PinService& DependencyProvider::getPinService() { return pinService; }
 WifiService& DependencyProvider::getWifiService() { return wifiService; }
 BluetoothService& DependencyProvider::getBluetoothService() { return bluetoothService; }
 I2sService& DependencyProvider::getI2sService() { return i2sService; }
+SshService& DependencyProvider::getSshService() { return sshService; }
 
 // Controllers
 UartController& DependencyProvider::getUartController() { return uartController; }

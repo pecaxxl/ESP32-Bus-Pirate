@@ -25,6 +25,7 @@ and injecting shared instances of core components
 #include "Services/BluetoothService.h"
 #include "Services/WifiService.h"
 #include "Services/I2sService.h"
+#include "Services/SshService.h"
 #include "Controllers/UartController.h"
 #include "Controllers/I2cController.h"
 #include "Controllers/OneWireController.h"
@@ -81,6 +82,7 @@ public:
     BluetoothService& getBluetoothService();
     WifiService& getWifiService();
     I2sService& getI2sService();
+    SshService& getSshService();
     
     // Controllers
     UartController& getUartController();
@@ -99,7 +101,7 @@ public:
     BluetoothController& getBluetoothController();
     WifiController& getWifiController();
     I2sController& getI2sController();
-
+    
     // Transformers
     TerminalCommandTransformer& getCommandTransformer();
     InstructionTransformer& getInstructionTransformer();
@@ -144,6 +146,7 @@ private:
     WifiService wifiService;
     BluetoothService bluetoothService;
     I2sService i2sService;
+    SshService sshService;
 
     // Controllers
     UartController uartController;

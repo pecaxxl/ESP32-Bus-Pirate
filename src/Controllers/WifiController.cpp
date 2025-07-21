@@ -3,8 +3,8 @@
 /*
 Constructor
 */
-WifiController::WifiController(ITerminalView& terminalView, IInput& terminalInput, WifiService& wifiService, NvsService& nvsService, ArgTransformer& argTransformer)
-    : terminalView(terminalView), terminalInput(terminalInput), wifiService(wifiService), nvsService(nvsService), argTransformer(argTransformer) {}
+WifiController::WifiController(ITerminalView& terminalView, IInput& terminalInput, IInput& deviceInput, WifiService& wifiService, SshService& sshService, NvsService& nvsService, ArgTransformer& argTransformer)
+    : terminalView(terminalView), terminalInput(terminalInput), deviceInput(deviceInput), wifiService(wifiService), sshService(sshService), nvsService(nvsService), argTransformer(argTransformer) {}
 
 /*
 Entry point for command
@@ -30,6 +30,8 @@ void WifiController::handleCommand(const TerminalCommand& cmd) {
         handleSniff(cmd);
     } else if (root == "webui") {
         handleWebUi(cmd);
+    } else if (root == "ssh") {
+        handleSsh(cmd);
     } else if (root == "reset") {
         handleReset();
     } else {
@@ -276,6 +278,66 @@ void WifiController::handleWebUi(const TerminalCommand&) {
 }
 
 /*
+SSH
+*/
+void WifiController::handleSsh(const TerminalCommand& cmd) {
+    // Check args
+    auto args = argTransformer.splitArgs(cmd.getArgs());
+    if (cmd.getSubcommand().empty() || args.size() < 2) {
+        terminalView.println("Usage: ssh <host> <user> <password> [port]");
+        return;
+    }
+
+    // Check port
+    int port = 22;
+    if (args.size() == 3) {
+        if (argTransformer.isValidNumber(args[2])) {
+            port = argTransformer.parseHexOrDec16(args[2]);
+        } 
+    }
+
+    std::string host = cmd.getSubcommand();
+    std::string user = args[0];
+    std::string pass = args[1];
+
+    // Connect, start the ssh task
+    terminalView.println("SSH: Connecting to " + host + " as " + user + " with port " + std::to_string(port) + "...");
+    sshService.startTask(host, user, pass, false, port);
+
+    // Wait 5sec for connection success
+    unsigned long start = millis();
+    while (!sshService.isConnected() && millis() - start < 5000) {
+        delay(500);
+    }
+
+    // Can't connect
+    if (!sshService.isConnected()) {
+        terminalView.println("\r\nSSH: Connection failed.");
+        sshService.close();
+        return;
+    }
+
+    // Connected, start the bridge loop
+    terminalView.println("SSH: Connected. Shell started... Press [ANY ESP32 KEY] to stop.\n");
+    while (true) {
+        char terminalKey = terminalInput.readChar();
+        if (terminalKey != KEY_NONE) sshService.writeChar(terminalKey);
+
+        char deviceKey = deviceInput.readChar();
+        if (deviceKey != KEY_NONE) break;
+
+        std::string output = sshService.readOutputNonBlocking();
+        if (!output.empty()) terminalView.print(output);
+
+        delay(10);
+    }
+
+    // Close SSH
+    sshService.close();
+    terminalView.println("\r\n\nSSH: Session closed.");
+}
+
+/*
 Config
 */
 void WifiController::handleConfig() {
@@ -299,10 +361,14 @@ void WifiController::handleHelp() {
     terminalView.println("  status");
     terminalView.println("  disconnect");
     terminalView.println("  ap <ssid> <password>");
+    terminalView.println("  ssh <host> <username> <password> [port]");
     terminalView.println("  webui");
     terminalView.println("  reset");
 }
 
+/*
+Ensure Configuration
+*/
 void WifiController::ensureConfigured() {
     if (!configured) {
         handleConfig();

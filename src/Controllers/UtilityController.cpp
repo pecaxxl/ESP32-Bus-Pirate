@@ -379,6 +379,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  status               - Show Wi-Fi status");
     terminalView.println("  disconnect           - Disconnect from Wi-Fi");
     terminalView.println("  ap <ssid> <password> - Set access point");
+    terminalView.println("  ssh <h> <u> <p> [p]  - Open SSH session");
     terminalView.println("  webui                - Show the web UI IP");
     terminalView.println("  reset                - Reset interface");
 

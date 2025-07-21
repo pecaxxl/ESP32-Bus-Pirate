@@ -4,6 +4,7 @@
 #include <Interfaces/IInput.h>
 #include <Services/WifiService.h>
 #include <Services/NvsService.h>
+#include <Services/SshService.h>
 #include <Transformers/ArgTransformer.h>
 #include <Models/TerminalCommand.h>
 #include <States/GlobalState.h>
@@ -12,7 +13,15 @@
 class WifiController {
 public:
     // Constructor
-    WifiController(ITerminalView& terminalView, IInput& terminalInput, WifiService& wifiService, NvsService& nvsService, ArgTransformer& argTransformer);
+    WifiController(
+        ITerminalView& terminalView, 
+        IInput& terminalInput, 
+        IInput& deviceInput,
+        WifiService& wifiService, 
+        SshService& sshService, 
+        NvsService& nvsService, 
+        ArgTransformer& argTransformer
+    );
 
     //  Entry point for Wi-Fi command
     void handleCommand(const TerminalCommand& cmd);
@@ -23,8 +32,10 @@ public:
 private:
     ITerminalView& terminalView;
     IInput& terminalInput;
+    IInput& deviceInput;
     WifiService& wifiService;
     NvsService& nvsService;
+    SshService& sshService;
     ArgTransformer& argTransformer;
     GlobalState& state = GlobalState::getInstance();
     bool configured = false;
@@ -56,6 +67,9 @@ private:
 
     // Spoof Mac addr
     void handleSpoof(const TerminalCommand& cmd);
+
+    // Connect to SSH host
+    void handleSsh(const TerminalCommand& cmd);
 
     // Reset Wi-Fi configuration
     void handleReset();
