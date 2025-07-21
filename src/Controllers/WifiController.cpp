@@ -281,6 +281,12 @@ void WifiController::handleWebUi(const TerminalCommand&) {
 SSH
 */
 void WifiController::handleSsh(const TerminalCommand& cmd) {
+    // Check connection
+    if (!wifiService.isConnected()) {
+        terminalView.println("SSH: You must be connected to Wi-Fi. Use 'connect' first.");
+        return;
+    }
+
     // Check args
     auto args = argTransformer.splitArgs(cmd.getArgs());
     if (cmd.getSubcommand().empty() || args.size() < 2) {
