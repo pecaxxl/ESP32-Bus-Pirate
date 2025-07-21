@@ -38,3 +38,20 @@ int HorizontalSelector::select(
         }
     }
 }
+
+int HorizontalSelector::selectHeadless() {
+    int selected = 1;  // default
+
+    // 3 sec to press the button
+    const unsigned long timeout = millis() + 3000;
+    while (millis() < timeout) {
+        char c = input.readChar();
+        if (c == KEY_OK) {
+            selected = 0; 
+            break;
+        }
+        delay(10);
+    }
+
+    return selected;
+}

@@ -5,6 +5,7 @@
 #include "Interfaces/IDeviceView.h"
 #include "Interfaces/IInput.h"
 #include "Inputs/CardputerInput.h"
+#include <Arduino.h>
 
 class HorizontalSelector {
 public:
@@ -16,6 +17,8 @@ public:
         const std::string& description1 = "",
         const std::string& description2 = ""
     );
+
+    int selectHeadless();
 
 private:
     IDeviceView& display;
