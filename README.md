@@ -30,6 +30,7 @@ It supports sniffing, sending, scripting, and interacting with various digital p
 - Scripting using **Bus Pirate-style bytecode** instructions.
 - Direct I/O management, PWM, pin state.
 - Massive infrared protocol support.
+- Massive adressable LEDs protocol support.
 - Web interface with **live terminal**, or a classic **serial CLI**.
 
 ## Supported Devices
@@ -41,6 +42,11 @@ It supports sniffing, sending, scripting, and interacting with various digital p
 - **M5 Stick C Plus 2**
 
 ![An M5 Stick C Plus 2 device](images/m5stick.jpg)
+
+- **M5 Stamp S3**
+
+![An M5stampS3 micro controller](images/stamps3.jpg)
+
 
 ## Wiki
 
