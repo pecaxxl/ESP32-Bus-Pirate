@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef DEVICE_CARDPUTER
+#ifndef DEVICE_M5STICK 
 
 #include <Arduino.h>
 #include <USB.h>
@@ -19,9 +19,9 @@
 //     ➤ If you enable any other USB mode, USB CDC will automatically stop.
 // ###############################################################################
 
-class UsbCardputerService: public IUsbService {
+class UsbS3Service: public IUsbService {
 public:
-    UsbCardputerService();
+    UsbS3Service();
 
     // Begin USB HID keyboard mode
     void keyboardBegin();

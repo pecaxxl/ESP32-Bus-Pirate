@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef DEVICE_CARDPUTER
+#ifndef DEVICE_M5STICK
 
 #include <sstream>
 #include <Arduino.h>
@@ -14,10 +14,10 @@
 #include "Interfaces/IUsbController.h"
 #include "Interfaces/IUsbService.h"
 
-class UsbCardputerController: public IUsbController {
+class UsbS3Controller: public IUsbController {
 public:
     // Constructor
-    UsbCardputerController(ITerminalView& terminalView, IInput& terminalInput, IUsbService& usbService, ArgTransformer& argTransformer, UserInputManager& userInputManager);
+    UsbS3Controller(ITerminalView& terminalView, IInput& terminalInput, IUsbService& usbService, ArgTransformer& argTransformer, UserInputManager& userInputManager);
 
     // Entry point for handle raw terminal command
     void handleCommand(const TerminalCommand& cmd);

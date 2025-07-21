@@ -1,12 +1,12 @@
 
-#ifdef DEVICE_CARDPUTER
+#ifndef DEVICE_M5STICK
 
-#include "UsbCardputerService.h"
+#include "UsbS3Service.h"
 
-UsbCardputerService::UsbCardputerService()
+UsbS3Service::UsbS3Service()
   : keyboardActive(false), storageActive(false), initialized(false) {}
 
-void UsbCardputerService::keyboardBegin() {
+void UsbS3Service::keyboardBegin() {
     if (keyboardActive) return;
 
     USB.begin();
@@ -15,7 +15,7 @@ void UsbCardputerService::keyboardBegin() {
     keyboardActive = true;
 }
 
-void UsbCardputerService::storageBegin(uint8_t cs, uint8_t clk, uint8_t miso, uint8_t mosi) {
+void UsbS3Service::storageBegin(uint8_t cs, uint8_t clk, uint8_t miso, uint8_t mosi) {
     if (initialized) return;
 
     sdSPI.begin(clk, miso, mosi, cs);
@@ -45,7 +45,7 @@ void UsbCardputerService::storageBegin(uint8_t cs, uint8_t clk, uint8_t miso, ui
     initialized = true;
 }
 
-void UsbCardputerService::keyboardSendString(const std::string& text) {
+void UsbS3Service::keyboardSendString(const std::string& text) {
     if (!keyboardActive) return;
 
     // Wait HID init
@@ -59,7 +59,7 @@ void UsbCardputerService::keyboardSendString(const std::string& text) {
     }
 }
 
-void UsbCardputerService::keyboardSendChunkedString(const std::string& data, size_t chunkSize, unsigned long delayBetweenChunks) {
+void UsbS3Service::keyboardSendChunkedString(const std::string& data, size_t chunkSize, unsigned long delayBetweenChunks) {
     if (!keyboardActive) return;
 
     size_t totalLength = data.length();
@@ -74,7 +74,7 @@ void UsbCardputerService::keyboardSendChunkedString(const std::string& data, siz
     }
 }
 
-void UsbCardputerService::mouseBegin() {
+void UsbS3Service::mouseBegin() {
     if (mouseActive) return;
 
     USB.begin();
@@ -83,7 +83,7 @@ void UsbCardputerService::mouseBegin() {
     hidInitTime = millis();
 }
 
-void UsbCardputerService::mouseMove(int x, int y) {
+void UsbS3Service::mouseMove(int x, int y) {
     // Wait HID init
     while (millis() - hidInitTime < 1500) {
         delay(10);
@@ -92,7 +92,7 @@ void UsbCardputerService::mouseMove(int x, int y) {
     mouse.move(x, y);
 }
 
-void UsbCardputerService::mouseClick(int button) {
+void UsbS3Service::mouseClick(int button) {
     // Wait HID init
     while (millis() - hidInitTime < 1500) {
         delay(10);
@@ -103,12 +103,12 @@ void UsbCardputerService::mouseClick(int button) {
     mouse.release(button);
 }
 
-void UsbCardputerService::mouseRelease(int button) {
+void UsbS3Service::mouseRelease(int button) {
     if (!mouseActive) return;
     mouse.release(button);
 }
 
-void UsbCardputerService::gamepadBegin() {
+void UsbS3Service::gamepadBegin() {
     if (gamepadActive) return;
 
     gamepad.begin();
@@ -117,7 +117,7 @@ void UsbCardputerService::gamepadBegin() {
     hidInitTime = millis();
 }
 
-void UsbCardputerService::gamepadPress(const std::string& name) {
+void UsbS3Service::gamepadPress(const std::string& name) {
     if (!gamepadActive) return;
 
     // Wait HID init
@@ -156,23 +156,23 @@ void UsbCardputerService::gamepadPress(const std::string& name) {
 }
 
 
-bool UsbCardputerService::isKeyboardActive() const {
+bool UsbS3Service::isKeyboardActive() const {
     return keyboardActive;
 }
 
-bool UsbCardputerService::isStorageActive() const {
+bool UsbS3Service::isStorageActive() const {
     return storageActive;
 }
 
-bool UsbCardputerService::isMouseActive() const {
+bool UsbS3Service::isMouseActive() const {
     return mouseActive;
 }
 
-bool UsbCardputerService::isGamepadActive() const {
+bool UsbS3Service::isGamepadActive() const {
     return gamepadActive;
 }
 
-int32_t UsbCardputerService::storageReadCallback(uint32_t lba, uint32_t offset, void* buffer, uint32_t bufsize) {
+int32_t UsbS3Service::storageReadCallback(uint32_t lba, uint32_t offset, void* buffer, uint32_t bufsize) {
     const uint32_t secSize = SD.sectorSize();
     if (secSize == 0) return -1;
 
@@ -185,7 +185,7 @@ int32_t UsbCardputerService::storageReadCallback(uint32_t lba, uint32_t offset, 
     return bufsize;
 }
 
-int32_t UsbCardputerService::storageWriteCallback(uint32_t lba, uint32_t offset, uint8_t* buffer, uint32_t bufsize) {
+int32_t UsbS3Service::storageWriteCallback(uint32_t lba, uint32_t offset, uint8_t* buffer, uint32_t bufsize) {
     const uint32_t secSize = SD.sectorSize();
     if (secSize == 0) return -1;
 
@@ -204,11 +204,11 @@ int32_t UsbCardputerService::storageWriteCallback(uint32_t lba, uint32_t offset,
     return bufsize;
 }
 
-bool UsbCardputerService::usbStartStopCallback(uint8_t power_condition, bool start, bool load_eject) {
+bool UsbS3Service::usbStartStopCallback(uint8_t power_condition, bool start, bool load_eject) {
     return true;
 }
 
-void UsbCardputerService::setupStorageEvent() {
+void UsbS3Service::setupStorageEvent() {
     USB.onEvent([](void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
         if (event_base == ARDUINO_USB_EVENTS) {
             auto* data = reinterpret_cast<arduino_usb_event_data_t*>(event_data);
@@ -232,7 +232,7 @@ void UsbCardputerService::setupStorageEvent() {
     });
 }
 
-void UsbCardputerService::reset() {
+void UsbS3Service::reset() {
     if (initialized) {
         keyboard.releaseAll(); // si clavier actif
         msc.end();             // si stockage actif

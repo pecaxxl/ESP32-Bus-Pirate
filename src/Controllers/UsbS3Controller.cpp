@@ -1,18 +1,18 @@
-#ifdef DEVICE_CARDPUTER
+#ifndef DEVICE_M5STICK 
 
-#include "UsbCardputerController.h"
+#include "UsbS3Controller.h"
 
 /*
 Constructor
 */
-UsbCardputerController::UsbCardputerController(ITerminalView& terminalView, IInput& terminalInput, 
+UsbS3Controller::UsbS3Controller(ITerminalView& terminalView, IInput& terminalInput, 
                              IUsbService& usbService, ArgTransformer& argTransformer, UserInputManager& userInputManager)
     : terminalView(terminalView), terminalInput(terminalInput), usbService(usbService), argTransformer(argTransformer), userInputManager(userInputManager) {}
 
 /*
 Entry point for command
 */
-void UsbCardputerController::handleCommand(const TerminalCommand& cmd) {
+void UsbS3Controller::handleCommand(const TerminalCommand& cmd) {
     
     if (cmd.getRoot() == "stick") {
         handleUsbStick();
@@ -46,7 +46,7 @@ void UsbCardputerController::handleCommand(const TerminalCommand& cmd) {
 /*
 Keyboard Send
 */
-void UsbCardputerController::handleKeyboardSend(const TerminalCommand& cmd) {
+void UsbS3Controller::handleKeyboardSend(const TerminalCommand& cmd) {
     terminalView.println("USB Keyboard: Configuring...");
     usbService.keyboardBegin();
     terminalView.println("USB Keyboard: Initialize...");
@@ -58,7 +58,7 @@ void UsbCardputerController::handleKeyboardSend(const TerminalCommand& cmd) {
 /*
 Mouse Move
 */
-void UsbCardputerController::handleMouseMove(const TerminalCommand& cmd) {
+void UsbS3Controller::handleMouseMove(const TerminalCommand& cmd) {
     int x, y = 0;
 
     // mouse move x y
@@ -79,7 +79,7 @@ void UsbCardputerController::handleMouseMove(const TerminalCommand& cmd) {
 /*
 Mouse Click
 */
-void UsbCardputerController::handleMouseClick() {
+void UsbS3Controller::handleMouseClick() {
     // Left click
     usbService.mouseClick(1);
     delay(100);
@@ -90,7 +90,7 @@ void UsbCardputerController::handleMouseClick() {
 /*
 Mouse
 */
-void UsbCardputerController::handleMouse(const TerminalCommand& cmd)  {
+void UsbS3Controller::handleMouse(const TerminalCommand& cmd)  {
     terminalView.println("USB Mouse: Configuring HID...");
     usbService.mouseBegin();
     terminalView.println("USB Mouse: Initialize HID...");
@@ -105,7 +105,7 @@ void UsbCardputerController::handleMouse(const TerminalCommand& cmd)  {
 /*
 Gamepad
 */
-void UsbCardputerController::handleGamepad(const TerminalCommand& cmd) {
+void UsbS3Controller::handleGamepad(const TerminalCommand& cmd) {
     terminalView.println("USB Gamepad: Configuring HID...");
     usbService.gamepadBegin();
 
@@ -126,7 +126,7 @@ void UsbCardputerController::handleGamepad(const TerminalCommand& cmd) {
 /*
 Stick
 */
-void UsbCardputerController::handleUsbStick() {
+void UsbS3Controller::handleUsbStick() {
     terminalView.println("USB Stick: Starting... USB Drive can take 30sec to appear");
     usbService.storageBegin(state.getSpiCSPin(), state.getSpiCLKPin(), 
                             state.getSpiMISOPin(), state.getSpiMOSIPin());
@@ -135,7 +135,7 @@ void UsbCardputerController::handleUsbStick() {
 /*
 Config
 */
-void UsbCardputerController::handleConfig() {
+void UsbS3Controller::handleConfig() {
     terminalView.println("");
     terminalView.println("USB Configuration:");
 
@@ -163,7 +163,7 @@ void UsbCardputerController::handleConfig() {
 /*
 Reset
 */
-void UsbCardputerController::handleReset() {
+void UsbS3Controller::handleReset() {
     usbService.reset();
     terminalView.println("USB Reset: Disable interfaces...");
 }
@@ -171,7 +171,7 @@ void UsbCardputerController::handleReset() {
 /*
 Help
 */
-void UsbCardputerController::handleHelp() {
+void UsbS3Controller::handleHelp() {
     terminalView.println("Unknown command.");
     terminalView.println("Usage:");
     terminalView.println("  stick");
@@ -186,7 +186,7 @@ void UsbCardputerController::handleHelp() {
 /*
 Ensure Configuration
 */
-void UsbCardputerController::ensureConfigured() {
+void UsbS3Controller::ensureConfigured() {
     if (!configured) {
         handleConfig();
         configured = true;

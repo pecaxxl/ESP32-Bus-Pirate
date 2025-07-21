@@ -4,9 +4,11 @@
 #include <Views/SerialTerminalView.h>
 #include <Views/M5DeviceView.h>
 #include <Views/WebTerminalView.h>
+#include <Views/NoScreenDeviceView.h>
 #include <Inputs/SerialTerminalInput.h>
 #include <Inputs/CardputerInput.h>
 #include <Inputs/StickInput.h>
+#include <Inputs/StampS3Input.h>
 #include <Providers/DependencyProvider.h>
 #include <Dispatchers/ActionDispatcher.h>
 #include <Servers/HttpServer.h>
@@ -22,21 +24,28 @@
 
 void setup() {
     
-    M5DeviceView deviceView;
     GlobalState& state = GlobalState::getInstance();
     
     #if defined(DEVICE_M5STICK)
         // Setup the M5stickCplus2
         auto cfg = M5.config();
         M5.begin(cfg);
+        M5DeviceView deviceView;
         deviceView.setRotation(3);
         StickInput deviceInput;
-    #else
+    #elif defined(DEVICE_CARDPUTER)
         // Setup the Cardputer
         auto cfg = M5.config();
         M5Cardputer.begin(cfg, true);
+        M5DeviceView deviceView;
         deviceView.setRotation(1);
         CardputerInput deviceInput;
+    #elif defined(DEVICE_M5STAMPS3)
+        // Setup the StampS3
+        auto cfg = M5.config();
+        M5.begin(cfg);
+        NoScreenDeviceView deviceView;
+        StampS3Input deviceInput;
     #endif
 
     deviceView.logo();
