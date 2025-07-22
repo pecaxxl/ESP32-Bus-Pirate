@@ -27,18 +27,31 @@ public:
     void ensureConfigured();
 
 private:
-    ITerminalView& terminalView;  // Terminal output
-    IInput& terminalInput;       // User input
+    // Sniff 2wire bus
+    void handleSniff();
+
+    // Smartcard commands
+    void handleSmartCard(const TerminalCommand& cmd);
+
+    // Perform ATR and decode it
+    void handleSmartCardProbe();
+
+    // Display smartcard security memory
+    void handleSmartCardSecurity();
+
+    // Dump the 256 bytes content of main memory + sec/prt memory
+    void handleSmartCardDump();
+
+    // User pin configuration
+    void handleConfig();
+
+    // Show available commands
+    void handleHelp();
+
+    ITerminalView& terminalView;
+    IInput& terminalInput;
     UserInputManager& userInputManager;
     TwoWireService& twoWireService;
     GlobalState& state = GlobalState::getInstance();
-    bool configured = false;     // Init state
-
-    // Command handlers
-    void handleSec();
-    void handleATR();
-    void handleConfig();
-    void handleHelp();
-    void handleTest();
-    void handleDump();
+    bool configured = false;
 };

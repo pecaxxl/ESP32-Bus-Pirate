@@ -12,124 +12,164 @@ Entry point for 2WIRE command
 void TwoWireController::handleCommand(const TerminalCommand& cmd) {
     if (cmd.getRoot() == "config") {
         handleConfig();
-    // Not fully fonctionnal for now
-    // } if (cmd.getRoot() == "at") {
-    //     handleATR();
-    
-    // } else if (cmd.getRoot() == "test") {
-    //     handleTest();
-    // } else if (cmd.getRoot() == "sec") {
-    //     handleSniff();
-    // } else if (cmd.getRoot() == "dump") {
-    //     handleDump();
+    } else if (cmd.getRoot() == "sniff") {
+        handleSniff();
+    } else if (cmd.getRoot() == "smartcard") {
+        handleSmartCard(cmd);
     } else {
         handleHelp();
     }
 }
 
-
-void TwoWireController::handleTest() {
-    ensureConfigured();
-
-    terminalView.println("\n2WIRE TEST: Reading security memory...");
-    twoWireService.sendCommand(0x31, 0x00, 0x00);
-    auto sec = twoWireService.readResponse(4);
-    std::string secStr = "Security:";
-    for (auto b : sec) {
-        char buf[8];
-        sprintf(buf, " 0x%02X", b);
-        secStr += buf;
-    }
-    terminalView.println(secStr);
-    delay(2);
-
-    terminalView.println("\n==> Read main memory [0x30 0x00 0x10]");
-    twoWireService.sendCommand(0x30, 0x00, 0x10);
-    auto main = twoWireService.readResponse(16);
-    std::string mainStr = "Main:";
-    for (auto b : main) {
-        char buf[8];
-        sprintf(buf, " 0x%02X", b);
-        mainStr += buf;
-    }
-    terminalView.println(mainStr);
-    delay(2);
-
-    terminalView.println("\n==> Read PIN [0x33 0x00 0x03]");
-    twoWireService.sendCommand(0x33, 0x00, 0x03);
-    auto pin = twoWireService.readResponse(3);
-    std::string pinStr = "PIN:";
-    for (auto b : pin) {
-        char buf[8];
-        sprintf(buf, " 0x%02X", b);
-        pinStr += buf;
-    }
-    terminalView.println(pinStr);
-}
-
-
 /*
 Entry point for 2WIRE instruction
 */
 void TwoWireController::handleInstruction(const std::vector<ByteCode>& bytecodes) {
-    // Instruction support à venir
     terminalView.println("[TODO] Instruction support for 2WIRE not yet implemented.");
 }
 
 /*
 Sniff
 */
-void TwoWireController::handleSec() {
-    twoWireService.testReadSecurityMemory();
+void TwoWireController::handleSniff() {
+    terminalView.println("2WIRE Sniff [NYI]\n");
 }
 
 /*
-Perform ATR
+Smartcard
 */
-void TwoWireController::handleATR() {
-    ensureConfigured();
-    terminalView.println("\n2WIRE ATR: Performing...");
+void TwoWireController::handleSmartCard(const TerminalCommand& cmd) {
+    std::string sub = cmd.getSubcommand();
 
-    auto atr = twoWireService.performATR();
+    if (sub == "probe") {
+        handleSmartCardProbe();
+    } else if (sub == "security") {
+        handleSmartCardSecurity();
+    } else if (sub == "dump") {
+        handleSmartCardDump();
+    } else {
+        terminalView.println("Unknown smartcard subcommand. Usage:");
+        terminalView.println("  smartcard probe");
+        terminalView.println("  smartcard security");
+        terminalView.println("  smartcard dump");
+    }
+}
+
+/*
+Smartcard Security
+*/
+void TwoWireController::handleSmartCardSecurity() {
+    ensureConfigured();
+
+    terminalView.println("2WIRE Security: Perfoming...\n");
+    
+    // Security memory
+    terminalView.println("   [Security Memory] Command: 0x31 0x00 0x00");
+    twoWireService.sendCommand(0x31, 0x00, 0x00);
+    auto sec = twoWireService.readResponse(4);
+
+    // Validate
+    bool allZero = std::all_of(sec.begin(), sec.end(), [](uint8_t b) { return b == 0x00; });
+    bool allFF   = std::all_of(sec.begin(), sec.end(), [](uint8_t b) { return b == 0xFF; });
+    if (sec.empty() || allZero || allFF) {
+        terminalView.println("2WIRE Security: No smartcard detected (response invalid)");
+        return;
+    }
+    
+    // Display
+    std::stringstream secOut;
+    secOut << "   Security Bytes: ";
+    for (auto b : sec) secOut << "0x" << std::hex << std::setw(2) << std::setfill('0') << (int)b << " ";
+    terminalView.println(secOut.str());
+
+    if (!sec.empty()) {
+        uint8_t attempts = twoWireService.parseSmartCardRemainingAttempts(sec[0]);
+        terminalView.println("   Remaining Unlock Attempts: " + std::to_string(attempts));
+    }
+
+    terminalView.println("\n2WIRE Security: Completed.");
+}
+
+/*
+Smartcard Probe (ATR)
+*/
+void TwoWireController::handleSmartCardProbe() {
+    terminalView.println("\n2WIRE ATR: Performing...\n");
+
+    // ATR
+    auto atr = twoWireService.performSmartCardAtr();
     std::stringstream ss;
     ss << "ATR: ";
 
-    if (atr.empty()) {
-        terminalView.println("No response received.");
-    } else {
-        terminalView.print("ATR: ");
-        for (uint8_t b : atr) {
-            ss << "0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(b) << " ";
-        }
-        terminalView.println(ss.str());
+    // Validate
+    if (atr.empty() || atr[0] == 0x00 || atr[0] == 0xFF) {
+        terminalView.println("2WIRE ATR: No response received from smartcard");
+        return;
     }
+
+    // Decode and display
+    auto decodedAtr = twoWireService.parseSmartCardAtr(atr);
+    for (uint8_t b : atr) {
+        ss << "0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(b) << " ";
+    }
+    terminalView.println(decodedAtr);
+    terminalView.println("2WIRE ATR: Completed.");
 }
 
 /*
-Dump
+Smartcard Dump
 */
-void TwoWireController::handleDump() {
-    ensureConfigured();
+void TwoWireController::handleSmartCardDump() {
+    terminalView.println("\n2WIRE Dump: Reading full memory (MAIN + SEC + PROTECT)...");
 
-    terminalView.println("\n2WIRE DUMP: Reading full main memory (256 bytes)...");
-
-    for (int i = 0; i < 16; ++i) {
-        uint8_t addr = i * 16;
-        twoWireService.sendCommand(0x30, addr, 16);
-        auto data = twoWireService.readResponse(16);
-
-        std::stringstream ss;
-        ss << std::hex << std::uppercase << std::setfill('0');
-        ss << std::setw(2) << addr << ": ";
-
-        for (auto b : data) {
-            ss << std::setw(2) << static_cast<int>(b) << " ";
-        }
-
-        terminalView.println(ss.str());
+    // Dump 256 bytes + sec mem + protection mem
+    auto dump = twoWireService.dumpSmartCardFullMemory();
+    if (dump.size() != 264) {
+        terminalView.println("2WIRE Dump: Failed, unexpected size.");
+        return;
     }
 
-    terminalView.println("Done.");
+    // Validate data
+    bool allZero = std::all_of(dump.begin(), dump.end(), [](uint8_t b) { return b == 0x00; });
+    bool allFF   = std::all_of(dump.begin(), dump.end(), [](uint8_t b) { return b == 0xFF; });
+    if (allZero || allFF) {
+        terminalView.println("2WIRE Dump: Smartcard is blank or no smartcard detected");
+        return;
+    }
+
+    // Main memory (0–255)
+    terminalView.println("\n[Main Memory]");
+    for (int i = 0; i < 256; i += 16) {
+        std::stringstream line;
+        line << std::hex << std::uppercase << std::setfill('0');
+        line << std::setw(2) << i << ": ";
+        for (int j = 0; j < 16; ++j) {
+            line << std::setw(2) << static_cast<int>(dump[i + j]) << " ";
+        }
+        terminalView.println(line.str());
+    }
+
+    // Security memory (256–259)
+    terminalView.println("\n[Security Memory]");
+    std::stringstream sec;
+    sec << "SEC: ";
+    for (int i = 256; i < 260; ++i) {
+        sec << "0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(dump[i]) << " ";
+    }
+    uint8_t attempts = twoWireService.parseSmartCardRemainingAttempts(dump[256]);
+    sec << "→ Attempts Left: " << std::dec << (int)attempts;
+    terminalView.println(sec.str());
+
+    // Protection memory (260–263)
+    terminalView.println("\n[Protection Memory]");
+    std::stringstream prt;
+    prt << "PRT: ";
+    for (int i = 260; i < 264; ++i) {
+        prt << "0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(dump[i]) << " ";
+    }
+    terminalView.println(prt.str());
+
+    terminalView.println("\n2WIRE Dump: Completed.");
 }
 
 /*
@@ -161,12 +201,14 @@ void TwoWireController::handleConfig() {
 Help
 */
 void TwoWireController::handleHelp() {
-    terminalView.println("\n2WIRE Commands:\n"
-                         "  NOT YET FUNCTIONNAL"
-                         "  atr           Perform ATR handshake\n"
-                         "  dump          Read full 256-byte memory\n"
-                         "  config        Set CLK/IO/RST pins\n"
-                         "  [..]          Instruction syntax supported later\n");
+    terminalView.println("Unknown 2Wire command. Usage:");
+    terminalView.println("  config");
+    terminalView.println("  sniff");
+    terminalView.println("  smartcard probe");
+    terminalView.println("  smartcard security");
+    terminalView.println("  smartcard dump");
+    terminalView.println("  [0xAB r:4] Instruction syntax [NYI]");
+    
 }
 
 /*
@@ -175,13 +217,14 @@ Ensure Configuration
 void TwoWireController::ensureConfigured() {
     if (!configured) {
         handleConfig();
-    } else {
-        twoWireService.configure(
-            state.getTwoWireClkPin(),
-            state.getTwoWireIoPin(),
-            state.getTwoWireRstPin()
-        );
-    }
+        configured = true;
+    } 
+
+    twoWireService.configure(
+        state.getTwoWireClkPin(),
+        state.getTwoWireIoPin(),
+        state.getTwoWireRstPin()
+    );
 }
 
 

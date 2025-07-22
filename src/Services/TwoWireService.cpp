@@ -44,7 +44,7 @@ void TwoWireService::setCLK(bool level) {
 void TwoWireService::setIO(bool level) {
     if (level) {
         gpio_set_direction((gpio_num_t)ioPin, GPIO_MODE_INPUT);
-        gpio_set_pull_mode((gpio_num_t)ioPin, GPIO_PULLUP_ONLY);
+        gpio_set_pull_mode((gpio_num_t)ioPin, GPIO_FLOATING);
     } else {
         gpio_set_pull_mode((gpio_num_t)ioPin, GPIO_FLOATING);
         gpio_set_direction((gpio_num_t)ioPin, GPIO_MODE_OUTPUT);
@@ -71,8 +71,6 @@ void TwoWireService::writeBit(bool bit) {
 }
 
 bool TwoWireService::readBit() {
-    setIO(true);
-    delayMicroseconds(5);
     setCLK(true);
     delayMicroseconds(5);
     bool bit = readIO();
@@ -115,7 +113,6 @@ void TwoWireService::sendStop() {
 }
 
 void TwoWireService::sendCommand(uint8_t a, uint8_t b, uint8_t c) {
-    Serial.printf("Sending command: 0x%02X 0x%02X 0x%02X\n\r", a, b, c);
     sendStart();
     writeByte(a);
     writeByte(b);
@@ -137,33 +134,120 @@ void TwoWireService::sendClocks(uint16_t ticks) {
     }
 }
 
-std::vector<uint8_t> TwoWireService::performATR() {
-    std::vector<uint8_t> atr;
+std::vector<uint8_t> TwoWireService::performSmartCardAtr() {
+    // dummy tick to 'load' the clock, avoiding us delay on first call
+    setCLK(true);
+    delayMicroseconds(5);
+    setCLK(false);
 
+    // Start ATR
+    setIO(false);     // IO to output
     setRST(false);    // RST LOW
     delay(1);         // wait
-
     setRST(true);     // RST release
-    pulseClock();     // tick clock
-
-    delayMicroseconds(50);
+    pulseClock();     // Clock tick
+    delayMicroseconds(50); // wait
     setRST(false);    // RST LOW
+    setIO(true);      // IO to input
 
-    // Read 4 bytes lsb first
     return readResponse(4);
 }
 
-void TwoWireService::testReadSecurityMemory() {
-    Serial.println("==> Reading SLE4442 security memory (0x31 0x00 0x00)");
+std::string TwoWireService::parseSmartCardAtr(const std::vector<uint8_t>& atr) {
+    char line[64];
+    std::string out;
 
-    sendCommand(0x31, 0x00, 0x00);
-    std::vector<uint8_t> sec = readResponse(4);
-    Serial.print("Security: ");
-    for (uint8_t b : sec) Serial.printf("0x%02X ", b);
-    Serial.println();
-
-    if (sec.size() >= 1) {
-        uint8_t attempts = sec[0];
-        Serial.printf("Remaining unlock attempts: %d (0x%02X)\n", attempts & 0x07, attempts);
+    if (atr.size() < 4) {
+        snprintf(line, sizeof(line), "ATR too short (%d bytes)\r\n", (int)atr.size());
+        return line;
     }
+
+    const sle44xx_atr_t* head = reinterpret_cast<const sle44xx_atr_t*>(atr.data());
+
+    snprintf(line, sizeof(line), "   ATR: 0x%02X 0x%02X 0x%02X 0x%02X\r\n", atr[0], atr[1], atr[2], atr[3]);
+    out += line;
+
+    snprintf(line, sizeof(line), "   Protocol Type: %s (%d)\r\n",
+             (head->protocol_type == 0b1010) ? "S" : "unknown",
+             head->protocol_type);
+    out += line;
+
+    out += parseSmartCardStructureIdentifier(head->structure_identifier);
+
+    out += "   Read Mode: ";
+    out += head->read_with_defined_length ? "Defined Length\r\n" : "Read to End\r\n";
+
+    if (head->data_units == 0b0000) {
+        out += "   Data Units: Undefined\r\n";
+    } else {
+        int size = 1 << (head->data_units + 6);
+        snprintf(line, sizeof(line), "   Data Units: %d\r\n", size);
+        out += line;
+    }
+
+    int bit_len = 1 << head->data_units_bits;
+    snprintf(line, sizeof(line), "   Data Unit Bit Length: %d\r\n", bit_len);
+    out += line;
+
+    return out;
+}
+
+std::string TwoWireService::parseSmartCardStructureIdentifier(uint8_t id) {
+    std::string out = "   Structure Identifier: ";
+    switch (id) {
+        case 0b000:
+            out += "Reserved for ISO/IEC Use\r\n";
+            break;
+        case 0b010:
+            out += "Standard Memory Structure (Type 1)\r\n";
+            break;
+        case 0b110:
+            out += "Proprietary Memory\r\n";
+            break;
+        default:
+            out += "Application-Specific\r\n";
+            break;
+    }
+    return out;
+}
+
+uint8_t TwoWireService::parseSmartCardRemainingAttempts(uint8_t statusByte) {
+    resetSmartCard();
+    uint8_t attemptsBits = statusByte & 0x07;
+    int attempts = 0;
+    for (int i = 0; i < 3; ++i) {
+        if (attemptsBits & (1 << i)) {
+            attempts++;
+        }
+    }
+    return attempts;
+}
+
+std::vector<uint8_t> TwoWireService::dumpSmartCardFullMemory() {
+    resetSmartCard();
+    std::vector<uint8_t> dump;
+
+    // Main memory 256 bytes
+    sendCommand(0x30, 0x00, 0x00);
+    for (int i = 0; i < 256; ++i) {
+        dump.push_back(readByte());
+    }
+
+    // Security memory 4 bytes
+    sendCommand(0x31, 0x00, 0x00);
+    for (int i = 0; i < 4; ++i) {
+        dump.push_back(readByte());
+    }
+
+    // Protection memory 4 bytes
+    sendCommand(0x34, 0x00, 0x00);
+    for (int i = 0; i < 4; ++i) {
+        dump.push_back(readByte());
+    }
+
+    return dump; // total: 264 bytes
+}
+
+void TwoWireService::resetSmartCard() {
+    sendClocks(256);
 }

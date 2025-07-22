@@ -307,11 +307,14 @@ void UtilityController::handleHelp() {
     terminalView.println("");
     terminalView.println(" 7. 2WIRE:");
     terminalView.println("  sniff                - View traffic");
-    terminalView.println("  [..]                 - Instruction syntax");
+    terminalView.println("  smartcard probe      - Detect and decode ATR");
+    terminalView.println("  smartcard security   - Show security memory");
+    terminalView.println("  smartcard dump       - Dump full memory");
+    terminalView.println("  config               - Configure settings");
 
     terminalView.println("");
     terminalView.println(" 8. 3WIRE:");
-    terminalView.println("  [..]                 - Instruction syntax");
+    terminalView.println("  [NYI]                 - Not Yet Implemented");
 
     terminalView.println("");
     terminalView.println(" 9. DIO:");
