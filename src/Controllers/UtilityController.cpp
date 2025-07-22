@@ -306,11 +306,12 @@ void UtilityController::handleHelp() {
 
     terminalView.println("");
     terminalView.println(" 7. 2WIRE:");
-    terminalView.println("  sniff                - View traffic");
+    terminalView.println("  sniff                - View traffic [NYI]");
     terminalView.println("  smartcard probe      - Detect and decode ATR");
     terminalView.println("  smartcard security   - Show security memory");
     terminalView.println("  smartcard dump       - Dump full memory");
     terminalView.println("  config               - Configure settings");
+    terminalView.println("  [0xAB r:4]           - Instruction syntax");
 
     terminalView.println("");
     terminalView.println(" 8. 3WIRE:");
