@@ -26,6 +26,7 @@ and injecting shared instances of core components
 #include "Services/WifiService.h"
 #include "Services/I2sService.h"
 #include "Services/SshService.h"
+#include "Services/JtagService.h"
 #include "Controllers/UartController.h"
 #include "Controllers/I2cController.h"
 #include "Controllers/OneWireController.h"
@@ -83,6 +84,7 @@ public:
     WifiService& getWifiService();
     I2sService& getI2sService();
     SshService& getSshService();
+    JtagService& getJtagService();
     
     // Controllers
     UartController& getUartController();
@@ -147,6 +149,7 @@ private:
     BluetoothService bluetoothService;
     I2sService i2sService;
     SshService sshService;
+    JtagService jtagService;
 
     // Controllers
     UartController uartController;

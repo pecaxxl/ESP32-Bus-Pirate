@@ -23,6 +23,7 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       wifiService(),
       i2sService(),
       sshService(),
+      jtagService(),
       commandTransformer(),
       instructionTransformer(),
       argTransformer(),
@@ -39,7 +40,7 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       utilityController(terminalView, deviceView, terminalInput, pinService, userInputManager, argTransformer),
       hdUartController(terminalView, terminalInput, deviceInput, hdUartService, uartService, argTransformer, userInputManager),
       spiController(terminalView, terminalInput, spiService, sdService, argTransformer, userInputManager, binaryAnalyzeManager),
-      jtagController(terminalView, terminalInput),
+      jtagController(terminalView, terminalInput, jtagService, userInputManager),
       twoWireController(terminalView, terminalInput, userInputManager, twoWireService),
       threeWireController(terminalView, terminalInput),
       dioController(terminalView, terminalInput, pinService, argTransformer),
@@ -73,6 +74,7 @@ WifiService& DependencyProvider::getWifiService() { return wifiService; }
 BluetoothService& DependencyProvider::getBluetoothService() { return bluetoothService; }
 I2sService& DependencyProvider::getI2sService() { return i2sService; }
 SshService& DependencyProvider::getSshService() { return sshService; }
+JtagService& DependencyProvider::getJtagService() { return jtagService; }
 
 // Controllers
 UartController& DependencyProvider::getUartController() { return uartController; }

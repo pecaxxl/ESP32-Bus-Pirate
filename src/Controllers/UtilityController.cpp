@@ -130,6 +130,18 @@ void UtilityController::handleDisablePullups() {
             terminalView.println("HDUART: Pull-up disabled on IO pin.");
             break;
 
+        case ModeEnum::TwoWire:
+            pinService.setInput(state.getTwoWireIoPin());
+            terminalView.println("2-WIRE: Pull-up disabled on DATA pin.");
+            break;
+
+        case ModeEnum::JTAG:
+            for (auto pin : state.getJtagScanPins()) {
+                pinService.setInput(pin);
+            }
+            terminalView.println("JTAG: Pull-ups disabled on all scan pins.");
+            break;
+
         default:
             terminalView.println("Pull-ups not applicable for this mode.");
             break;
@@ -167,6 +179,18 @@ void UtilityController::handleEnablePullups() {
         case ModeEnum::HDUART:
             pinService.setInputPullup(state.getHdUartPin());
             terminalView.println("HDUART: Pull-up enabled on IO pin.");
+            break;
+
+        case ModeEnum::TwoWire:
+            pinService.setInputPullup(state.getTwoWireIoPin());
+            terminalView.println("2-WIRE: Pull-up enabled on DATA pin.");
+            break;
+
+        case ModeEnum::JTAG:
+            for (auto pin : state.getJtagScanPins()) {
+                pinService.setInputPullup(pin);
+            }
+            terminalView.println("JTAG: Pull-ups enabled on all scan pins.");
             break;
 
         default:
@@ -389,7 +413,9 @@ void UtilityController::handleHelp() {
 
     terminalView.println("");
     terminalView.println(" 15. JTAG:");
-    terminalView.println("  scan                 - Scan JTAG/SWD pins");
+    terminalView.println("  scan swd             - Scan SWD pins");
+    terminalView.println("  scan jtag            - Scan JTAG pins");
+    terminalView.println("  config               - Configure settings");
 
     terminalView.println("");
     terminalView.println(" 16. I2S:");

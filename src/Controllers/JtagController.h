@@ -1,15 +1,16 @@
 #pragma once
 
-// Placeholder implementation for JTAG controller
-
 #include "Interfaces/ITerminalView.h"
 #include "Interfaces/IInput.h"
 #include "Models/TerminalCommand.h"
+#include "Services/JtagService.h" 
+#include "States/GlobalState.h"
+#include "Managers/UserInputManager.h"
 
 class JtagController {
 public:
     // Constructor
-    JtagController(ITerminalView& terminalView, IInput& terminalInput);
+    JtagController(ITerminalView& terminalView, IInput& terminalInput, JtagService& jtagService, UserInputManager& userInputManager);
 
     // Entry point for dispatch incoming JTAG command
     void handleCommand(const TerminalCommand& cmd);
@@ -20,11 +21,23 @@ public:
 private:
     ITerminalView& terminalView;
     IInput& terminalInput;
+    JtagService& jtagService;
+    UserInputManager& userInputManager;
     bool configured = false;
+    GlobalState& state = GlobalState::getInstance();
 
-    // Perform a JTAG device scan (to be implemented)
-    void handleScan();
+    // Perform devices scan
+    void handleScan(const TerminalCommand& cmd);
 
-    // Run JTAG configuration routine (stub)
+    // SWD scan
+    void handleScanSwd();
+
+    // JTAG scan
+    void handleScanJtag();
+
+    // Handle user configuration
     void handleConfig();
+
+    // Show available commands
+    void handleHelp();
 };
