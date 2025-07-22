@@ -140,3 +140,58 @@ uint8_t UserInputManager::readValidatedPinNumber(const std::string& label, uint8
 uint8_t UserInputManager::readValidatedPinNumber(const std::string& label, uint8_t def, const std::vector<uint8_t>& forbiddenPins) {
     return readValidatedPinNumber(label, def, 0, 48, forbiddenPins);
 }
+
+std::vector<uint8_t> UserInputManager::readValidatedPinGroup(
+    const std::string& label,
+    const std::vector<uint8_t>& defaultPins,
+    const std::vector<uint8_t>& protectedPins
+) {
+    while (true) {
+        // Default pins
+        std::string defaultStr;
+        for (size_t i = 0; i < defaultPins.size(); ++i) {
+            if (i > 0) defaultStr += " ";
+            defaultStr += std::to_string(defaultPins[i]);
+        }
+        
+        // Display default list [1 2 3 ...]
+        terminalView.print(label + " [" + defaultStr + "]: ");
+
+        // Get user input
+        std::string input = getLine();
+
+        // Empty, we keep default pins
+        if (input.empty()) {
+            return defaultPins;
+        }
+
+        std::stringstream ss(input);
+        std::vector<uint8_t> pins;
+        int val;
+        
+        // Validate
+        bool valid = true;
+        while (ss >> val) {
+            // Invalid
+            if (val < 0 || val > 48) {
+                terminalView.println("Invalid pin: " + std::to_string(val));
+                valid = false;
+                break;
+            }
+            // Protected
+            if (std::find(protectedPins.begin(), protectedPins.end(), val) != protectedPins.end()) {
+                terminalView.println("Pin " + std::to_string(val) + " is protected/reserved.");
+                valid = false;
+                break;
+            }
+            pins.push_back(static_cast<uint8_t>(val));
+        }
+
+        // Valid new pins
+        if (valid && !pins.empty()) {
+            return pins;
+        }
+
+        terminalView.println("Please enter valid, non-protected GPIOs separated by spaces.");
+    }
+}

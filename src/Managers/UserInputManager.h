@@ -23,7 +23,11 @@ public:
     uint8_t readModeNumber();
     uint8_t readValidatedPinNumber(const std::string& label, uint8_t def, uint8_t min, uint8_t max,  const std::vector<uint8_t>& forbiddenPins);
     uint8_t readValidatedPinNumber(const std::string& label, uint8_t def,  const std::vector<uint8_t>& forbiddenPins);
-    
+    std::vector<uint8_t> readValidatedPinGroup(
+        const std::string& label,
+        const std::vector<uint8_t>& defaultPins,
+        const std::vector<uint8_t>& protectedPins
+    );
 private:
     ITerminalView& terminalView;
     IInput& terminalInput;
