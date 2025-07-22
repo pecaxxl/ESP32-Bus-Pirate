@@ -96,6 +96,8 @@ private:
     uint32_t i2sSampleRate = 44100;
     uint8_t i2sBitsPerSample = 16;
 
+    std::vector<uint8_t> jtagScanPins = { 1, 3, 5, 7, 9 };
+
     // SD Card File Limits
     size_t fileCountLimit = 512;
     size_t fileCacheLimit = 64;
@@ -244,6 +246,10 @@ public:
     void setI2sSampleRate(uint32_t rate) { i2sSampleRate = rate; }
     void setI2sBitsPerSample(uint8_t bits) { i2sBitsPerSample = bits; }
 
+    // JTAG
+    const std::vector<uint8_t>& getJtagScanPins() const { return jtagScanPins; }
+    void setJtagScanPins(const std::vector<uint8_t>& pins) { jtagScanPins = pins; }
+
     // SD File Limits
     size_t getFileCountLimit() const { return fileCountLimit; }
     size_t getFileCacheLimit() const { return fileCacheLimit; }
@@ -353,11 +359,24 @@ public:
 
         #ifdef PROTECTED_PINS
         {
+            protectedPins.clear();
             std::string pinsStr = PROTECTED_PINS;
             std::stringstream ss(pinsStr);
             std::string item;
             while (std::getline(ss, item, ',')) {
-                protectedPins.push_back(static_cast<uint8_t>(std::stoi(item)));
+                protectedPins.push_back(std::stoi(item));
+            }
+        }
+        #endif
+
+        #ifdef JTAG_SCAN_PINS
+        {
+            jtagScanPins.clear();
+            std::string pinsStr = JTAG_SCAN_PINS;
+            std::stringstream ss(pinsStr);
+            std::string item;
+            while (std::getline(ss, item, ',')) {
+                jtagScanPins.push_back((std::stoi(item)));
             }
         }
         #endif
