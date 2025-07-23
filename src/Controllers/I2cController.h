@@ -56,6 +56,12 @@ private:
     // Emulate I2C slave device logging master command
     void handleSlave(const TerminalCommand& cmd);
 
+    // Attempt to glitch an I2C device
+    void handleGlitch(const TerminalCommand& cmd);
+
+    // Flood an I2C device with commands
+    void handleFlood(const TerminalCommand& cmd);
+
     // Configure I2C parameters
     void handleConfig();
 

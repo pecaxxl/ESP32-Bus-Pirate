@@ -310,6 +310,8 @@ void UtilityController::handleHelp() {
     terminalView.println("  read <addr> <reg>    - Read register");
     terminalView.println("  write <a> <r> <val>  - Write register");
     terminalView.println("  dump <addr> [len]    - Read all registers");
+    terminalView.println("  glitch <addr>        - Run glitch attack sequence");
+    terminalView.println("  flood <addr>         - Saturate target with I/O");
     terminalView.println("  config               - Configure settings");
     terminalView.println("  [0x13 0x4B 0x1]      - Instruction syntax");
 

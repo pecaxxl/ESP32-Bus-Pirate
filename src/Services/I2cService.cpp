@@ -1,4 +1,5 @@
 #include "I2cService.h"
+#include "driver/gpio.h"
 
 void I2cService::configure(uint8_t sda, uint8_t scl, uint32_t frequency) {
     Wire.end();
@@ -123,10 +124,10 @@ bool I2cService::isReadableDevice(uint8_t addr, uint8_t startReg) {
     return true;
 }
 
-
 /*
 Slave
 */
+
 std::vector<std::string> I2cService::slaveLog;
 uint8_t I2cService::slaveResponseBuffer[16] = {};
 size_t I2cService::slaveResponseLength = 1;
@@ -184,4 +185,258 @@ void I2cService::onSlaveRequest() {
     portEXIT_CRITICAL(&slaveLogMux);
 
     Wire1.write(slaveResponseBuffer, slaveResponseLength);
+}
+
+/*
+Glitch
+*/
+
+void I2cService::i2cBitBangDelay(uint32_t delayUs) {
+    if (delayUs > 0) esp_rom_delay_us(delayUs);
+}
+
+void I2cService::i2cBitBangSetLevel(uint8_t pin, bool level) {
+    gpio_set_level((gpio_num_t)pin, level);
+}
+
+void I2cService::i2cBitBangSetOutput(uint8_t pin) {
+    gpio_set_direction((gpio_num_t)pin, GPIO_MODE_OUTPUT);
+}
+
+void I2cService::i2cBitBangSetInput(uint8_t pin) {
+    gpio_set_direction((gpio_num_t)pin, GPIO_MODE_INPUT);
+}
+
+void I2cService::i2cBitBangStartCondition(uint8_t scl, uint8_t sda, uint32_t delayUs) {
+    i2cBitBangSetInput(sda);  // Pull-up
+    i2cBitBangSetInput(scl);  // Pull-up
+    i2cBitBangDelay(delayUs);
+
+    i2cBitBangSetOutput(sda);
+    i2cBitBangSetLevel(sda, LOW); // SDA low
+    i2cBitBangDelay(delayUs);
+
+    i2cBitBangSetOutput(scl);
+    i2cBitBangSetLevel(scl, LOW); // SCL low
+    i2cBitBangDelay(delayUs);
+}
+
+void I2cService::i2cBitBangStopCondition(uint8_t scl, uint8_t sda, uint32_t delayUs) {
+    i2cBitBangSetOutput(sda);
+    i2cBitBangSetLevel(sda, LOW); // SDA low
+    i2cBitBangDelay(delayUs);
+
+    i2cBitBangSetInput(scl);      // SCL high
+    i2cBitBangDelay(delayUs);
+
+    i2cBitBangSetInput(sda);      // SDA high
+    i2cBitBangDelay(delayUs);
+}
+
+void I2cService::i2cBitBangWriteBit(uint8_t scl, uint8_t sda, bool bit, uint32_t d) {
+    i2cBitBangSetOutput(sda);
+    i2cBitBangSetLevel(sda, bit);
+    i2cBitBangDelay(d);
+    i2cBitBangSetLevel(scl, 1);
+    i2cBitBangDelay(d);
+    i2cBitBangSetLevel(scl, 0);
+    i2cBitBangDelay(d);
+}
+
+void I2cService::i2cBitBangWriteByte(uint8_t scl, uint8_t sda, uint8_t byte, uint32_t d, bool& ack) {
+    for (int i = 7; i >= 0; --i) {
+        i2cBitBangWriteBit(scl, sda, (byte >> i) & 0x01, d);
+    }
+
+    // ACK/NACK
+    i2cBitBangSetInput(sda);
+    i2cBitBangDelay(d);
+    i2cBitBangSetLevel(scl, 1);
+    i2cBitBangDelay(d);
+    ack = (gpio_get_level((gpio_num_t)sda) == 0); // ACK = SDA low
+    i2cBitBangSetLevel(scl, 0);
+    i2cBitBangDelay(d);
+    i2cBitBangSetOutput(sda);
+}
+
+void I2cService::i2cBitBangReadByte(uint8_t scl, uint8_t sda, uint32_t d, bool nackLast) {
+    uint8_t data = 0;
+    i2cBitBangSetInput(sda);
+    for (int i = 7; i >= 0; --i) {
+        i2cBitBangSetLevel(scl, 1);
+        i2cBitBangDelay(d);
+        if (gpio_get_level((gpio_num_t)sda)) {
+            data |= (1 << i);
+        }
+        i2cBitBangSetLevel(scl, 0);
+        i2cBitBangDelay(d);
+    }
+
+    // Send ACK/NACK
+    i2cBitBangSetOutput(sda);
+    i2cBitBangSetLevel(sda, nackLast ? 1 : 0); // NACK if last byte
+    i2cBitBangDelay(d);
+    i2cBitBangSetLevel(scl, 1);
+    i2cBitBangDelay(d);
+    i2cBitBangSetLevel(scl, 0);
+    i2cBitBangSetLevel(sda, 1);
+}
+
+void I2cService::rapidStartStop(uint8_t address, uint32_t freqHz, uint8_t scl, uint8_t sda) {
+    uint32_t d = 500000 / freqHz;
+    bool ack;
+    for (int i = 0; i < 500; ++i) {
+        i2cBitBangStartCondition(scl, sda, 0);
+        i2cBitBangWriteByte(scl, sda, address << 1, d, ack);
+        i2cBitBangStopCondition(scl, sda, 0);
+    }
+}
+
+void I2cService::floodStart(uint8_t address, uint32_t freqHz, uint8_t scl, uint8_t sda) {
+    uint32_t d = 500000 / freqHz;
+    for (int i = 0; i < 1000; ++i) {
+        i2cBitBangStartCondition(scl, sda, 0);
+        bool ack;
+        i2cBitBangWriteByte(scl, sda, address << 1, d, ack);
+    }
+}
+
+void I2cService::floodRandom(uint8_t address, uint32_t freqHz, uint8_t scl, uint8_t sda) {
+    uint32_t d = 500000 / freqHz;
+    for (int i = 0; i < 100; ++i) {
+        // START
+        i2cBitBangStartCondition(scl, sda, 0);
+
+
+        // Send address + data
+        bool ack = false;
+        i2cBitBangWriteByte(scl, sda, address << 1, d, ack);
+        for (int j = 0; j < 20; ++j) {
+            i2cBitBangWriteByte(scl, sda, rand() & 0xFF, d, ack);
+        }
+
+        // STOP
+        i2cBitBangStopCondition(scl, sda, 0);
+        delay(5);
+    }
+}
+
+void I2cService::overReadAttack(uint8_t address, uint32_t freqHz, uint8_t scl, uint8_t sda) {
+    uint32_t d = 500000 / freqHz;
+    bool ack;
+
+    // START
+    i2cBitBangStartCondition(scl, sda, 0);
+
+
+    i2cBitBangWriteByte(scl, sda, (address << 1) | 1, d, ack);
+
+    for (int i = 0; i < 1024; ++i) {
+        i2cBitBangReadByte(scl, sda, d, false);  // ACK
+    }
+    i2cBitBangReadByte(scl, sda, d, true); // NACK
+
+    // STOP
+    i2cBitBangStopCondition(scl, sda, 0);
+
+}
+
+void I2cService::invalidRegisterRead(uint8_t address, uint32_t freqHz, uint8_t scl, uint8_t sda) {
+    uint32_t d = 500000 / freqHz;
+    bool ack;
+
+    for (int i = 0; i < 512; ++i) {
+        // START
+        i2cBitBangStartCondition(scl, sda, 0);
+
+        i2cBitBangWriteByte(scl, sda, address << 1, d, ack);  // write
+        i2cBitBangWriteByte(scl, sda, 0xFF, d, ack);          // invalid register
+
+        // Repeated START
+        i2cBitBangSetLevel(sda, 1); i2cBitBangSetLevel(scl, 1); i2cBitBangDelay(d);
+        i2cBitBangSetLevel(sda, 0); i2cBitBangDelay(d);
+        i2cBitBangSetLevel(scl, 0);
+
+        i2cBitBangWriteByte(scl, sda, (address << 1) | 1, d, ack); // read
+        i2cBitBangReadByte(scl, sda, d, true); // NACK
+
+        // STOP
+        i2cBitBangStopCondition(scl, sda, 0);
+        delay(2);
+    }
+}
+
+void I2cService::simulateClockStretch(uint8_t address, uint32_t freqHz, uint8_t scl, uint8_t sda) {
+    uint32_t d = 500000 / freqHz;
+    bool ack;
+
+    for (int i = 0; i < 50; ++i) {
+        i2cBitBangSetLevel(sda, 1); i2cBitBangSetLevel(scl, 1); i2cBitBangDelay(d);
+        i2cBitBangSetLevel(sda, 0); i2cBitBangDelay(d);
+        i2cBitBangSetLevel(scl, 0);
+
+        i2cBitBangWriteByte(scl, sda, address << 1, d, ack);
+        i2cBitBangWriteByte(scl, sda, 0xA5, d, ack);
+
+        delay(2); // simulate slave clock stretch confusion
+
+        i2cBitBangSetLevel(sda, 0); i2cBitBangDelay(d);
+        i2cBitBangSetLevel(scl, 1); i2cBitBangDelay(d);
+        i2cBitBangSetLevel(sda, 1); i2cBitBangDelay(d);
+
+        delay(2); // simulate slave clock stretch confusion
+
+    }
+}
+
+void I2cService::glitchAckInjection(uint8_t address, uint32_t freqHz, uint8_t scl, uint8_t sda) {
+    uint32_t d = 500000 / freqHz;
+    bool ack;
+
+    // START
+    i2cBitBangStartCondition(scl, sda, 0);
+
+    i2cBitBangWriteByte(scl, sda, address << 1, d, ack);
+
+    for (int i = 0; i < 10; ++i) {
+        for (int b = 7; b >= 0; --b)
+            i2cBitBangWriteBit(scl, sda, (0x00 >> b) & 1, d);
+
+        // Simule ACK
+        i2cBitBangSetOutput(sda);
+        i2cBitBangSetLevel(sda, 0); i2cBitBangDelay(1);
+        i2cBitBangSetLevel(scl, 1); i2cBitBangDelay(1);
+        i2cBitBangSetLevel(scl, 0);
+    }
+
+    // STOP
+    i2cBitBangStopCondition(scl, sda, 0);
+
+}
+
+void I2cService::sclSdaGlitch(uint8_t scl, uint8_t sda) {
+    for (int i = 0; i < 10; ++i) {
+        i2cBitBangSetOutput(scl);
+        i2cBitBangSetLevel(scl, 0);
+        i2cBitBangSetOutput(sda);
+        i2cBitBangSetLevel(sda, 0);
+        delay(100);
+
+        i2cBitBangSetInput(scl);
+        i2cBitBangSetInput(sda);
+        delay(50);
+    }
+}
+
+void I2cService::randomClockPulseNoise(uint8_t scl, uint8_t sda, uint32_t freqHz) {
+    uint32_t d = 500000 / freqHz;
+
+    i2cBitBangSetOutput(scl);
+    i2cBitBangSetOutput(sda);
+
+    for (int i = 0; i < 100; ++i) {
+        i2cBitBangSetLevel(scl, random(2));
+        i2cBitBangSetLevel(sda, random(2));
+        delayMicroseconds(random(d));
+    }
 }

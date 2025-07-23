@@ -9,41 +9,17 @@ I2cController::I2cController(ITerminalView& terminalView, IInput& terminalInput,
 Entry point to handle I2C command
 */
 void I2cController::handleCommand(const TerminalCommand& cmd) {
-    if (cmd.getRoot() == "scan") {
-        handleScan();
-    }
-
-    else if (cmd.getRoot() == "sniff") {
-        handleSniff();
-    }
-
-    else if (cmd.getRoot() == "ping") {
-        handlePing(cmd);
-    }
-
-    else if (cmd.getRoot() == "write") {
-        handleWrite(cmd);
-    }
-
-    else if (cmd.getRoot() == "read") {
-        handleRead(cmd);
-    }
-
-    else if (cmd.getRoot() == "dump") {
-        handleDump(cmd);
-    }
-
-    else if (cmd.getRoot() == "slave") {
-        handleSlave(cmd);
-    }
-
-    else if (cmd.getRoot() == "config") {
-        handleConfig();
-    }
-
-    else {
-        handleHelp();
-    }
+    if (cmd.getRoot() == "scan") handleScan();
+    else if (cmd.getRoot() == "sniff") handleSniff();
+    else if (cmd.getRoot() == "ping") handlePing(cmd);
+    else if (cmd.getRoot() == "write") handleWrite(cmd);
+    else if (cmd.getRoot() == "read") handleRead(cmd);
+    else if (cmd.getRoot() == "dump") handleDump(cmd);
+    else if (cmd.getRoot() == "slave") handleSlave(cmd);
+    else if (cmd.getRoot() == "glitch") handleGlitch(cmd);
+    else if (cmd.getRoot() == "flood") handleFlood(cmd);
+    else if (cmd.getRoot() == "config") handleConfig();
+    else handleHelp();
 }
 
 /*
@@ -237,6 +213,13 @@ void I2cController::handleRead(const TerminalCommand& cmd) {
 
     uint8_t addr = argTransformer.parseHexOrDec(cmd.getSubcommand());
     uint8_t reg  = argTransformer.parseHexOrDec(cmd.getArgs());
+
+    // Check I2C device presence
+    i2cService.beginTransmission(addr);
+    if (i2cService.endTransmission()) {
+        terminalView.println("I2C Read: No device found at " + cmd.getSubcommand());
+        return;
+    }
 
     // Write register address first
     i2cService.beginTransmission(addr);
@@ -505,6 +488,107 @@ void I2cController::printHexDump(uint16_t start, uint16_t len,
 }
 
 /*
+Glitch
+*/
+void I2cController::handleGlitch(const TerminalCommand& cmd) {
+    // Validate arg
+    if (!argTransformer.isValidNumber(cmd.getSubcommand())) {
+        terminalView.println("Usage: glitch <addr>");
+        return;
+    }
+
+    // Parse and get I2C default config
+    uint8_t addr = argTransformer.parseHexOrDec(cmd.getSubcommand());
+    uint8_t scl = state.getI2cSclPin();
+    uint8_t sda = state.getI2cSdaPin();
+    uint32_t freqHz = state.getI2cFrequency();
+
+    // Check I2C device presence
+    i2cService.beginTransmission(addr);
+    if (i2cService.endTransmission()) {
+        terminalView.println("I2C Glitch: No device found at " + cmd.getSubcommand());
+        return;
+    }
+
+    terminalView.println("I2C Glitch: Attacking device at 0x" + argTransformer.toHex(addr) + "...\n");
+    delay(500);
+
+    terminalView.println(" 1. Flooding with random junk...");
+    i2cService.floodRandom(addr, freqHz, scl, sda);
+    delay(50);
+
+    terminalView.println(" 2. Flooding START sequences...");
+    i2cService.floodStart(addr, freqHz, scl, sda);
+    delay(50);
+
+    terminalView.println(" 3. Over-read (read more bytes than expected)...");
+    i2cService.overReadAttack(addr, freqHz, scl, sda);
+    delay(50);
+
+    terminalView.println(" 4. Reading invalid/unmapped registers...");
+    i2cService.invalidRegisterRead(addr, freqHz, scl, sda);
+    delay(50);
+
+    terminalView.println(" 5. Simulating clock stretch confusion...");
+    i2cService.simulateClockStretch(addr, freqHz, scl, sda);
+    delay(50);
+
+    terminalView.println(" 6. Rapid START/STOP sequences...");
+    i2cService.rapidStartStop(addr, freqHz, scl, sda);
+    delay(50);
+
+    terminalView.println(" 7. Glitching ACK phase...");
+    i2cService.glitchAckInjection(addr, freqHz, scl, sda);
+    delay(50);
+
+    terminalView.println(" 8. Injecting random noise on SCL/SDA...");
+    i2cService.randomClockPulseNoise(scl, sda, freqHz);
+    delay(50);
+
+    ensureConfigured();
+    terminalView.println("\nI2C Glitch: Done. Target may be unresponsive or corrupted.");
+}
+
+/*
+Flood
+*/
+void I2cController::handleFlood(const TerminalCommand& cmd) {
+    // Validate arg
+    if (!argTransformer.isValidNumber(cmd.getSubcommand())) {
+        terminalView.println("Usage: flood <addr>");
+        return;
+    }
+
+    // Parse arg
+    uint8_t addr = argTransformer.parseHexOrDec(cmd.getSubcommand());
+    
+    // Check device presence
+    i2cService.beginTransmission(addr);
+    if (i2cService.endTransmission()) {
+        terminalView.println("I2C Flood: No device found at " + cmd.getSubcommand());
+        return;
+    }
+    
+    terminalView.println("I2C Flood: Streaming read to 0x" + argTransformer.toHex(addr) + "... Press [ENTER] to stop.");
+    while (true) {
+        // Enter to stop
+        char key = terminalInput.readChar();
+        if (key == '\r' || key == '\n') {
+            terminalView.println("\nI2C Flood: Stopped by user.");
+            break;
+        }
+
+        // Random register address
+        uint8_t reg = esp_random() & 0xFF;
+
+        // Transmit only register
+        i2cService.beginTransmission(addr);
+        i2cService.write(reg);
+        i2cService.endTransmission(true);
+    }
+}
+
+/*
 Help
 */
 void I2cController::handleHelp() {
@@ -516,6 +600,8 @@ void I2cController::handleHelp() {
     terminalView.println("  read <addr> <reg>");
     terminalView.println("  write <addr> <reg> <val>");
     terminalView.println("  dump <addr> [len]");
+    terminalView.println("  glitch <addr>");
+    terminalView.println("  flood <addr>");
     terminalView.println("  config");
     terminalView.println("  raw instructions, e.g: [0x13 0x4B r:8]");
 }
