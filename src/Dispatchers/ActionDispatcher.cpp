@@ -16,8 +16,10 @@ void ActionDispatcher::setup(TerminalTypeEnum terminalType, std::string terminal
 
     if (terminalType == TerminalTypeEnum::Serial) {
         provider.getTerminalView().initialize();
-        provider.getTerminalView().waitPress();
-        provider.getTerminalInput().waitPress();
+        #ifdef DEVICE_M5STICK // No serial buffer, we wait press for m5stick
+            provider.getTerminalView().waitPress();
+            provider.getTerminalInput().waitPress();
+        #endif
         provider.getTerminalView().welcome(terminalType, terminalInfos);
     } else {
         provider.getTerminalView().initialize();
@@ -208,7 +210,9 @@ std::string ActionDispatcher::getUserAction() {
     size_t cursorIndex = 0;
 
     while (true) {
-        char c = provider.getTerminalInput().handler();
+        provider.getDeviceInput().readChar(); // to check shutdown request for T-Embeds
+        char c = provider.getTerminalInput().readChar();
+        if (c == KEY_NONE) continue;
 
         if (handleEscapeSequence(c, inputLine, cursorIndex, mode)) continue;
         if (handleEnterKey(c, inputLine)) return inputLine;
