@@ -51,7 +51,7 @@ It supports sniffing, sending, scripting, and interacting with various digital p
 
 ![A LilyGo T-Embed micro controller](images/tembed.jpg)
 
-- **LILYGO CC1101**
+- **LILYGO T-Embed CC1101**
 
 ![A LilyGo T-Embed micro controller](images/tembedcc1101.jpg)
 
