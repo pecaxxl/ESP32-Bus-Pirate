@@ -1,5 +1,7 @@
 #pragma once
 
+#if defined(DEVICE_CARDPUTER) || defined(DEVICE_M5STICK)
+
 #include <algorithm>
 #include <M5Unified.h>
 #include "Interfaces/IDeviceView.h"
@@ -47,3 +49,5 @@ private:
     void noMapping();
     
 };
+
+#endif

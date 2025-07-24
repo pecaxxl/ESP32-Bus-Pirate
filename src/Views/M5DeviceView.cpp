@@ -1,3 +1,5 @@
+#if defined(DEVICE_CARDPUTER) || defined(DEVICE_M5STICK)
+
 #include "M5DeviceView.h"
 
 
@@ -287,3 +289,5 @@ void M5DeviceView::drawLogicTrace(uint8_t pin, const std::vector<uint8_t>& buffe
 
     canvas.deleteSprite();
 }
+
+#endif
