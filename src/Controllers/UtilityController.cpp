@@ -241,6 +241,7 @@ void UtilityController::handleLogicAnalyzer(const TerminalCommand& cmd) {
 
         // Draw
         if (buffer.size() >= 240) {
+            buffer.resize(240);
             deviceView.drawLogicTrace(pin, buffer);
             buffer.clear();
         }
@@ -288,7 +289,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  read                 - Read at current baud");
     terminalView.println("  write <text>         - Send at current baud");
     terminalView.println("  bridge               - Full-duplex mode");
-    terminalView.println("  spam <text> <ms>     - Write text envery ms");
+    terminalView.println("  spam <text> <ms>     - Write text every ms");
     terminalView.println("  glitch               - Timing attack");
     terminalView.println("  xmodem <send> <path> - Send file via XMODEM");
     terminalView.println("  xmodem <recv> <path> - Receive file via XMODEM");
@@ -310,8 +311,8 @@ void UtilityController::handleHelp() {
     terminalView.println("  read <addr> <reg>    - Read register");
     terminalView.println("  write <a> <r> <val>  - Write register");
     terminalView.println("  dump <addr> [len]    - Read all registers");
-    terminalView.println("  glitch <addr>        - Run glitch attack sequence");
-    terminalView.println("  flood <addr>         - Saturate target with I/O");
+    terminalView.println("  glitch <addr>        - Run attack sequence");
+    terminalView.println("  flood <addr>         - Saturate target I/O");
     terminalView.println("  config               - Configure settings");
     terminalView.println("  [0x13 0x4B 0x1]      - Instruction syntax");
 
