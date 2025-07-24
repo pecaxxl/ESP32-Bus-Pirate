@@ -15,7 +15,7 @@ TerminalTypeEnum TerminalTypeConfigurator::configure() {
         selected = selector.selectHeadless();
     #else
         selected = selector.select(
-            "ESP32 Bus Pirate",
+            "ESP32 BUS PIRATE",
             options,
             "Select terminal type",
             ""
