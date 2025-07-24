@@ -113,10 +113,10 @@ TerminalTypeConfigurator& DependencyProvider::getTerminalTypeConfigurator() { re
 
 // Disable interfaces
 void DependencyProvider::disableAllProtocols() {
-    getUartService().end();
-    getHdUartService().end();
-    getI2cService().end();
-    getSpiService().end();
-    getI2sService().end();
-    getTwoWireService().end();
+    // getUartService().end();
+    // getHdUartService().end();
+    // getI2cService().end();
+    // getSpiService().end();
+    // getI2sService().end();
+    // getTwoWireService().end();
 }
