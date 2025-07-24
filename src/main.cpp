@@ -1,14 +1,15 @@
 #ifndef UNIT_TEST
 
-#include <M5Unified.h>
 #include <Views/SerialTerminalView.h>
 #include <Views/M5DeviceView.h>
 #include <Views/WebTerminalView.h>
 #include <Views/NoScreenDeviceView.h>
+#include <Views/TembedDeviceView.h>
 #include <Inputs/SerialTerminalInput.h>
 #include <Inputs/CardputerInput.h>
 #include <Inputs/StickInput.h>
 #include <Inputs/StampS3Input.h>
+#include <Inputs/TembedInput.h>
 #include <Providers/DependencyProvider.h>
 #include <Dispatchers/ActionDispatcher.h>
 #include <Servers/HttpServer.h>
@@ -26,26 +27,33 @@ void setup() {
     
     GlobalState& state = GlobalState::getInstance();
     
-    #if defined(DEVICE_M5STICK)
+    #if DEVICE_M5STICK
         // Setup the M5stickCplus2
+        #include <M5Unified.h>
         auto cfg = M5.config();
         M5.begin(cfg);
         M5DeviceView deviceView;
         deviceView.setRotation(3);
         StickInput deviceInput;
-    #elif defined(DEVICE_CARDPUTER)
+    #elif DEVICE_CARDPUTER
         // Setup the Cardputer
+        #include <M5Unified.h>
         auto cfg = M5.config();
         M5Cardputer.begin(cfg, true);
         M5DeviceView deviceView;
         deviceView.setRotation(1);
         CardputerInput deviceInput;
-    #elif defined(DEVICE_M5STAMPS3)
+    #elif DEVICE_M5STAMPS3
         // Setup the StampS3
+        #include <M5Unified.h>
         auto cfg = M5.config();
         M5.begin(cfg);
         NoScreenDeviceView deviceView;
         StampS3Input deviceInput;
+    #elif defined(DEVICE_TEMBEDS3) || defined(DEVICE_TEMBEDS3CC1101)
+        // Setup the T-embed
+        TembedDeviceView deviceView;
+        TembedInput deviceInput;
     #endif
 
     deviceView.logo();
@@ -81,7 +89,7 @@ void setup() {
             // Configure USB
             auto usb = UsbFactory::create(serialView, serialInput);
 
-            // Build the provider for serial type and run the dispatcher lopp
+            // Build the provider for serial type and run the dispatcher loop
             DependencyProvider provider(serialView, deviceView, serialInput, deviceInput, usb.usbService, usb.usbController);
             ActionDispatcher dispatcher(provider);
             dispatcher.setup(terminalType, baud);
