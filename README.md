@@ -47,6 +47,14 @@ It supports sniffing, sending, scripting, and interacting with various digital p
 
 ![An M5stampS3 micro controller](images/stamps3.jpg)
 
+- **LILYGO T-Embed**
+
+![A LilyGo T-Embed micro controller](images/tembed.jpg)
+
+- **LILYGO CC1101**
+
+![A LilyGo T-Embed micro controller](images/tembedcc1101.jpg)
+
 
 ## Wiki
 
