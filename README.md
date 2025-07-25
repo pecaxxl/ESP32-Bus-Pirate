@@ -43,6 +43,10 @@ It supports sniffing, sending, scripting, and interacting with various digital p
 
 ![An M5 Stick C Plus 2 device](images/m5stick.jpg)
 
+- **M5 Atom S3 Lite**
+
+![An M5 Atom S3 Lite device](images/atom.jpg)
+
 - **M5 Stamp S3**
 
 ![An M5stampS3 micro controller](images/stamps3.jpg)
