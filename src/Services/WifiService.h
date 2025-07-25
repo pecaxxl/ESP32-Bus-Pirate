@@ -41,7 +41,7 @@ public:
     WifiService();
 
     // Connection
-    bool connect(const std::string& ssid, const std::string& password, unsigned long timeoutMs = 10000);
+    bool connect(const std::string& ssid, const std::string& password, unsigned long timeoutMs = 14000);
     void disconnect();
     bool isConnected() const;
 
