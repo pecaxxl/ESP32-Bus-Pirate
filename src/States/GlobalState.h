@@ -85,7 +85,7 @@ private:
     // LED Mode
     uint8_t ledDataPin = 1;
     uint8_t ledClockPin = 2;
-    uint16_t ledLength = 8;
+    uint16_t ledLength = 1;
     std::string ledProtocol = "ws2812";
     uint8_t ledBrightness = 128;
 
