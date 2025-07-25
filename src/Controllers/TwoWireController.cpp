@@ -192,9 +192,6 @@ void TwoWireController::handleConfig() {
     configured = true;
 
     terminalView.println("2WIRE configuration applied.\n");
-
-    terminalView.println("  [INFO] This mode is not implemented yet.");
-    terminalView.println("         Support is planned for a future release.\n");
 }
 
 /*
@@ -218,6 +215,7 @@ void TwoWireController::ensureConfigured() {
     if (!configured) {
         handleConfig();
         configured = true;
+        return;
     } 
 
     twoWireService.configure(
