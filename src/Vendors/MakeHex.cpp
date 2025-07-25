@@ -109,12 +109,13 @@ std::vector<float> encodeRemoteCommand(const InfraredCommand& cmd, const char* p
 
     // Generate IR sequence
     int s, r;
-    float seq[256];
+    float* seq = new float[256];
     Irp.generate(&s, &r, seq);
 
     // Convert to vector for easier handling
     std::vector<float> result(seq, seq + 2 * (s + r));
-    
+    delete[] seq;
+
     return result;
 }
 
