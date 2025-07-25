@@ -313,9 +313,8 @@ bool ActionDispatcher::handlePrintableChar(char c, std::string& inputLine, size_
 Set Mode
 */
 void ActionDispatcher::setCurrentMode(ModeEnum newMode) {
-    state.setCurrentMode(newMode);
-
     PinoutConfig config;
+    state.setCurrentMode(newMode);
     config.setMode(ModeEnumMapper::toString(newMode));
     auto proto = InfraredProtocolMapper::toString(state.getInfraredProtocol());
 
@@ -363,7 +362,11 @@ void ActionDispatcher::setCurrentMode(ModeEnum newMode) {
             provider.getSpiController().ensureConfigured();
             break;
         case ModeEnum::TwoWire:
-            config.setMappings({"DATA GPIO", "CLK GPIO", "FREQ"}); // TODO
+            config.setMappings({
+                "DATA GPIO " + std::to_string(state.getTwoWireIoPin()),
+                "CLK GPIO " + std::to_string(state.getTwoWireClkPin()),
+                "RST GPIO " + std::to_string(state.getTwoWireRstPin())
+            });
             provider.getTwoWireController().ensureConfigured();
             break;
         case ModeEnum::ThreeWire:
@@ -396,10 +399,26 @@ void ActionDispatcher::setCurrentMode(ModeEnum newMode) {
         case ModeEnum::WiFi:
             provider.getWifiController().ensureConfigured();
             break;
-        case ModeEnum::JTAG:
-            config.setMappings({ "TCK GPIOX", "TMS GPIOY", "TDO GPIOZ", "TDI GPIOW" }); // TODO
+        case ModeEnum::JTAG: {
+            std::vector<std::string> lines;
+            const auto& pins = state.getJtagScanPins();
+            size_t totalPins = pins.size();
+
+            for (size_t i = 0; i < std::min(totalPins, size_t(4)); ++i) {
+                std::string line = "SCAN GPIO " + std::to_string(pins[i]);
+
+                // only 4 lines can be displayed
+                if (i == 3 && totalPins > 4) {
+                    line += " ...";
+                }
+
+                lines.push_back(line);
+            }
+
+            config.setMappings(lines);
             provider.getJtagController().ensureConfigured();
             break;
+        }
         case ModeEnum::I2S:
             provider.getI2sController().ensureConfigured();
             config.setMappings({
