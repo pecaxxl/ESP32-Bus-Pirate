@@ -92,7 +92,10 @@ The wiki is the best place to learn how everything works.
    See detailed explanations about [Terminal Commands](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki) and how each one works.
    
 ## ESP32 Bus Pirate on M5 Devices
-![ESP32 Bus Pirate running on M5 Stack devices](images/buspirate_s.jpg)
+![ESP32 Bus Pirate running on M5 Stack devices](images/m5buspirate_s.jpg)
+
+## ESP32 Bus Pirate on T-Embed
+![ESP32 Bus Pirate running on M5 Stack devices](images/tembedbuspirate_s.jpg)
 
 ## Web & Serial Interfaces
 
