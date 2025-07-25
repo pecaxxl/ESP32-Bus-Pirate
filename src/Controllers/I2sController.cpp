@@ -356,8 +356,8 @@ void I2sController::handleConfig() {
 
     #if defined(DEVICE_TEMBEDS3) || defined(DEVICE_TEMBEDS3CC1101)
         terminalView.println("\n[WARNING] I2S may not work properly on T-Embed devices due to internal pin conflicts.");
-        terminalView.println("            This includes shared SPI pins used for the display. Use with caution.");
-        terminalView.println("            Freeze can happen on your device just after this message.\n");
+        terminalView.println("          This includes shared SPI pins used for the display. Use with caution.");
+        terminalView.println("          Freeze can happen on your device just after this message.\n");
     #endif
 
     i2sService.configureOutput(bclk, lrck, data, freq, bits);
