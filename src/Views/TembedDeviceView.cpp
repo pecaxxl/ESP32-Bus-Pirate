@@ -63,6 +63,9 @@ void TembedDeviceView::loading() {
     tft.fillScreen(TFT_BLACK);
     tft.setTextSize(1);
     tft.setTextColor(TFT_WHITE);
+
+    tft.fillRoundRect(20, 20, tft.width() - 40, tft.height() - 40, 5, DARK_GREY_RECT);
+    tft.drawRoundRect(20, 20, tft.width() - 40, tft.height() - 40, 5, TFT_GREEN);
     drawCenterText("Loading...", 80, 2);
 }
 
