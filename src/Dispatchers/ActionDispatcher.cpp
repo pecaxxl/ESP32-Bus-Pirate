@@ -336,38 +336,38 @@ void ActionDispatcher::setCurrentMode(ModeEnum newMode) {
             });
             break;
         case ModeEnum::HDUART:
+            provider.getHdUartController().ensureConfigured();
             config.setMappings({
                 "RX/TX GPIO " + std::to_string(state.getHdUartPin()),
                 "BAUD " + std::to_string(state.getHdUartBaudRate()),
                 "BITS " + std::to_string(state.getHdUartDataBits()),
                 "PARITY " + state.getHdUartParity(),
             });
-            provider.getHdUartController().ensureConfigured();
             break;
         case ModeEnum::I2C:
+            provider.getI2cController().ensureConfigured();
             config.setMappings({
                 "SDA GPIO " + std::to_string(state.getI2cSdaPin()),
                 "SCL GPIO " + std::to_string(state.getI2cSclPin()),
                 "FREQ " + std::to_string(state.getI2cFrequency())
             });
-            provider.getI2cController().ensureConfigured();
             break;
         case ModeEnum::SPI:
+            provider.getSpiController().ensureConfigured();
             config.setMappings({
                 "MOSI GPIO " + std::to_string(state.getSpiMOSIPin()),
                 "MISO GPIO " + std::to_string(state.getSpiMISOPin()),
                 "SCLK GPIO " + std::to_string(state.getSpiCLKPin()),
                 "CS GPIO " + std::to_string(state.getSpiCSPin())
             });
-            provider.getSpiController().ensureConfigured();
             break;
         case ModeEnum::TwoWire:
+            provider.getTwoWireController().ensureConfigured();
             config.setMappings({
                 "DATA GPIO " + std::to_string(state.getTwoWireIoPin()),
                 "CLK GPIO " + std::to_string(state.getTwoWireClkPin()),
                 "RST GPIO " + std::to_string(state.getTwoWireRstPin())
             });
-            provider.getTwoWireController().ensureConfigured();
             break;
         case ModeEnum::ThreeWire:
             provider.getThreeWireController().ensureConfigured();
@@ -400,6 +400,7 @@ void ActionDispatcher::setCurrentMode(ModeEnum newMode) {
             provider.getWifiController().ensureConfigured();
             break;
         case ModeEnum::JTAG: {
+            provider.getJtagController().ensureConfigured();
             std::vector<std::string> lines;
             const auto& pins = state.getJtagScanPins();
             size_t totalPins = pins.size();
@@ -416,7 +417,6 @@ void ActionDispatcher::setCurrentMode(ModeEnum newMode) {
             }
 
             config.setMappings(lines);
-            provider.getJtagController().ensureConfigured();
             break;
         }
         case ModeEnum::I2S:
