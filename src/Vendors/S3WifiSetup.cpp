@@ -1,3 +1,5 @@
+#if defined(DEVICE_M5STAMPS3) || defined(DEVICE_S3DEVKIT)
+
 #include "S3WifiSetup.h"
 #include <Preferences.h>
 #include <WiFi.h>
@@ -59,3 +61,5 @@ bool setupS3Wifi() {
     
     return false;
 }
+
+#endif
