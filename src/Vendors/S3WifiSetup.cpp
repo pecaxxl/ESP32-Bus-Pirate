@@ -1,5 +1,3 @@
-#ifdef DEVICE_M5STAMPS3
-
 #include "S3WifiSetup.h"
 #include <Preferences.h>
 #include <WiFi.h>
@@ -61,5 +59,3 @@ bool setupS3Wifi() {
     
     return false;
 }
-
-#endif

@@ -5,23 +5,18 @@ std::string WifiTypeConfigurator::configure(TerminalTypeEnum& terminalType) {
     switch (terminalType)
     {
     case TerminalTypeEnum::WiFiClient:
-        #ifdef DEVICE_CARDPUTER
+        #if defined(DEVICE_CARDPUTER)
             // Use this standalone setup for now
-            setupCardputerWifi(); // endless loop untill a valid WiFi is selected and connected
-        #endif
-
-        #ifdef DEVICE_M5STICK
+            setupCardputerWifi(); // endless loop until a valid WiFi is selected and connected
+        #elif defined(DEVICE_M5STICK)
             // Use this standalone setup for now
             setupStickWifi(); // check stored creds
-        #endif
-
-        #ifdef DEVICE_M5STAMPS3
+        #elif defined(DEVICE_M5STAMPS3)
             // Use this standalone setup for now
-            setupS3Wifi(); // check stored creds
-        #endif
-
-        #if defined(DEVICE_TEMBEDS3) || defined(DEVICE_TEMBEDS3CC1101)
+        #elif defined(DEVICE_TEMBEDS3) || defined(DEVICE_TEMBEDS3CC1101)
             setupTembedWifi(); // check stored creds
+        #else
+            setupS3Wifi(); // check stored creds
         #endif
 
         return std::string(WiFi.localIP().toString().c_str());

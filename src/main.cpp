@@ -10,6 +10,7 @@
 #include <Inputs/StickInput.h>
 #include <Inputs/StampS3Input.h>
 #include <Inputs/TembedInput.h>
+#include <Inputs/S3DevKitInput.h>
 #include <Providers/DependencyProvider.h>
 #include <Dispatchers/ActionDispatcher.h>
 #include <Servers/HttpServer.h>
@@ -44,7 +45,7 @@ void setup() {
         deviceView.setRotation(1);
         CardputerInput deviceInput;
     #elif DEVICE_M5STAMPS3
-        // Setup the StampS3
+        // Setup the StampS3/AtomS3
         #include <M5Unified.h>
         auto cfg = M5.config();
         M5.begin(cfg);
@@ -54,6 +55,10 @@ void setup() {
         // Setup the T-embed
         TembedDeviceView deviceView;
         TembedInput deviceInput;
+    #else
+        // Fallback to S3 dev kit
+        NoScreenDeviceView deviceView;
+        S3DevKitInput deviceInput;
     #endif
 
     deviceView.logo();
