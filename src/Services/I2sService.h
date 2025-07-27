@@ -21,4 +21,8 @@ public:
 private:
     bool initialized = false;
     i2s_port_t port = I2S_NUM_0;
+    uint8_t prevBclk = GPIO_NUM_NC;
+    uint8_t prevLrck = GPIO_NUM_NC;
+    uint8_t prevDout = GPIO_NUM_NC;
+    uint8_t prevDin  = GPIO_NUM_NC;
 };

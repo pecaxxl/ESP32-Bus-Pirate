@@ -2,7 +2,14 @@
 #include "math.h"
 
 void I2sService::configureOutput(uint8_t bclk, uint8_t lrck, uint8_t dout, uint32_t sampleRate, uint8_t bits) {
-    if (initialized) i2s_driver_uninstall(port);
+    if (initialized) {
+        i2s_driver_uninstall(port);
+
+        // Deinit previous used pins
+        if (prevBclk != GPIO_NUM_NC) gpio_matrix_out(prevBclk, SIG_GPIO_OUT_IDX, false, false);
+        if (prevLrck != GPIO_NUM_NC) gpio_matrix_out(prevLrck, SIG_GPIO_OUT_IDX, false, false);
+        if (prevDout != GPIO_NUM_NC) gpio_matrix_out(prevDout, SIG_GPIO_OUT_IDX, false, false);
+    }
 
     i2s_config_t config = {
         .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
@@ -18,21 +25,35 @@ void I2sService::configureOutput(uint8_t bclk, uint8_t lrck, uint8_t dout, uint3
         .fixed_mclk = 0
     };
 
-    i2s_pin_config_t pins = {
-        .bck_io_num = bclk,
-        .ws_io_num = lrck,
-        .data_out_num = dout,
-        .data_in_num = I2S_PIN_NO_CHANGE
-    };
+    esp_err_t err = i2s_driver_install(port, &config, 0, nullptr);
 
-    i2s_driver_install(port, &config, 0, nullptr);
-    i2s_set_pin(port, &pins);
+    // Output
+    pinMode(bclk, OUTPUT);
+    pinMode(lrck, OUTPUT);
+    pinMode(dout, OUTPUT);
+
+    // Manually mapping to avoid conflict
+    gpio_matrix_out(bclk, I2S0O_BCK_OUT_IDX, false, false);
+    gpio_matrix_out(lrck, I2S0O_WS_OUT_IDX, false, false);
+    #ifdef DEVICE_M5STICK
+        gpio_matrix_out(dout, I2S0O_DATA_OUT0_IDX, false, false);
+    #else
+        gpio_matrix_out(dout, I2S0O_SD_OUT_IDX, false, false);
+    #endif
+    
+
+    // Save pin to deinit at next config
+    prevBclk = bclk;
+    prevLrck = lrck;
+    prevDout = dout;
 
     initialized = true;
 }
 
 void I2sService::configureInput(uint8_t bclk, uint8_t lrck, uint8_t din, uint32_t sampleRate, uint8_t bits) {
-    if (initialized) i2s_driver_uninstall(port);
+    if (initialized) {
+        i2s_driver_uninstall(port);
+    }
 
     i2s_config_t config = {
         .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
