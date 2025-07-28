@@ -71,7 +71,7 @@ void setup() {
 
     // Configure Wi-Fi if needed
     if (terminalType == TerminalTypeEnum::WiFiClient) {
-        WifiTypeConfigurator wifiTypeConfigurator;
+        WifiTypeConfigurator wifiTypeConfigurator(deviceView, deviceInput);
         webIp = wifiTypeConfigurator.configure(terminalType);
         
         if (webIp == "0.0.0.0") {

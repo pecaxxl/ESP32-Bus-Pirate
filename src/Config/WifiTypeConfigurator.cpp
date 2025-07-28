@@ -11,11 +11,11 @@ std::string WifiTypeConfigurator::configure(TerminalTypeEnum& terminalType) {
         #elif defined(DEVICE_M5STICK)
             // Use this standalone setup for now
             setupStickWifi(); // check stored creds
-        #elif defined(DEVICE_M5STAMPS3)
-            // Use this standalone setup for now
         #elif defined(DEVICE_TEMBEDS3) || defined(DEVICE_TEMBEDS3CC1101)
-            setupTembedWifi(); // check stored creds
+            // Use this standalone setup for now
+            setupTembedWifi(); // endless loop until a valid WiFi is selected and connected
         #else
+            // Use this standalone setup for now
             setupS3Wifi(); // check stored creds
         #endif
 

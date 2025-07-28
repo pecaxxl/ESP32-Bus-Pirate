@@ -5,11 +5,19 @@
 #include <Vendors/StickWifiSetup.h>
 #include <Vendors/S3WifiSetup.h>
 #include <Vendors/TembedWifiSetup.h>
+#include <Interfaces/IDeviceView.h>
+#include <Interfaces/IInput.h>
 #include <string>
 #include <WiFi.h>
 
 class WifiTypeConfigurator {
 public:
-    WifiTypeConfigurator() = default;
+    WifiTypeConfigurator(IDeviceView& view, IInput& input)
+        : view(view), input(input) {}
+
     std::string configure(TerminalTypeEnum& terminalType);
+
+private:
+    IDeviceView& view;
+    IInput& input;
 };

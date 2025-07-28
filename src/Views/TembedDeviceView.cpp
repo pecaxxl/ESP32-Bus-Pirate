@@ -61,12 +61,15 @@ void TembedDeviceView::welcome(TerminalTypeEnum& terminalType, std::string& term
 
 void TembedDeviceView::loading() {
     tft.fillScreen(TFT_BLACK);
-    tft.setTextSize(1);
     tft.setTextColor(TFT_WHITE);
+    tft.setTextFont(1);
 
     tft.fillRoundRect(20, 20, tft.width() - 40, tft.height() - 40, 5, DARK_GREY_RECT);
     tft.drawRoundRect(20, 20, tft.width() - 40, tft.height() - 40, 5, TFT_GREEN);
-    drawCenterText("Loading...", 80, 2);
+
+    tft.setTextColor(TFT_WHITE);
+    tft.setTextSize(2);
+    tft.drawString("Loading...", 102, 52);
 }
 
 void TembedDeviceView::clear() {
