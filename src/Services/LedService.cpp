@@ -25,9 +25,13 @@ void LedService::configure(uint8_t dataPin, uint8_t clockPin, uint16_t length, c
     /*
     Fastled need defined pins and protocol at compile time, 
     cant find another way to do it than using switch for each one 
+    This can't compile on Windows, define this only if you build on Linux:
+    -D ENABLE_FASTLED_PROTOCOL_SWITCHES
     */
 
     // --- Only DATA Pin ---
+
+    #ifdef ENABLE_FASTLED_PROTOCOL_SWITCHES
 
     auto proto = LedProtocolEnumMapper::fromString(protocol);
     if (proto != LedProtocolEnum::UNKNOWN) {
@@ -140,6 +144,13 @@ void LedService::configure(uint8_t dataPin, uint8_t clockPin, uint16_t length, c
             leds = nullptr;
             return;
     }
+    #else
+        Serial.println("\n\nFastLED protocol configuration is disabled on this build.");
+        Serial.println("You're likely compiling this project on Windows.");
+        Serial.println("The FastLED 'addLeds<>()' switch is not included due to compiler limitations on Windows.");
+        Serial.println("To enable full LED support, build this project on Linux and define ENABLE_FASTLED_PROTOCOL_SWITCHES.\n\n");
+        FastLED.addLeds<WS2812, LED_DATA_PIN, GRB>(leds, ledCount);
+    #endif
 
     usesClock = true;
     FastLED.setBrightness(brightness);
