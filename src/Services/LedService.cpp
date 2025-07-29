@@ -12,13 +12,12 @@ void LedService::configure(uint8_t dataPin, uint8_t clockPin, uint16_t length, c
         FastLED.clear(true);
         delete[] leds;
         leds = nullptr;
-        FastLED = CFastLED();  // full reset of FastLED
         delay(20);
     }
-
+    
+    FastLED = CFastLED();  // full reset of FastLED
     ledCount = length;
     leds = new CRGB[ledCount];
-
     FastLED.clear();
     FastLED.clearData();
 
