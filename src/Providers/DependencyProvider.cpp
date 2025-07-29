@@ -31,6 +31,7 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       commandHistoryManager(),
       binaryAnalyzeManager(spiService, terminalView, terminalInput),
       userInputManager(terminalView, terminalInput, argTransformer),
+      sdCardManager(sdService, terminalView, terminalInput, argTransformer),
       horizontalSelector(deviceView, deviceInput),
       terminalTypeConfigurator(horizontalSelector),
       uartController(terminalView, terminalInput, deviceInput, uartService, sdService, hdUartService, argTransformer, userInputManager),
@@ -39,7 +40,7 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       infraredController(terminalView, terminalInput, infraredService, argTransformer, userInputManager),
       utilityController(terminalView, deviceView, terminalInput, pinService, userInputManager, argTransformer),
       hdUartController(terminalView, terminalInput, deviceInput, hdUartService, uartService, argTransformer, userInputManager),
-      spiController(terminalView, terminalInput, spiService, sdService, argTransformer, userInputManager, binaryAnalyzeManager),
+      spiController(terminalView, terminalInput, spiService, sdService, argTransformer, userInputManager, binaryAnalyzeManager, sdCardManager),
       jtagController(terminalView, terminalInput, jtagService, userInputManager),
       twoWireController(terminalView, terminalInput, userInputManager, twoWireService),
       threeWireController(terminalView, terminalInput),
@@ -104,6 +105,7 @@ WebRequestTransformer& DependencyProvider::getWebRequestTransformer() {return we
 CommandHistoryManager& DependencyProvider::getCommandHistoryManager() { return commandHistoryManager ;}
 UserInputManager& DependencyProvider::getUserInputManager() { return userInputManager; }
 BinaryAnalyzeManager& DependencyProvider::getBinaryAnalyzeManager() { return binaryAnalyzeManager; }
+SdCardManager& DependencyProvider::getSdCardManager() { return sdCardManager; }
 
 // Selectors
 HorizontalSelector& DependencyProvider::getHorizontalSelector() { return horizontalSelector ;}

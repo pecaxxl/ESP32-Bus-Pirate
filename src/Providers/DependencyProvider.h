@@ -50,6 +50,7 @@ and injecting shared instances of core components
 #include "Managers/CommandHistoryManager.h"
 #include "Managers/BinaryAnalyzeManager.h"
 #include "Managers/UserInputManager.h"
+#include "Managers/SdCardManager.h"
 #include "Config/TerminalTypeConfigurator.h"
 
 class DependencyProvider {
@@ -114,6 +115,7 @@ public:
     CommandHistoryManager& getCommandHistoryManager();
     UserInputManager& getUserInputManager();
     BinaryAnalyzeManager& getBinaryAnalyzeManager();
+    SdCardManager& getSdCardManager();
 
     // Selectors
     HorizontalSelector& getHorizontalSelector();
@@ -178,6 +180,7 @@ private:
     CommandHistoryManager commandHistoryManager;
     UserInputManager userInputManager;
     BinaryAnalyzeManager binaryAnalyzeManager;
+    SdCardManager sdCardManager;
 
     // Selectors
     HorizontalSelector horizontalSelector;

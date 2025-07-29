@@ -2,14 +2,16 @@
 
 SpiController::SpiController(ITerminalView& terminalView, IInput& terminalInput, 
                              SpiService& spiService, SdService& sdService, ArgTransformer& argTransformer,
-                             UserInputManager& userInputManager, BinaryAnalyzeManager& binaryAnalyzeManager)
+                             UserInputManager& userInputManager, BinaryAnalyzeManager& binaryAnalyzeManager,
+                             SdCardManager& sdCardManager)
     : terminalView(terminalView),
       terminalInput(terminalInput),
       spiService(spiService),
       sdService(sdService),
       argTransformer(argTransformer),
       userInputManager(userInputManager),
-      binaryAnalyzeManager(binaryAnalyzeManager)
+      binaryAnalyzeManager(binaryAnalyzeManager),
+      sdCardManager(sdCardManager)
 {}
 
 /*
@@ -658,41 +660,28 @@ void SpiController::handleSlave() {
 SD Card
 */
 void SpiController::handleSdCard() {
-
     terminalView.println("SD Card: Mounting...");
-    delay(500); // let the user see this ^
+    delay(500);
 
+    // Configure
     spiService.end();
     bool success = sdService.configure(
-            state.getSpiCLKPin(), 
-            state.getSpiMISOPin(),
-            state.getSpiMOSIPin(), 
-            state.getSpiCSPin()
+        state.getSpiCLKPin(),
+        state.getSpiMISOPin(),
+        state.getSpiMOSIPin(),
+        state.getSpiCSPin()
     );
 
     if (!success) {
         terminalView.println("SD Card: Mount failed. Check config and wiring and try again.\n");
-    } else {
-        terminalView.println("SD Card: Mounted successfully. Loading...\n");
-    
-        // Root content
-        auto elements = sdService.listElements("/");
-        if (elements.empty()) {
-            terminalView.println("[Root is empty]");
-        } else {
-            terminalView.println("Root content:");
-            for (const auto& item : elements) {
-                terminalView.println("  - " + item);
-            }
-        }
-    
-        terminalView.println("");
-        terminalView.println("  [INFO] SD card interface is not yet fully implemented.");
-        terminalView.println("         You can use the USB Stick mode to mount the card");
-        terminalView.println("         as a USB drive and access it from your computer.\n");
+        return;
     }
+    
+    // SD Shell
+    terminalView.println("SD Card: Mounted successfully. Loading...\n");
+    sdCardManager.runShell();
 
-    // Close and reconfigure
+    // Reconfigure
     sdService.end();
     spiService.end();
     ensureConfigured();
