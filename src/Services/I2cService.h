@@ -28,6 +28,7 @@ public:
     void i2cBitBangReadByte(uint8_t scl, uint8_t sda, uint32_t delayUs, bool nackLast);
     void i2cBitBangStartCondition(uint8_t scl, uint8_t sda, uint32_t delayUs);
     void i2cBitBangStopCondition(uint8_t scl, uint8_t sda, uint32_t delayUs);
+    bool i2cBitBangRecoverBus(uint8_t scl, uint8_t sda, uint32_t freqHz);
 
     // Slave
     void beginSlave(uint8_t address, uint8_t sda, uint8_t scl, uint32_t freq = 100000);

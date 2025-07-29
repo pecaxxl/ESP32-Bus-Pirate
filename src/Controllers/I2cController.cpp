@@ -18,6 +18,7 @@ void I2cController::handleCommand(const TerminalCommand& cmd) {
     else if (cmd.getRoot() == "slave") handleSlave(cmd);
     else if (cmd.getRoot() == "glitch") handleGlitch(cmd);
     else if (cmd.getRoot() == "flood") handleFlood(cmd);
+    else if (cmd.getRoot() == "recover") handleRecover();
     else if (cmd.getRoot() == "config") handleConfig();
     else handleHelp();
 }
@@ -493,6 +494,30 @@ void I2cController::printHexDump(uint16_t start, uint16_t len,
 }
 
 /*
+Recover
+*/
+void I2cController::handleRecover() {
+    uint8_t sda = state.getI2cSdaPin();
+    uint8_t scl = state.getI2cSclPin();
+    uint32_t freq = state.getI2cFrequency();
+
+    terminalView.println("I2C Reset: Attempting to recover I2C bus...");
+
+    // Release I2C bus
+    i2cService.end();
+    // 16 clock pulse + STOP condition
+    bool success = i2cService.i2cBitBangRecoverBus(scl, sda, freq);
+    // Reconfigure I2C
+    i2cService.configure(sda, scl, freq);
+
+    if (success) {
+        terminalView.println("\nI2C Reset: SDA released. Bus recovery successful.");
+    } else {
+        terminalView.println("\nI2C Reset: SDA still LOW after recovery, bus may remain stuck.");
+    }
+}
+
+/*
 Glitch
 */
 void I2cController::handleGlitch(const TerminalCommand& cmd) {
@@ -607,6 +632,7 @@ void I2cController::handleHelp() {
     terminalView.println("  dump <addr> [len]");
     terminalView.println("  glitch <addr>");
     terminalView.println("  flood <addr>");
+    terminalView.println("  recover");
     terminalView.println("  config");
     terminalView.println("  raw instructions, e.g: [0x13 0x4B r:8]");
 }
