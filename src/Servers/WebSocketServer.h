@@ -17,6 +17,7 @@ public:
     char readCharBlocking();
     char readCharNonBlocking();
     void sendText(const std::string& msg);
+    std::string sanitizeUtf8(const std::string& input);
 
 private:
     static esp_err_t wsHandler(httpd_req_t *req);

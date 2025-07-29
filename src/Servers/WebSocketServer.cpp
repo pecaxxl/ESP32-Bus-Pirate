@@ -87,15 +87,7 @@ void WebSocketServer::sendText(const std::string& msg) {
     if (clientFd < 0) return;
 
     // Sanitize UTF8
-    std::string safeMsg;
-    for (unsigned char c : msg) {
-        if ((c >= 32 && c <= 126) || c == '\n' || c == '\r' || c == '\t') {
-            safeMsg += c;
-        }
-        // None UTF8, cant send that to socket
-    }
-
-    if (safeMsg.empty()) return;
+    std::string safeMsg = sanitizeUtf8(msg);
 
     httpd_ws_frame_t ws_pkt = {};
     ws_pkt.type = HTTPD_WS_TYPE_TEXT;
@@ -103,4 +95,38 @@ void WebSocketServer::sendText(const std::string& msg) {
     ws_pkt.len = safeMsg.length();
 
     httpd_ws_send_frame_async(server, clientFd, &ws_pkt);
+}
+
+std::string WebSocketServer::sanitizeUtf8(const std::string& input) {
+    std::string output;
+    size_t i = 0;
+
+    while (i < input.size()) {
+        unsigned char c = input[i];
+
+        if (c <= 0x7F) {  // ASCII
+            output += c;
+            i++;
+        } else if ((c & 0xE0) == 0xC0 && i + 1 < input.size() &&
+                   (input[i+1] & 0xC0) == 0x80) {
+            output += input.substr(i, 2);
+            i += 2;
+        } else if ((c & 0xF0) == 0xE0 && i + 2 < input.size() &&
+                   (input[i+1] & 0xC0) == 0x80 &&
+                   (input[i+2] & 0xC0) == 0x80) {
+            output += input.substr(i, 3);
+            i += 3;
+        } else if ((c & 0xF8) == 0xF0 && i + 3 < input.size() &&
+                   (input[i+1] & 0xC0) == 0x80 &&
+                   (input[i+2] & 0xC0) == 0x80 &&
+                   (input[i+3] & 0xC0) == 0x80) {
+            output += input.substr(i, 4);
+            i += 4;
+        } else {
+            // Invalid byte or sequence, skip it
+            i++;
+        }
+    }
+
+    return output;
 }
