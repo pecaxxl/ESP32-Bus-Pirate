@@ -121,12 +121,40 @@ std::string SdService::readFile(const std::string& filePath) {
     return content;
 }
 
-bool SdService::writeFile(const std::string& filePath, const std::string& data) {
+std::string SdService::readFileChunk(const std::string& filePath, size_t offset, size_t maxBytes) {
+    std::string content;
+    if (!sdCardMounted) return content;
+
+    File file = SD.open(filePath.c_str());
+    if (!file) return content;
+
+    // Go to offset
+    if (!file.seek(offset)) {
+        file.close();
+        return content;
+    }
+
+    const size_t BUFFER_SIZE = 512;
+    char buffer[BUFFER_SIZE];
+
+    size_t totalRead = 0;
+    while (file.available() && totalRead < maxBytes) {
+        size_t toRead = std::min(BUFFER_SIZE, maxBytes - totalRead);
+        size_t bytesRead = file.readBytes(buffer, toRead);
+        content.append(buffer, bytesRead);
+        totalRead += bytesRead;
+    }
+
+    file.close();
+    return content;
+}
+
+bool SdService::writeFile(const std::string& filePath, const std::string& data, bool append) {
     if (!sdCardMounted) {
         return false;
     }
 
-    File file = SD.open(filePath.c_str(), FILE_WRITE);
+    File file = SD.open(filePath.c_str(), append ? FILE_APPEND : FILE_WRITE);
     if (file) {
         file.write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size());
         file.close();
@@ -184,7 +212,7 @@ std::string SdService::getParentDirectory(const std::string& path) {
     return (pos != std::string::npos && pos > 0) ? path.substr(0, pos) : "/";
 }
 
-std::vector<std::string> SdService::getCachedDirectoryElements(const std::string& path) {
+std::vector<std::string> SdService::listElementsCached(const std::string& path) {
     if (cachedDirectoryElements.find(path) != cachedDirectoryElements.end()) {
         return cachedDirectoryElements[path];
     }
@@ -236,4 +264,24 @@ File SdService::openFileRead(const std::string& path) {
 File SdService::openFileWrite(const std::string& path) {
     if (!sdCardMounted) return File();
     return SD.open(path.c_str(), FILE_WRITE);
+}
+
+bool SdService::deleteDirectory(const std::string& dirPath) {
+    if (!sdCardMounted) return false;
+    File dir = SD.open(dirPath.c_str());
+    if (!dir || !dir.isDirectory()) return false;
+
+    File entry = dir.openNextFile();
+    while (entry) {
+        std::string entryPath = std::string(dirPath) + "/" + entry.name();
+        if (entry.isDirectory()) {
+            deleteDirectory(entryPath);
+        } else {
+            SD.remove(entryPath.c_str());
+        }
+        entry = dir.openNextFile();
+    }
+
+    dir.close();
+    return SD.rmdir(dirPath.c_str());
 }
