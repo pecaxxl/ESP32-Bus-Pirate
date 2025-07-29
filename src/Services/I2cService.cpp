@@ -282,6 +282,36 @@ void I2cService::i2cBitBangReadByte(uint8_t scl, uint8_t sda, uint32_t d, bool n
     i2cBitBangSetLevel(sda, 1);
 }
 
+bool I2cService::i2cBitBangRecoverBus(uint8_t scl, uint8_t sda, uint32_t freqHz) {
+    uint32_t delayUs = 500000 / freqHz; // demi periode
+
+    // SCL/SDA input
+    i2cBitBangSetInput(scl);
+    i2cBitBangSetInput(sda);
+    i2cBitBangDelay(delayUs);
+
+    // SDA is low, bus is stuck
+    if (gpio_get_level((gpio_num_t)sda) == 0) {
+        // 16 pulses on SCL or until SDA is high
+        i2cBitBangSetOutput(scl);
+        for (int i = 0; i < 16; ++i) {
+            i2cBitBangSetLevel(scl, 0);
+            i2cBitBangDelay(delayUs);
+            i2cBitBangSetLevel(scl, 1);
+            i2cBitBangDelay(delayUs);
+
+            if (gpio_get_level((gpio_num_t)sda) == 1) break;
+        }
+    }
+
+    // STOP condition
+    i2cBitBangStopCondition(scl, sda, delayUs);
+
+    delay(20); // wait for bus to stabilize
+
+    return gpio_get_level((gpio_num_t)sda) == 1;
+}
+
 void I2cService::rapidStartStop(uint8_t address, uint32_t freqHz, uint8_t scl, uint8_t sda) {
     uint32_t d = 500000 / freqHz;
     bool ack;
@@ -439,34 +469,4 @@ void I2cService::randomClockPulseNoise(uint8_t scl, uint8_t sda, uint32_t freqHz
         i2cBitBangSetLevel(sda, random(2));
         delayMicroseconds(random(d));
     }
-}
-
-bool I2cService::i2cBitBangRecoverBus(uint8_t scl, uint8_t sda, uint32_t freqHz) {
-    uint32_t delayUs = 500000 / freqHz; // demi periode
-
-    // SCL/SDA input
-    i2cBitBangSetInput(scl);
-    i2cBitBangSetInput(sda);
-    i2cBitBangDelay(delayUs);
-
-    // SDA is low, bus is stuck
-    if (gpio_get_level((gpio_num_t)sda) == 0) {
-        // 16 pulses on SCL or until SDA is high
-        i2cBitBangSetOutput(scl);
-        for (int i = 0; i < 16; ++i) {
-            i2cBitBangSetLevel(scl, 0);
-            i2cBitBangDelay(delayUs);
-            i2cBitBangSetLevel(scl, 1);
-            i2cBitBangDelay(delayUs);
-
-            if (gpio_get_level((gpio_num_t)sda) == 1) break;
-        }
-    }
-
-    // STOP condition
-    i2cBitBangStopCondition(scl, sda, delayUs);
-
-    delay(20); // wait for bus to stabilize
-
-    return gpio_get_level((gpio_num_t)sda) == 1;
 }
