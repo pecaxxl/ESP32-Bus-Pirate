@@ -335,7 +335,6 @@ void I2cController::handleDump(const TerminalCommand& cmd) {
     auto args = argTransformer.splitArgs(cmd.getArgs());
     if (args.size() >= 1 && argTransformer.isValidNumber(args[0])) {
         len = argTransformer.parseHexOrDec16(args[0]);
-        if (len > 256) len = 256;
     }
 
     std::vector<uint8_t> values(len, 0xFF);
@@ -369,6 +368,7 @@ void I2cController::handleDump(const TerminalCommand& cmd) {
 void I2cController::performRegisterRead(uint8_t addr, uint16_t start, uint16_t len,
                                         std::vector<uint8_t>& values, std::vector<bool>& valid) {
     const uint8_t CHUNK_SIZE = 16;
+    const bool use16bitAddr = (start + len - 1) > 0xFF;
     int consecutiveErrors = 0;
 
     for (uint16_t offset = 0; offset < len; offset += CHUNK_SIZE) {
@@ -377,12 +377,17 @@ void I2cController::performRegisterRead(uint8_t addr, uint16_t start, uint16_t l
             return;
         }
 
-        uint8_t reg = start + offset;
+        uint16_t reg = start + offset;
         uint8_t toRead = (offset + CHUNK_SIZE <= len) ? CHUNK_SIZE : (len - offset);
 
-        // Write start register
+        // Write register address (1 or 2 bytes)
         i2cService.beginTransmission(addr);
-        i2cService.write(reg);
+        if (use16bitAddr) {
+            i2cService.write((reg >> 8) & 0xFF); // MSB
+            i2cService.write(reg & 0xFF);        // LSB
+        } else {
+            i2cService.write((uint8_t)(reg & 0xFF));
+        }
         bool writeOk = (i2cService.endTransmission(false) == 0);  // No stop
         if (!writeOk) {
             consecutiveErrors++;
@@ -393,7 +398,7 @@ void I2cController::performRegisterRead(uint8_t addr, uint16_t start, uint16_t l
         uint8_t received = i2cService.requestFrom(addr, toRead, true);
         if (received == toRead) {
             for (uint8_t i = 0; i < toRead; ++i) {
-                auto key = terminalInput.readChar();
+                char key = terminalInput.readChar();
                 if (key == '\r' || key == '\n') {
                     terminalView.println("I2C Dump: Cancelled by user.");
                     return;
