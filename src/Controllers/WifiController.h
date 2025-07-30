@@ -71,6 +71,9 @@ private:
     // Connect to SSH host
     void handleSsh(const TerminalCommand& cmd);
 
+    // Deathenticate attack
+    void handleDeauth(const TerminalCommand& cmd);
+
     // Reset Wi-Fi configuration
     void handleReset();
 
@@ -79,5 +82,6 @@ private:
 
     // Show help for Wi-Fi commands
     void handleHelp();
+
 
 };

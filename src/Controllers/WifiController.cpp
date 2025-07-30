@@ -34,6 +34,8 @@ void WifiController::handleCommand(const TerminalCommand& cmd) {
         handleSsh(cmd);
     } else if (root == "reset") {
         handleReset();
+    } else if (root == "deauth") {
+        handleDeauth(cmd);
     } else {
         handleHelp();
     }
@@ -389,6 +391,7 @@ void WifiController::handleHelp() {
     terminalView.println("  ssh <host> <username> <password> [port]");
     terminalView.println("  webui");
     terminalView.println("  reset");
+    terminalView.println("  deauth <ap> [bursts]");
 }
 
 /*
@@ -400,3 +403,29 @@ void WifiController::ensureConfigured() {
         configured = true;
     }
 }
+
+/*
+Deathenticate stations attack
+*/
+void WifiController::handleDeauth(const TerminalCommand& cmd)
+{
+    auto target = cmd.getSubcommand();
+    if (target.empty()) {
+        terminalView.println("Usage: deauth <ssid> [bursts] [ms]");
+        return;
+    }
+
+    uint8_t bursts = 20;
+
+    if (!cmd.getArgs().empty() && argTransformer.isValidNumber(cmd.getArgs())) {
+        bursts = static_cast<uint8_t>(argTransformer.parseHexOrDec16(cmd.getArgs()));
+    }
+
+    terminalView.println("WiFi: Sending deauth to \"" + target + "\"…");
+
+    bool ok = wifiService.deauthApBySsid(target, bursts, 400);
+
+    if (ok) terminalView.println("WiFi: Deauth frame(s) sent.");
+    else    terminalView.println("WiFi: SSID not found.");
+}
+
