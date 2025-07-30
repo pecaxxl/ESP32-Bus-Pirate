@@ -410,6 +410,12 @@ Deathenticate stations attack
 void WifiController::handleDeauth(const TerminalCommand& cmd)
 {
     auto target = cmd.getSubcommand();
+
+    // if the SSID have space in name, e.g "Router Wifi"
+    if (!cmd.getArgs().empty()) {
+        target =+ " " + cmd.getArgs();
+    }
+    
     if (target.empty()) {
         terminalView.println("Usage: deauth <ssid>");
         return;
@@ -422,4 +428,3 @@ void WifiController::handleDeauth(const TerminalCommand& cmd)
     if (ok) terminalView.println("WiFi: Deauth frames sent.");
     else    terminalView.println("WiFi: SSID not found.");
 }
-
