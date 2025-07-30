@@ -24,21 +24,54 @@ void OneWireService::writeBytes(const uint8_t* data, uint8_t len) {
 }
 
 void OneWireService::writeRw1990(uint8_t pin, uint8_t* data, size_t len) {
-    // Reset + Write Serial
+    // Based on: https://github.com/ArminJo/iButtonProgrammer/blob/master/iButtonProgrammer.ino
+    // @ArminJo
+
+    // Configure for bit bang
+    pinMode(pin, INPUT_PULLUP);
+    delay(10);
+
     oneWire->reset();
+    delay(1);
+
+    // Read is necessary before write
+    oneWire->write(0x33);
+    for (uint8_t i = 0; i < 8; i++) {
+        oneWire->read();
+    }
+    delay(5);
+
+    // Reset for write
+    oneWire->reset();
+    delay(1);
+
+    // Write mode
     oneWire->write(0xD5);
 
-    // Write each byte with 10ms delay to power the eeprom
-    for (uint8_t i = 0; i < 8; i++) {
-        uint8_t b = data[i];
+    // Bit-bang each byte
+    for (size_t byteIndex = 0; byteIndex < len; byteIndex++) {
+        uint8_t byte = data[byteIndex];
         for (uint8_t bit = 0; bit < 8; bit++) {
-            bool v = b & 0x01;
-            oneWire->write(v ? 0xFF : 0x00);
-            delay(10);
-            b >>= 1;
+            bool bitValue = byte & 0x01;
+
+            if (bitValue) {
+                pinMode(pin, OUTPUT);
+                digitalWrite(pin, LOW);
+                delayMicroseconds(60);
+                pinMode(pin, INPUT);
+                delay(10);
+            } else {
+                pinMode(pin, OUTPUT);
+                digitalWrite(pin, LOW);
+                pinMode(pin, INPUT);
+                delay(10);
+            }
+
+            byte >>= 1;
         }
     }
 
+    delay(5);
     oneWire->reset();
 }
 

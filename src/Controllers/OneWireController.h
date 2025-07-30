@@ -65,6 +65,12 @@ private:
     // Write a ROM ID to a device (e.g. iButton emulator)
     void handleIdWrite(std::vector<uint8_t> idBytes);
 
+    // Copy 1wire data
+    void handleCopy(const TerminalCommand& command);
+    
+    // Read a source ibutton to copy its ID on another one
+    void handleIdCopy();
+
     // Write to scratchpad memory
     void handleScratchpadWrite(std::vector<uint8_t> scratchpadBytes);
 
