@@ -415,6 +415,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  ssh <h> <u> <p> [p]  - Open SSH session");
     terminalView.println("  webui                - Show the web UI IP");
     terminalView.println("  reset                - Reset interface");
+    terminalView.println("  deauth <ssid>        - Deauthenticate hosts on AP");
 
     terminalView.println("");
     terminalView.println(" 15. JTAG:");
