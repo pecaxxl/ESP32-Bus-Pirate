@@ -12,37 +12,16 @@ DioController::DioController(ITerminalView& terminalView, IInput& terminalInput,
 Entry point to handle a DIO command
 */
 void DioController::handleCommand(const TerminalCommand& cmd) {
-    if (cmd.getRoot() == "sniff") {
-        handleSniff(cmd);
-    }
-
-    else if (cmd.getRoot() == "read") {
-        handleReadPin(cmd);
-    } 
-
-    else if (cmd.getRoot() == "set") {
-        handleSetPin(cmd);
-    } 
-
-    else if (cmd.getRoot() == "pullup") {
-        handlePullup(cmd);
-    }
-
-    else if (cmd.getRoot() == "pwm") {
-        handlePwm(cmd);
-    }
-
-    else if (cmd.getRoot() == "toggle") {
-        handleTogglePin(cmd);
-    }
-
-    else if (cmd.getRoot() == "reset") {
-        handleResetPin(cmd);
-    }
-        
-    else {
-        handleHelp();
-    }
+    if (cmd.getRoot() == "sniff") handleSniff(cmd);
+    else if (cmd.getRoot() == "read")   handleReadPin(cmd); 
+    else if (cmd.getRoot() == "set")    handleSetPin(cmd);
+    else if (cmd.getRoot() == "pullup") handlePullup(cmd);
+    else if (cmd.getRoot() == "pwm")    handlePwm(cmd);
+    else if (cmd.getRoot() == "toggle") handleTogglePin(cmd);
+    else if (cmd.getRoot() == "analog") handleAnalog(cmd);
+    else if (cmd.getRoot() == "reset")  handleResetPin(cmd);
+    else                                handleHelp();
+    
 }
 
 /*
@@ -163,6 +142,52 @@ void DioController::handleSniff(const TerminalCommand& cmd) {
 }
 
 /*
+Analog
+*/
+void DioController::handleAnalog(const TerminalCommand& cmd) {
+    if (cmd.getSubcommand().empty() || !argTransformer.isValidNumber(cmd.getSubcommand())) {
+        terminalView.println("Usage: analog <pin>");
+        return;
+    }
+
+    uint8_t pin = argTransformer.toUint8(cmd.getSubcommand());
+    if (!isPinAllowed(pin, "Analog")) return;
+
+    terminalView.println("DIO Analog: Pin " + std::to_string(pin) + " ... Press [ENTER] to stop\n");
+
+    unsigned long lastSample = millis() + 1000; // start immediately
+    unsigned long lastCheck = millis();
+
+    while (true) {
+        unsigned long now = millis();
+
+        // Check [ENTER] every 10 ms
+        if (now - lastCheck > 10) {
+            lastCheck = now;
+            char c = terminalInput.readChar();
+            if (c == '\r' || c == '\n') {
+                terminalView.println("\nDIO Analog: Stopped by user.");
+                break;
+            }
+        }
+
+        // Sample every 1000 ms
+        if (now - lastSample >= 1000) {
+            lastSample = now;
+
+            int raw = pinService.readAnalog(pin);
+            float voltage = (raw / 4095.0f) * 3.3f;
+
+            std::ostringstream oss;
+            oss << "   Analog pin " << static_cast<int>(pin)
+                << ": " << raw
+                << " (" << voltage << " V)";
+            terminalView.println(oss.str());
+        }
+    }
+}
+
+/*
 Pwm
 */
 void DioController::handlePwm(const TerminalCommand& cmd) {
@@ -170,7 +195,7 @@ void DioController::handlePwm(const TerminalCommand& cmd) {
     auto args = argTransformer.splitArgs(cmd.getArgs());
 
     if (!sub.empty() && args.size() != 2) {
-        terminalView.println("DIO PWN: Invalid syntax. Use:");
+        terminalView.println("DIO PWM: Invalid syntax. Use:");
         terminalView.println("  pwm <pin> <frequency> <duty>");
         return;
     }
@@ -178,27 +203,27 @@ void DioController::handlePwm(const TerminalCommand& cmd) {
     if (!argTransformer.isValidNumber(sub) ||
         !argTransformer.isValidNumber(args[0]) ||
         !argTransformer.isValidNumber(args[1])) {
-        terminalView.println("DIO PWN: All arguments must be valid numbers.");
+        terminalView.println("DIO PWM: All arguments must be valid numbers.");
         return;
     }
 
     uint8_t pin = argTransformer.toUint8(sub);
     if (!isPinAllowed(pin, "PWM")) return;
+
     uint32_t freq = argTransformer.toUint32(args[0]);
     uint8_t duty = argTransformer.toUint8(args[1]);
 
     if (duty > 100) {
-        terminalView.println("DIO PWN: Duty cycle must be between 0 and 100.");
+        terminalView.println("DIO PWM: Duty cycle must be between 0 and 100.");
         return;
     }
 
-    int channel = pin % 16;
-    int resolution = 8;
-
-    ledcSetup(channel, freq, resolution);
-    ledcAttachPin(pin, channel);
-    uint32_t dutyVal = (duty * ((1 << resolution) - 1)) / 100;
-    ledcWrite(channel, dutyVal);
+    bool ok = pinService.setupPwm(pin, freq, duty);
+    if (!ok) {
+        terminalView.println("DIO PWM: Cannot generate " + std::to_string(freq) +
+                            " Hz. Try a higher frequency or use toggle command.");
+        return;
+    }
 
     terminalView.println("DIO PWM: Pin " + std::to_string(pin) +
                          " (" + std::to_string(freq) + "Hz, " +
@@ -300,6 +325,7 @@ void DioController::handleHelp() {
     terminalView.println("  pullup <pin>");
     terminalView.println("  pwm <pin> <freq> <duty>");
     terminalView.println("  toggle <pin> <ms>");
+    terminalView.println("  analog <pin>");
     terminalView.println("  reset <pin>");
 }
 

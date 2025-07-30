@@ -354,6 +354,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  pullup <pin>         - Set pin pullup");
     terminalView.println("  pwm <pin> freq <dut> - Set PWM on pin");
     terminalView.println("  toggle <pin> <ms>    - Toggle pin periodically");
+    terminalView.println("  analog <pin>         - Read analog value");
     terminalView.println("  reset <pin>          - Reset to default");
 
     terminalView.println("");
@@ -414,8 +415,8 @@ void UtilityController::handleHelp() {
     terminalView.println("  ap <ssid> <password> - Set access point");
     terminalView.println("  ssh <h> <u> <p> [p]  - Open SSH session");
     terminalView.println("  webui                - Show the web UI IP");
-    terminalView.println("  reset                - Reset interface");
     terminalView.println("  deauth <ssid>        - Deauthenticate hosts on AP");
+    terminalView.println("  reset                - Reset interface");
 
     terminalView.println("");
     terminalView.println(" 15. JTAG:");
