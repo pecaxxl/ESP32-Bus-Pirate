@@ -35,6 +35,10 @@ It supports sniffing, sending, scripting, and interacting with various digital p
 
 ## Supported Devices
 
+- **ESP32 S3 Dev Kit**
+
+![An Espressif 32 S3 dev kit](images/s3-devkit.jpg)
+
 - **M5 Cardputer**
 
 ![An M5 Stack Cardputer device](images/cardputer.jpg)
