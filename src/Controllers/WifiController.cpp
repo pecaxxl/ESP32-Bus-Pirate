@@ -413,7 +413,7 @@ void WifiController::handleDeauth(const TerminalCommand& cmd)
 
     // if the SSID have space in name, e.g "Router Wifi"
     if (!cmd.getArgs().empty()) {
-        target =+ " " + cmd.getArgs();
+        target += " " + cmd.getArgs();
     }
     
     if (target.empty()) {
