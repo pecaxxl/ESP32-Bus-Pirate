@@ -452,14 +452,15 @@ void WifiService::deauthAttack(const uint8_t bssid[6], uint8_t channel, uint8_t 
     }
 }
 
-bool WifiService::deauthApBySsid(const std::string& ssid, uint8_t bursts, uint32_t sniffMs)
+bool WifiService::deauthApBySsid(const std::string& ssid)
 {
     auto nets = scanDetailedNetworks();
     for (auto& n : nets) {
         if (n.ssid == ssid) {
             uint8_t bssid[6];
             sscanf(n.bssid.c_str(), "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &bssid[0], &bssid[1], &bssid[2], &bssid[3], &bssid[4], &bssid[5]);
-            deauthAttack(bssid, n.channel, bursts, sniffMs);
+            // Hardcoded 30 bursts and 400ms sniffing time
+            deauthAttack(bssid, n.channel, 30, 400);
             return true;                    // success
         }
     }

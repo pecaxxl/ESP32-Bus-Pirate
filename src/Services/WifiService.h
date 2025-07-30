@@ -85,7 +85,7 @@ public:
     static void extractTypeSubtype(const uint8_t* payload, uint8_t& type, uint8_t& subtype);
 
     // Deathentication attacks
-    bool deauthApBySsid (const std::string& ssid, uint8_t bursts = 20, uint32_t sniffMs = 400);
+    bool deauthApBySsid (const std::string& ssid);
     void deauthAttack(const uint8_t bssid[6], uint8_t channel, uint8_t bursts, uint32_t sniffMs);
 
     bool connected;
