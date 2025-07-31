@@ -195,3 +195,31 @@ std::vector<uint8_t> UserInputManager::readValidatedPinGroup(
         terminalView.println("Please enter valid, non-protected GPIOs separated by spaces.");
     }
 }
+
+std::string UserInputManager::readValidatedHexString(const std::string& label, size_t numBytes) {
+    while (true) {
+        terminalView.print(label + " (hex, " + std::to_string(numBytes * 2) + " digits): ");
+        std::string input = getLine();
+
+        // Supprimer les espaces éventuels
+        input.erase(std::remove_if(input.begin(), input.end(), ::isspace), input.end());
+
+        // Vérifie la longueur
+        if (input.length() != numBytes * 2) {
+            terminalView.println("❌ Invalid length. Expected " + std::to_string(numBytes * 2) + " hex digits.");
+            continue;
+        }
+
+        // Vérifie que chaque caractère est hexadécimal
+        bool valid = std::all_of(input.begin(), input.end(), [](char c) {
+            return std::isxdigit(static_cast<unsigned char>(c));
+        });
+
+        if (!valid) {
+            terminalView.println("❌ Invalid characters. Only hexadecimal digits (0-9, A-F) are allowed.");
+            continue;
+        }
+
+        return input;
+    }
+}

@@ -28,6 +28,7 @@ public:
         const std::vector<uint8_t>& defaultPins,
         const std::vector<uint8_t>& protectedPins
     );
+    std::string readValidatedHexString(const std::string& label, size_t numBytes);
 private:
     ITerminalView& terminalView;
     IInput& terminalInput;
