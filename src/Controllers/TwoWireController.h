@@ -33,14 +33,26 @@ private:
     // Smartcard commands
     void handleSmartCard(const TerminalCommand& cmd);
 
-    // Perform ATR and decode it
+    // Perform a smartcard Answer To Reset and decode it
     void handleSmartCardProbe();
 
-    // Display smartcard security memory
+    // Display smartcard security memory (left attempts)
     void handleSmartCardSecurity();
 
     // Dump the 256 bytes content of main memory + sec/prt memory
     void handleSmartCardDump();
+
+    // Unlock smartcard memory with the PSC (PIN code)
+    void handleSmartCardUnlock();
+
+    // Protect smartcard memory permanently
+    void handleSmartCardProtect();
+
+    // PSC (Pin code) commands
+    void handleSmartCardPsc(const TerminalCommand& cmd);
+
+    // Write a byte at given address in main memory
+    void handleSmartCardWrite(const TerminalCommand& cmd);
 
     // User pin configuration
     void handleConfig();
