@@ -27,6 +27,7 @@ and injecting shared instances of core components
 #include "Services/I2sService.h"
 #include "Services/SshService.h"
 #include "Services/JtagService.h"
+#include "Services/CanService.h"
 #include "Controllers/UartController.h"
 #include "Controllers/I2cController.h"
 #include "Controllers/OneWireController.h"
@@ -43,6 +44,7 @@ and injecting shared instances of core components
 #include "Controllers/BluetoothController.h"
 #include "Controllers/WifiController.h"
 #include "Controllers/I2sController.h"
+#include "Controllers/CanController.h"
 #include "Transformers/TerminalCommandTransformer.h"
 #include "Transformers/InstructionTransformer.h"
 #include "Transformers/ArgTransformer.h"
@@ -86,6 +88,7 @@ public:
     I2sService& getI2sService();
     SshService& getSshService();
     JtagService& getJtagService();
+    CanService& getCanService();
     
     // Controllers
     UartController& getUartController();
@@ -104,7 +107,8 @@ public:
     BluetoothController& getBluetoothController();
     WifiController& getWifiController();
     I2sController& getI2sController();
-    
+    CanController& getCanController();
+
     // Transformers
     TerminalCommandTransformer& getCommandTransformer();
     InstructionTransformer& getInstructionTransformer();
@@ -152,6 +156,7 @@ private:
     I2sService i2sService;
     SshService sshService;
     JtagService jtagService;
+    CanService canService;
 
     // Controllers
     UartController uartController;
@@ -169,6 +174,7 @@ private:
     WifiController wifiController;
     BluetoothController bluetoothController;
     I2sController i2sController;
+    CanController canController;
 
     // Transformers
     TerminalCommandTransformer commandTransformer;

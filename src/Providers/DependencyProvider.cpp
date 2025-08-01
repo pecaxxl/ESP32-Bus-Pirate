@@ -24,6 +24,7 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       i2sService(),
       sshService(),
       jtagService(),
+      canService(),
       commandTransformer(),
       instructionTransformer(),
       argTransformer(),
@@ -48,7 +49,8 @@ DependencyProvider::DependencyProvider(ITerminalView& terminalView, IDeviceView&
       ledController(terminalView, terminalInput, ledService, argTransformer, userInputManager),
       bluetoothController(terminalView, terminalInput, bluetoothService, argTransformer),
       i2sController(terminalView, terminalInput, i2sService, argTransformer, userInputManager),
-      wifiController(terminalView, terminalInput, deviceInput, wifiService, sshService, nvsService, argTransformer)
+      wifiController(terminalView, terminalInput, deviceInput, wifiService, sshService, nvsService, argTransformer),
+      canController(terminalView, terminalInput, userInputManager ,canService, argTransformer)
 {}
 
 // Accessors for core components
@@ -76,6 +78,7 @@ BluetoothService& DependencyProvider::getBluetoothService() { return bluetoothSe
 I2sService& DependencyProvider::getI2sService() { return i2sService; }
 SshService& DependencyProvider::getSshService() { return sshService; }
 JtagService& DependencyProvider::getJtagService() { return jtagService; }
+CanService& DependencyProvider::getCanService() { return canService; }
 
 // Controllers
 UartController& DependencyProvider::getUartController() { return uartController; }
@@ -94,6 +97,7 @@ LedController& DependencyProvider::getLedController() { return ledController; }
 WifiController& DependencyProvider::getWifiController() { return wifiController; }
 BluetoothController& DependencyProvider::getBluetoothController() { return bluetoothController; }
 I2sController& DependencyProvider::getI2sController() { return i2sController; }
+CanController& DependencyProvider::getCanController() { return canController; }
 
 // Transformers
 TerminalCommandTransformer& DependencyProvider::getCommandTransformer() { return commandTransformer; }
