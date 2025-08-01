@@ -96,6 +96,14 @@ private:
     uint32_t i2sSampleRate = 44100;
     uint8_t i2sBitsPerSample = 16;
 
+    // CAN Default Configuration
+    uint8_t canCspin = 1;
+    uint8_t canSckPin = 0;
+    uint8_t canSiPin = 2;
+    uint8_t canSoPin = 3;
+    uint32_t canKbps = 120;
+
+    // JTAG Default Pin
     std::vector<uint8_t> jtagScanPins = { 1, 3, 5, 7, 9 };
 
     // SD Card File Limits
@@ -250,6 +258,19 @@ public:
     const std::vector<uint8_t>& getJtagScanPins() const { return jtagScanPins; }
     void setJtagScanPins(const std::vector<uint8_t>& pins) { jtagScanPins = pins; }
 
+    // CAN
+    uint8_t getCanCspin() const { return canCspin; }
+    uint8_t getCanSckPin() const { return canSckPin; }
+    uint8_t getCanSiPin() const { return canSiPin; }
+    uint8_t getCanSoPin() const { return canSoPin; }
+    uint32_t getCanKbps() const { return canKbps; }
+
+    void setCanCspin(uint8_t pin) { canCspin = pin; }
+    void setCanSckPin(uint8_t pin) { canSckPin = pin; }
+    void setCanSiPin(uint8_t pin) { canSiPin = pin; }
+    void setCanSoPin(uint8_t pin) { canSoPin = pin; }
+    void setCanKbps(uint32_t kbps) { canKbps = kbps; } 
+
     // SD File Limits
     size_t getFileCountLimit() const { return fileCountLimit; }
     size_t getFileCacheLimit() const { return fileCacheLimit; }
@@ -355,6 +376,21 @@ public:
         #endif
         #ifdef LED_CLOCK_PIN
             ledClockPin = LED_CLOCK_PIN;
+        #endif
+        #ifdef CAN_CS_PIN
+            canCspin = CAN_CS_PIN;
+        #endif
+        #ifdef CAN_SCK_PIN
+            canSckPin = CAN_SCK_PIN;
+        #endif
+        #ifdef CAN_SI_PIN
+            canSiPin = CAN_SI_PIN;
+        #endif
+        #ifdef CAN_SO_PIN
+            canSoPin = CAN_SO_PIN;
+        #endif
+        #ifdef CAN_KBPS
+            canKbps = CAN_KBPS;
         #endif
 
         #ifdef PROTECTED_PINS
