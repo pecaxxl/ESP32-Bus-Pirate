@@ -71,6 +71,9 @@ private:
     // Connect to SSH host
     void handleSsh(const TerminalCommand& cmd);
 
+    // Connect using netcat 
+    void handleNetcat(const TerminalCommand& cmd);
+
     // Deathenticate attack
     void handleDeauth(const TerminalCommand& cmd);
 

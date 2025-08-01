@@ -32,6 +32,8 @@ void WifiController::handleCommand(const TerminalCommand& cmd) {
         handleWebUi(cmd);
     } else if (root == "ssh") {
         handleSsh(cmd);
+    } else if (root == "nc") {
+        handleNetcat(cmd);
     } else if (root == "reset") {
         handleReset();
     } else if (root == "deauth") {
@@ -364,6 +366,10 @@ void WifiController::handleSsh(const TerminalCommand& cmd) {
     terminalView.println("\r\n\nSSH: Session closed.");
 }
 
+void WifiController::handleNetcat(const TerminalCommand& cmd){
+
+}
+
 /*
 Config
 */
@@ -389,6 +395,7 @@ void WifiController::handleHelp() {
     terminalView.println("  disconnect");
     terminalView.println("  ap <ssid> <password>");
     terminalView.println("  ssh <host> <username> <password> [port]");
+    terminalView.println("  nc <host> <port>");
     terminalView.println("  webui");
     terminalView.println("  reset");
     terminalView.println("  deauth <ap> [bursts]");
