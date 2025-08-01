@@ -13,6 +13,7 @@
 class ArgTransformer {
 public:
     std::vector<uint8_t> parseByteList(const std::string& input) const;
+    std::vector<uint8_t> parseHexList(const std::string& input) const;
     uint8_t parseByte(const std::string& str, int index = -1) const;
     uint8_t parseHexOrDec(const std::string& s) const ;
     uint16_t parseHexOrDec16(const std::string& str) const;
