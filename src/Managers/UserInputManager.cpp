@@ -196,17 +196,23 @@ std::vector<uint8_t> UserInputManager::readValidatedPinGroup(
     }
 }
 
-std::string UserInputManager::readValidatedHexString(const std::string& label, size_t numBytes) {
+std::string UserInputManager::readValidatedHexString(const std::string& label, size_t numBytes, bool ignoreLen) {
     while (true) {
-        terminalView.print(label + " (hex, " + std::to_string(numBytes * 2) + " digits): ");
+        terminalView.print(label + "(hex): ");
         std::string input = getLine();
 
         // Erase space if any
         input.erase(std::remove_if(input.begin(), input.end(), ::isspace), input.end());
 
         // Verify length
-        if (input.length() != numBytes * 2) {
+        if (!ignoreLen && input.length() != numBytes * 2) {
             terminalView.println("❌ Invalid length. Expected " + std::to_string(numBytes * 2) + " hex digits.");
+            continue;
+        }
+
+        // If ignoring length, ensure at least 1 hex char
+        if (ignoreLen && input.empty()) {
+            terminalView.println("❌ Input cannot be empty.");
             continue;
         }
 
@@ -220,6 +226,57 @@ std::string UserInputManager::readValidatedHexString(const std::string& label, s
             continue;
         }
 
-        return input;
+        // Add spaces
+        std::string spaced;
+        for (size_t i = 0; i < input.length(); i += 2) {
+            if (i > 0) spaced += ' ';
+            spaced += input.substr(i, 2);
+        }
+
+        return spaced;
+    }
+}
+
+uint16_t UserInputManager::readValidatedCanId(const std::string& label, uint16_t defaultValue) {
+    while (true) {
+        terminalView.print(label + " (hex, max 3 digits) [default: " + argTransformer.toHex(defaultValue, 3) + "]: ");
+        std::string input = getLine();
+
+        if (input.empty()) return defaultValue;
+
+        // Remove spaces
+        input.erase(std::remove_if(input.begin(), input.end(), ::isspace), input.end());
+
+        // Allow "0x" prefix
+        if (input.rfind("0x", 0) == 0 || input.rfind("0X", 0) == 0) {
+            input = input.substr(2);  // supprime le "0x"
+        }
+
+        // Check if input is valid hex
+        bool valid = std::all_of(input.begin(), input.end(), [](char c) {
+            return std::isxdigit(static_cast<unsigned char>(c));
+        });
+
+        if (!valid) {
+            terminalView.println("❌ Invalid characters. Use hex digits only (0-9, A-F).");
+            continue;
+        }
+
+        // Check length
+        if (input.length() > 3) {
+            terminalView.println("❌ Too long. Standard CAN ID must be ≤ 0x7FF (3 hex digits).");
+            continue;
+        }
+
+        // Convert
+        uint16_t id = std::stoul(input, nullptr, 16);
+
+        // Check max value
+        if (id > 0x7FF) {
+            terminalView.println("❌ Value exceeds standard 11-bit CAN ID (max 0x7FF).");
+            continue;
+        }
+
+        return id;
     }
 }
