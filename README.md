@@ -24,16 +24,22 @@ It supports sniffing, sending, scripting, and interacting with various digital p
   - JTAG
   - LED control
   - I2S
+  - CAN
 
-- **Protocol sniffers** for I2C, Wi-Fi, Bluetooth, 1Wire.
+- **Protocol sniffers** for I2C, Wi-Fi, Bluetooth, 1Wire, CAN.
 - Baudrate **auto-detection** and various tools for UART.
+- Registers manipulation, glitch, dump tool for I2C.
 - Scripting using **Bus Pirate-style bytecode** instructions.
+- Device-B-Gone command with more than 80 supported INFRARED protocols.
 - Direct I/O management, PWM, pin state.
-- Massive infrared protocol support.
 - Massive adressable LEDs protocol support.
 - Web interface with **live terminal**, or a classic **serial CLI**.
 
 ## Supported Devices
+
+- **ESP32 S3 Dev Kit**
+
+![An Espressif 32 S3 dev kit](images/s3-devkit.jpg)
 
 - **M5 Cardputer**
 

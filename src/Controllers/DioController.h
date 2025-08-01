@@ -45,6 +45,9 @@ private:
     // Toggle pin state every ms
     void handleTogglePin(const TerminalCommand& cmd);
 
+    // Read analog value from a pin
+    void handleAnalog(const TerminalCommand& cmd);
+
     // Display DIO help info
     void handleHelp();
 

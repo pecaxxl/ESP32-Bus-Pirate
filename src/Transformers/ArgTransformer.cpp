@@ -35,6 +35,23 @@ std::vector<uint8_t> ArgTransformer::parseByteList(const std::string& input) con
     return bytes;
 }
 
+std::vector<uint8_t> ArgTransformer::parseHexList(const std::string& input) const {
+    std::vector<uint8_t> result;
+    std::istringstream iss(input);
+    std::string token;
+
+    while (iss >> token) {
+        try {
+            // Convertir chaque token en uint8_t
+            uint8_t value = static_cast<uint8_t>(std::stoul(token, nullptr, 16));
+            result.push_back(value);
+        } catch (...) {
+        }
+    }
+
+    return result;
+}
+
 uint8_t ArgTransformer::parseHexOrDec(const std::string& str) const {
     if (str.empty()) return 0;
 

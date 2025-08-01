@@ -141,6 +141,9 @@ void ActionDispatcher::dispatchCommand(const TerminalCommand& cmd) {
         case ModeEnum::I2S:
             provider.getI2sController().handleCommand(cmd);
             break;
+        case ModeEnum::CAN_:
+            provider.getCanController().handleCommand(cmd);
+            break;
 
     }
 
@@ -426,6 +429,16 @@ void ActionDispatcher::setCurrentMode(ModeEnum newMode) {
                 "LRCLK GPIO " + std::to_string(state.getI2sLrckPin()),
                 "DATA GPIO " + std::to_string(state.getI2sDataPin()),
                 "RATE " + std::to_string(state.getI2sSampleRate())
+            });
+            break;
+
+        case ModeEnum::CAN_:
+            provider.getCanController().ensureConfigured();
+            config.setMappings({
+                "CS GPIO " + std::to_string(state.getCanCspin()),
+                "SCK GPIO " + std::to_string(state.getCanSckPin()),
+                "SI GPIO " + std::to_string(state.getCanSiPin()),
+                "SO GPIO " + std::to_string(state.getCanSoPin())
             });
             break;
     }

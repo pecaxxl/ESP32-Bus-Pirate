@@ -339,6 +339,11 @@ void UtilityController::handleHelp() {
     terminalView.println("  smartcard probe      - Detect and decode ATR");
     terminalView.println("  smartcard security   - Show security memory");
     terminalView.println("  smartcard dump       - Dump full memory");
+    terminalView.println("  smartcard psc [get]  - Read current PSC (PIN Code)");
+    terminalView.println("  smartcard psc set    - Set a new PSC (PIN Code)");
+    terminalView.println("  smartcard unlock     - Unlock card with PIN Code");
+    terminalView.println("  smartcard write      - Write to main memory");
+    terminalView.println("  smartcard protect    - Protect card main memory");
     terminalView.println("  config               - Configure settings");
     terminalView.println("  [0xAB r:4]           - Instruction syntax");
 
@@ -354,6 +359,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  pullup <pin>         - Set pin pullup");
     terminalView.println("  pwm <pin> freq <dut> - Set PWM on pin");
     terminalView.println("  toggle <pin> <ms>    - Toggle pin periodically");
+    terminalView.println("  analog <pin>         - Read analog value");
     terminalView.println("  reset <pin>          - Reset to default");
 
     terminalView.println("");
@@ -414,6 +420,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  ap <ssid> <password> - Set access point");
     terminalView.println("  ssh <h> <u> <p> [p]  - Open SSH session");
     terminalView.println("  webui                - Show the web UI IP");
+    terminalView.println("  deauth <ssid>        - Deauthenticate hosts on AP");
     terminalView.println("  reset                - Reset interface");
 
     terminalView.println("");
@@ -428,6 +435,14 @@ void UtilityController::handleHelp() {
     terminalView.println("  record               - Read mic continuously");
     terminalView.println("  test <speaker|mic>   - Run basic audio tests");
     terminalView.println("  reset                - Reset to default");
+    terminalView.println("  config               - Configure settings");
+
+    terminalView.println("");
+    terminalView.println(" 17. CAN:");
+    terminalView.println("  sniff                - Print all received frames");
+    terminalView.println("  send [id]            - Send frame with specified ID");
+    terminalView.println("  receive [id]         - Capture frames with ID");
+    terminalView.println("  status               - State of the CAN controller");
     terminalView.println("  config               - Configure settings");
 
     terminalView.println("");

@@ -134,6 +134,14 @@ void TwoWireService::sendClocks(uint16_t ticks) {
     }
 }
 
+bool TwoWireService::waitIOHigh(uint32_t maxTicks) {
+    for (uint32_t i = 0; i < maxTicks; ++i) {
+        pulseClock();
+        if (readIO()) return true;
+    }
+    return false; // timeout
+}
+
 std::vector<uint8_t> TwoWireService::performSmartCardAtr() {
     // dummy tick to 'load' the clock, avoiding us delay on first call
     setCLK(true);
@@ -250,4 +258,142 @@ std::vector<uint8_t> TwoWireService::dumpSmartCardFullMemory() {
 
 void TwoWireService::resetSmartCard() {
     sendClocks(256);
+}
+
+void TwoWireService::updateSmartCardSecurityAttempts(uint8_t pattern) {
+    sendCommand(0x39, 0x00, pattern);
+    resetSmartCard();
+}
+
+void TwoWireService::compareSmartCardVerificationData(uint8_t address, uint8_t value) {
+    sendCommand(0x33, address, value);
+    resetSmartCard();
+}
+
+void TwoWireService::writeSmartCardSecurityMemory(uint8_t address, uint8_t value) {
+    sendCommand(0x39, address, value);
+    resetSmartCard();
+}
+
+void TwoWireService::writeSmartCardProtectionMemory(uint8_t address, uint8_t value) {
+    sendCommand(0x3C, address, value);
+    resetSmartCard();
+}
+
+bool TwoWireService::writeSmartCardMainMemory(uint8_t address, uint8_t value) {
+    sendCommand(0x38, address, value);
+    resetSmartCard();
+
+    // Read to verify
+    auto readBack = readSmartCardMainMemory(address, 1);
+    return !readBack.empty() && readBack[0] == value;
+}
+
+std::vector<uint8_t> TwoWireService::readSmartCardMainMemory(uint8_t startAddress, uint16_t length) {
+    std::vector<uint8_t> buf;
+    sendCommand(0x30, startAddress, 0x00);
+    for (uint16_t i = 0; i < length; ++i) {
+        buf.push_back(readByte());
+    }
+    return buf;
+}
+
+std::vector<uint8_t> TwoWireService::readSmartCardSecurityMemory() {
+    sendCommand(0x31, 0x00, 0x00);
+    return readResponse(4);
+}
+
+std::vector<uint8_t> TwoWireService::readSmartCardProtectionMemory() {
+    sendCommand(0x34, 0x00, 0x00);
+    return readResponse(4);
+}
+
+bool TwoWireService::updateSmartCardPSC(const uint8_t psc[3]) {
+    writeSmartCardSecurityMemory(1, psc[0]);
+    writeSmartCardSecurityMemory(2, psc[1]);
+    writeSmartCardSecurityMemory(3, psc[2]);
+
+    std::vector<uint8_t> secmem = readSmartCardSecurityMemory();
+    if (secmem.size() < 4) {
+        return false;
+    }
+
+    if (secmem[1] != psc[0] || secmem[2] != psc[1] || secmem[3] != psc[2]) {
+        return false;
+    }
+    return true;
+}
+
+bool TwoWireService::getSmartCardPSC(uint8_t out_psc[3]) {
+    std::vector<uint8_t> secmem = readSmartCardSecurityMemory();
+    if (secmem.size() < 4) {
+        return false;
+    }
+    out_psc[0] = secmem[1];
+    out_psc[1] = secmem[2];
+    out_psc[2] = secmem[3];
+    return true;
+}
+
+bool TwoWireService::protectSmartCard() {
+    uint32_t value = 0xFFFFFFFF;
+
+    for (uint8_t i = 0; i < 4; ++i) {
+        uint8_t byte = (value >> (8 * i)) & 0xFF;
+        writeSmartCardProtectionMemory(i, byte);
+    }
+
+    // Lire back pour vérification
+    auto check = readSmartCardProtectionMemory();
+    if (check.size() != 4) return false;
+
+    uint32_t readValue = 
+        (check[3] << 24) |
+        (check[2] << 16) |
+        (check[1] << 8)  |
+        (check[0]);
+
+    return (readValue & value) == value;
+}
+
+bool TwoWireService::unlockSmartCard(const uint8_t psc[3]) {
+    // Read sec mem
+    std::vector<uint8_t> secmem = readSmartCardSecurityMemory();
+    if (secmem.size() < 1) {
+        return false;
+    }
+
+    // Verify attempts
+    uint8_t sec = secmem[0];
+    uint8_t pattern = 0;
+
+    if (sec & 0b100) {
+        pattern = 0b011;
+    } else if (sec & 0b010) {
+        pattern = 0b101;
+    } else if (sec & 0b001) {
+        pattern = 0b110;
+    } else {
+        // No attempts left
+        return false;
+    }
+
+    // Update security attempts
+    updateSmartCardSecurityAttempts(pattern);
+
+    // Send the PSC
+    compareSmartCardVerificationData(1, psc[0]);
+    compareSmartCardVerificationData(2, psc[1]);
+    compareSmartCardVerificationData(3, psc[2]);
+
+    // Reinitialize security memory
+    writeSmartCardSecurityMemory(0, 0xFF);
+
+    // Read back to verify
+    std::vector<uint8_t> secmemAfter = readSmartCardSecurityMemory();
+    if (secmemAfter.size() < 1 || secmemAfter[0] != 0x07) {
+        return false;
+    }
+
+    return true;
 }

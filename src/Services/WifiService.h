@@ -85,12 +85,17 @@ public:
     static void extractTypeSubtype(const uint8_t* payload, uint8_t& type, uint8_t& subtype);
 
     // Deathentication attacks
-    bool deauthApBySsid (const std::string& ssid, uint8_t bursts = 20, uint32_t sniffMs = 400);
-    std::vector<std::array<uint8_t,6>> getClientsOfBssid(const uint8_t bssid[6], uint8_t channel, uint32_t dwellMs);
+    bool deauthApBySsid (const std::string& ssid);
     void deauthAttack(const uint8_t bssid[6], uint8_t channel, uint8_t bursts, uint32_t sniffMs);
 
     bool connected;
     static void snifferCallback(void* buf, wifi_promiscuous_pkt_type_t type);
     static std::vector<std::string> sniffLog;
     static portMUX_TYPE sniffMux;
+
+    static portMUX_TYPE staMux;
+    static std::vector<std::array<uint8_t, 6>> staList;
+    static uint8_t apBSSID[6];
+    static void clientSnifferCallback(void* buf, wifi_promiscuous_pkt_type_t type);
+
 };

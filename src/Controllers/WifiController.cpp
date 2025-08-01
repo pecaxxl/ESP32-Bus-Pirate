@@ -410,23 +410,21 @@ Deathenticate stations attack
 void WifiController::handleDeauth(const TerminalCommand& cmd)
 {
     auto target = cmd.getSubcommand();
+
+    // if the SSID have space in name, e.g "Router Wifi"
+    if (!cmd.getArgs().empty()) {
+        target += " " + cmd.getArgs();
+    }
+    
     if (target.empty()) {
-        terminalView.println("Usage: deauth <ssid> [bursts] [ms]");
+        terminalView.println("Usage: deauth <ssid>");
         return;
     }
 
-    uint8_t bursts = 20;                                      // default
-    if (!cmd.getArgs().empty() && argTransformer.isValidNumber(cmd.getArgs())) {
-        bursts = static_cast<uint8_t>(
-                     argTransformer.parseHexOrDec16(cmd.getArgs())
-                 );
-    }
+    terminalView.println("WiFi: Sending deauth to \"" + target + "\"...");
 
-    terminalView.println("WiFi: Sending deauth to \"" + target + "\"…");
+    bool ok = wifiService.deauthApBySsid(target);
 
-    bool ok = wifiService.deauthApBySsid(target, bursts, 400);
-
-    if (ok) terminalView.println("WiFi: Deauth frame(s) sent.");
+    if (ok) terminalView.println("WiFi: Deauth frames sent.");
     else    terminalView.println("WiFi: SSID not found.");
 }
-

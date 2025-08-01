@@ -10,15 +10,11 @@ TwoWireController::TwoWireController(ITerminalView& terminalView, IInput& termin
 Entry point for 2WIRE command
 */
 void TwoWireController::handleCommand(const TerminalCommand& cmd) {
-    if (cmd.getRoot() == "config") {
-        handleConfig();
-    } else if (cmd.getRoot() == "sniff") {
-        handleSniff();
-    } else if (cmd.getRoot() == "smartcard") {
-        handleSmartCard(cmd);
-    } else {
-        handleHelp();
-    }
+    if      (cmd.getRoot() == "config")    handleConfig();
+    else if (cmd.getRoot() == "sniff")     handleSniff();
+    else if (cmd.getRoot() == "smartcard") handleSmartCard(cmd);
+    else                                   handleHelp();
+
 }
 
 /*
@@ -41,17 +37,23 @@ Smartcard
 void TwoWireController::handleSmartCard(const TerminalCommand& cmd) {
     std::string sub = cmd.getSubcommand();
 
-    if (sub == "probe") {
-        handleSmartCardProbe();
-    } else if (sub == "security") {
-        handleSmartCardSecurity();
-    } else if (sub == "dump") {
-        handleSmartCardDump();
-    } else {
+    if      (sub == "probe")    handleSmartCardProbe();
+    else if (sub == "security") handleSmartCardSecurity();
+    else if (sub == "dump")     handleSmartCardDump();
+    else if (sub == "unlock")   handleSmartCardUnlock();
+    else if (sub == "psc")      handleSmartCardPsc(cmd);
+    else if (sub == "write")    handleSmartCardWrite(cmd);
+    else if (sub == "protect")  handleSmartCardProtect();
+    else {
         terminalView.println("Unknown smartcard subcommand. Usage:");
         terminalView.println("  smartcard probe");
         terminalView.println("  smartcard security");
         terminalView.println("  smartcard dump");
+        terminalView.println("  smartcard unlock");
+        terminalView.println("  smartcard protect");
+        terminalView.println("  smartcard psc [get]");
+        terminalView.println("  smartcard psc set");
+        terminalView.println("  smartcard write");
     }
 }
 
@@ -60,6 +62,7 @@ Smartcard Security
 */
 void TwoWireController::handleSmartCardSecurity() {
     ensureConfigured();
+    twoWireService.resetSmartCard();
 
     terminalView.println("2WIRE Security: Perfoming...\n");
     
@@ -72,7 +75,7 @@ void TwoWireController::handleSmartCardSecurity() {
     bool allZero = std::all_of(sec.begin(), sec.end(), [](uint8_t b) { return b == 0x00; });
     bool allFF   = std::all_of(sec.begin(), sec.end(), [](uint8_t b) { return b == 0xFF; });
     if (sec.empty() || allZero || allFF) {
-        terminalView.println("2WIRE Security: No smartcard detected (response invalid)");
+        terminalView.println("2WIRE Security: ❌ No smartcard detected (response invalid)");
         return;
     }
     
@@ -87,7 +90,7 @@ void TwoWireController::handleSmartCardSecurity() {
         terminalView.println("   Remaining Unlock Attempts: " + std::to_string(attempts));
     }
 
-    terminalView.println("\n2WIRE Security: Completed.");
+    terminalView.println("\n2WIRE Security: ✅ Completed.");
 }
 
 /*
@@ -103,7 +106,7 @@ void TwoWireController::handleSmartCardProbe() {
 
     // Validate
     if (atr.empty() || atr[0] == 0x00 || atr[0] == 0xFF) {
-        terminalView.println("2WIRE ATR: No response received from smartcard");
+        terminalView.println("2WIRE ATR: ❌ No response received from smartcard");
         return;
     }
 
@@ -113,19 +116,23 @@ void TwoWireController::handleSmartCardProbe() {
         ss << "0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(b) << " ";
     }
     terminalView.println(decodedAtr);
-    terminalView.println("2WIRE ATR: Completed.");
+    
+    twoWireService.resetSmartCard();
+    terminalView.println("2WIRE ATR: ✅ Completed.");
 }
 
 /*
 Smartcard Dump
 */
 void TwoWireController::handleSmartCardDump() {
+    twoWireService.resetSmartCard();
+    delay(10);
     terminalView.println("\n2WIRE Dump: Reading full memory (MAIN + SEC + PROTECT)...");
 
     // Dump 256 bytes + sec mem + protection mem
     auto dump = twoWireService.dumpSmartCardFullMemory();
     if (dump.size() != 264) {
-        terminalView.println("2WIRE Dump: Failed, unexpected size.");
+        terminalView.println("\n2WIRE Dump: ❌ Failed, unexpected size.");
         return;
     }
 
@@ -133,7 +140,7 @@ void TwoWireController::handleSmartCardDump() {
     bool allZero = std::all_of(dump.begin(), dump.end(), [](uint8_t b) { return b == 0x00; });
     bool allFF   = std::all_of(dump.begin(), dump.end(), [](uint8_t b) { return b == 0xFF; });
     if (allZero || allFF) {
-        terminalView.println("2WIRE Dump: Smartcard is blank or no smartcard detected");
+        terminalView.println("\n2WIRE Dump: ❌ Smartcard is blank or no smartcard detected");
         return;
     }
 
@@ -169,7 +176,132 @@ void TwoWireController::handleSmartCardDump() {
     }
     terminalView.println(prt.str());
 
-    terminalView.println("\n2WIRE Dump: Completed.");
+    twoWireService.resetSmartCard();
+    terminalView.println("\n2WIRE Dump: ✅ Completed.");
+}
+
+/*
+Smartcard Protect
+*/
+void TwoWireController::handleSmartCardProtect() {
+    twoWireService.resetSmartCard();
+    terminalView.println("⚠️ The smartcard will PERMANENTLY disable writes to main memory.");
+    bool confirm = userInputManager.readYesNo("Are you sure you want to lock it PERMANENTLY?", false);
+    if (!confirm) {
+        terminalView.println("\n❌ Lock cancelled.");
+        return;
+    }
+
+    bool ok = twoWireService.protectSmartCard();
+    if (ok) terminalView.println("\n✅ Smartcard successfully locked (writes disabled).");
+    else    terminalView.println("\n❌ Failed to lock smartcard.");
+}
+
+/*
+Smartcard Unlock
+*/
+void TwoWireController::handleSmartCardUnlock() {
+    twoWireService.resetSmartCard();
+    terminalView.println("2WIRE Unlock: Attempting unlock procedure...");
+
+    std::string psc = userInputManager.readValidatedHexString("Enter PSC (PIN Code) (ex: 123456)", 3);
+    if (psc.length() != 6) {
+        terminalView.println("PSC (PIN Code) must be 3 bytes (6 hex chars)");
+        return;
+    }
+
+    uint8_t pscBytes[3] = {
+        static_cast<uint8_t>(std::stoi(psc.substr(0, 2), nullptr, 16)),
+        static_cast<uint8_t>(std::stoi(psc.substr(2, 2), nullptr, 16)),
+        static_cast<uint8_t>(std::stoi(psc.substr(4, 2), nullptr, 16))
+    };
+
+    bool success = twoWireService.unlockSmartCard(pscBytes);
+
+    if (success) {
+        terminalView.println("\n✅ Unlock successful: Access to main memory granted.");
+    } else {
+        terminalView.println("\n❌ Unlock failed: PSC incorrect or no attempts remaining.");
+    }
+
+    // Number of attempts left
+    auto secAfter = twoWireService.readSmartCardSecurityMemory();
+    if (!secAfter.empty()) {
+        uint8_t attempts = twoWireService.parseSmartCardRemainingAttempts(secAfter[0]);
+        terminalView.println("→ Remaining Attempts: " + std::to_string(attempts));
+    }
+}
+
+/*
+Smartcard PSC (PIN Code)
+*/
+void TwoWireController::handleSmartCardPsc(const TerminalCommand& cmd) {
+    twoWireService.resetSmartCard();
+    std::string arg = cmd.getArgs();
+
+    if (arg.empty()) {
+        arg = "get"; // Default to "get" if no argument provided
+    }
+
+    // GET PSC
+    if (arg == "get") {
+        uint8_t psc[3];
+        bool ok = twoWireService.getSmartCardPSC(psc);
+        if (ok) {
+            terminalView.println("ℹ️  Note: The PSC (PIN Code) can only be read if the smartcard is unlocked.");
+            std::stringstream ss;
+            ss << "🔐 Current PSC (PIN Code): ";
+            for (int i = 0; i < 3; ++i)
+                ss << std::hex << std::setw(2) << std::setfill('0') << (int)psc[i] << " ";
+            terminalView.println(ss.str());
+
+        } else {
+            terminalView.println("\n❌ Failed to read PSC (PIN Code).");
+        }
+
+    // SET PSC
+    } else if (arg == "set") {
+        std::string newPscStr = userInputManager.readValidatedHexString("Enter new 6 hex digit PSC (PIN Code)", 3);
+        if (newPscStr.length() != 6) {
+            terminalView.println("PSC (PIN Code) must be 6 hex digits");
+            return;
+        }
+
+        uint8_t newPsc[3] = {
+            static_cast<uint8_t>(std::stoi(newPscStr.substr(0, 2), nullptr, 16)),
+            static_cast<uint8_t>(std::stoi(newPscStr.substr(2, 2), nullptr, 16)),
+            static_cast<uint8_t>(std::stoi(newPscStr.substr(4, 2), nullptr, 16))
+        };
+
+        bool ok = twoWireService.updateSmartCardPSC(newPsc);
+        if (ok) {
+            terminalView.println("\n✅ PSC (PIN Code) updated successfully.");
+        } else {
+            terminalView.println("\nℹ️  Note: The PSC (PIN Code) can only be set if the smartcard is unlocked.");
+            terminalView.println("❌ Failed to update PSC (PIN Code).");
+        }
+    }
+}
+
+// Smartcard Write
+void TwoWireController::handleSmartCardWrite(const TerminalCommand&) {
+    twoWireService.resetSmartCard();
+
+    int offset = userInputManager.readValidatedUint8("Enter offset (0–255 or 0x..)", 0);
+    if (offset < 0 || offset >= 256) {
+        terminalView.println("\n❌ Invalid offset (must be between 0 and 255).");
+        return;
+    }
+
+    int data = userInputManager.readValidatedUint8("Enter data byte (0–255 or 0x..)", 0);
+    if (data < 0 || data > 0xFF) {
+        terminalView.println("\n❌ Invalid data byte.");
+        return;
+    }
+
+    bool ok = twoWireService.writeSmartCardMainMemory(static_cast<uint8_t>(offset), static_cast<uint8_t>(data));
+    if (ok) terminalView.println("\n✅ Write successful.");
+    else    terminalView.println("\n❌ Write failed.");
 }
 
 /*
@@ -189,7 +321,6 @@ void TwoWireController::handleConfig() {
     state.setTwoWireRstPin(rst);
 
     twoWireService.configure(clk, io, rst);
-    configured = true;
 
     terminalView.println("2WIRE configuration applied.\n");
 }
@@ -200,12 +331,16 @@ Help
 void TwoWireController::handleHelp() {
     terminalView.println("Unknown 2Wire command. Usage:");
     terminalView.println("  config");
-    terminalView.println("  sniff");
+    terminalView.println("  sniff [NYI]");
     terminalView.println("  smartcard probe");
     terminalView.println("  smartcard security");
     terminalView.println("  smartcard dump");
+    terminalView.println("  smartcard write");
+    terminalView.println("  smartcard unlock");
+    terminalView.println("  smartcard protect");
+    terminalView.println("  smartcard psc [get]");
+    terminalView.println("  smartcard psc set");
     terminalView.println("  [0xAB r:4] Instruction syntax [NYI]");
-    
 }
 
 /*
