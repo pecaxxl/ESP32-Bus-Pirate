@@ -5,6 +5,7 @@
 #include <Services/WifiService.h>
 #include <Services/NvsService.h>
 #include <Services/SshService.h>
+#include <Services/NetcatService.h>
 #include <Transformers/ArgTransformer.h>
 #include <Models/TerminalCommand.h>
 #include <States/GlobalState.h>
@@ -36,6 +37,7 @@ private:
     WifiService& wifiService;
     NvsService& nvsService;
     SshService& sshService;
+    NetcatService& netcatService;
     ArgTransformer& argTransformer;
     GlobalState& state = GlobalState::getInstance();
     bool configured = false;
