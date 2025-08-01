@@ -20,7 +20,7 @@ It supports sniffing, sending, scripting, and interacting with various digital p
   - Infrared (device-b-gone, send and receive)
   - USB (HID, mouse, keyboard, gamepad, storage)
   - Bluetooth (BLE HID, scan, spoofing, sniffing)
-  - Wi-Fi (scan, AP, connect, sniff, spoofing)
+  - Wi-Fi (scan, AP, connect, sniff, spoofing, deauthentication)
   - JTAG
   - LED control
   - I2S
