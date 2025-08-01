@@ -343,7 +343,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  smartcard psc set    - Set a new PSC (PIN Code)");
     terminalView.println("  smartcard unlock     - Unlock card with PIN Code");
     terminalView.println("  smartcard write      - Write to main memory");
-    terminalView.println("  smartcard protect    - Protect card memory");
+    terminalView.println("  smartcard protect    - Protect card main memory");
     terminalView.println("  config               - Configure settings");
     terminalView.println("  [0xAB r:4]           - Instruction syntax");
 
@@ -435,6 +435,14 @@ void UtilityController::handleHelp() {
     terminalView.println("  record               - Read mic continuously");
     terminalView.println("  test <speaker|mic>   - Run basic audio tests");
     terminalView.println("  reset                - Reset to default");
+    terminalView.println("  config               - Configure settings");
+
+    terminalView.println("");
+    terminalView.println(" 17. CAN:");
+    terminalView.println("  sniff                - Print all received frames");
+    terminalView.println("  send [id]            - Send frame with specified ID");
+    terminalView.println("  receive [id]         - Capture frames with ID");
+    terminalView.println("  status               - State of the CAN controller");
     terminalView.println("  config               - Configure settings");
 
     terminalView.println("");
