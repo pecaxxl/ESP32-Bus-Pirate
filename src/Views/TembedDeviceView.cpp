@@ -49,7 +49,7 @@ void TembedDeviceView::logo() {
 
     // Sub
     tft.setTextColor(TFT_WHITE, DARK_GREY_RECT);
-    drawCenterText("Version 0.3 - Geo", 100, 1.9);
+    drawCenterText("Version 0.4 - Geo", 100, 1.9);
 
     delay(3000);
 }
