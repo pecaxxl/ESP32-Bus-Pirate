@@ -243,8 +243,6 @@ bool setupTembedWifi() {
             }
             delay(600);
             tft.print(".");
-            auto key = readChar();
-            if (key == KEY_ARROW_LEFT) break;
         }
         
         drawWifiBox(TFT_WHITE, "Failed to connect", "Retry or setup Wi-Fi with Serial");
