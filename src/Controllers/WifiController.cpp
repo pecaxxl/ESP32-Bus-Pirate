@@ -32,6 +32,8 @@ void WifiController::handleCommand(const TerminalCommand& cmd) {
         handleWebUi(cmd);
     } else if (root == "ssh") {
         handleSsh(cmd);
+    } else if (root == "nc") {
+        handleNetcat(cmd);
     } else if (root == "reset") {
         handleReset();
     } else if (root == "deauth") {
@@ -364,6 +366,77 @@ void WifiController::handleSsh(const TerminalCommand& cmd) {
     terminalView.println("\r\n\nSSH: Session closed.");
 }
 
+void WifiController::handleNetcat(const TerminalCommand& cmd){
+    // Check connection
+    if (!wifiService.isConnected()) {
+        terminalView.println("Netcat: You must be connected to Wi-Fi. Use 'connect' first.");
+        return;
+    }
+
+    // Check args
+    auto args = argTransformer.splitArgs(cmd.getArgs());
+    if (cmd.getSubcommand().empty() || args.size() < 1) {
+        terminalView.println("Usage: nc <host> <port>");
+        return;
+    }
+
+    std::string host = cmd.getSubcommand();
+    std::string port_str = args[0];
+
+
+    // Check port
+    int port = 1;
+    if (argTransformer.isValidNumber(port_str)) {
+        port = argTransformer.parseHexOrDec16(port_str);
+    } else {
+        terminalView.println("Netcat: Invalid port number. Use a valid integer.");
+        return;
+    }
+
+    if (port < 1 || port > 65535) {
+        terminalView.println("Netcat: Port must be between 1 and 65535.");
+        return;
+    }
+
+    // Connect, start the netcat task
+    terminalView.println("Netcat: Connecting to " + host + " with port " + port_str + "...");
+    netcatService.startTask(host, false, port);
+
+    // Wait 5sec for connection success
+    unsigned long start = millis();
+    while (!netcatService.isConnected() && millis() - start < 5000) {
+        delay(500);
+    }
+
+    // Can't connect
+    if (!netcatService.isConnected()) {
+        terminalView.println("\r\nNetcat: Connection failed.");
+        netcatService.close();
+        return;
+    }
+
+
+    // Connected, start the bridge loop
+    terminalView.println("Netcat: Connected. Shell started... Press [ANY ESP32 KEY] to stop.\n");
+    while (true) {
+        char terminalKey = terminalInput.readChar();
+        if (terminalKey != KEY_NONE) netcatService.writeChar(terminalKey);
+
+        char deviceKey = deviceInput.readChar();
+        if (deviceKey != KEY_NONE) break;
+
+        std::string output = netcatService.readOutputNonBlocking();
+        if (!output.empty()) terminalView.print(output);
+
+        delay(10);
+    }
+
+    // Close Netcat
+    netcatService.close();
+    terminalView.println("\r\n\nNetcat: Session closed.");
+
+}
+
 /*
 Config
 */
@@ -389,6 +462,7 @@ void WifiController::handleHelp() {
     terminalView.println("  disconnect");
     terminalView.println("  ap <ssid> <password>");
     terminalView.println("  ssh <host> <username> <password> [port]");
+    terminalView.println("  nc <host> <port>");
     terminalView.println("  webui");
     terminalView.println("  reset");
     terminalView.println("  deauth <ap> [bursts]");

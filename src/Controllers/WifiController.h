@@ -5,6 +5,7 @@
 #include <Services/WifiService.h>
 #include <Services/NvsService.h>
 #include <Services/SshService.h>
+#include <Services/NetcatService.h>
 #include <Transformers/ArgTransformer.h>
 #include <Models/TerminalCommand.h>
 #include <States/GlobalState.h>
@@ -36,6 +37,7 @@ private:
     WifiService& wifiService;
     NvsService& nvsService;
     SshService& sshService;
+    NetcatService& netcatService;
     ArgTransformer& argTransformer;
     GlobalState& state = GlobalState::getInstance();
     bool configured = false;
@@ -70,6 +72,9 @@ private:
 
     // Connect to SSH host
     void handleSsh(const TerminalCommand& cmd);
+
+    // Connect using netcat 
+    void handleNetcat(const TerminalCommand& cmd);
 
     // Deathenticate attack
     void handleDeauth(const TerminalCommand& cmd);
