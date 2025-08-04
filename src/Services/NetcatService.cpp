@@ -1,51 +1,58 @@
 #include "NetcatService.h"
+#include <Arduino.h>
 #include <lwip/sockets.h>
 #include <cstring>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include <Arduino.h>
 
-struct NetcatTaskParams {
+struct NetcatTaskParams
+{
     std::string host;
     int verbosity;
     bool buffered;
     uint16_t port;
-    NetcatService* service;
+    NetcatService *service;
 };
 
-void NetcatService::startTask(const std::string& host, int verbosity, uint16_t port, bool lineBuffer) {
-    auto* params = new NetcatTaskParams{host, verbosity, lineBuffer, port, this};
+void NetcatService::startTask(const std::string &host, int verbosity, uint16_t port, bool lineBuffer)
+{
+    auto *params = new NetcatTaskParams{host, verbosity, lineBuffer, port, this};
     xTaskCreatePinnedToCore(connectTask, "NetcatConnect", 20000, params, 1, nullptr, 1);
     delay(500); // start task delay
 }
 
-void NetcatService::connectTask(void* pvParams) {
-    auto* params = static_cast<NetcatTaskParams*>(pvParams);
+void NetcatService::connectTask(void *pvParams)
+{
+    auto *params = static_cast<NetcatTaskParams *>(pvParams);
     params->service->connect(params->host, params->verbosity, params->port, params->buffered);
     delete params;
     vTaskDelete(nullptr);
 }
 
-bool NetcatService::connect(const std::string& host, int verbosity, uint16_t port, bool lineBuffer) {
+bool NetcatService::connect(const std::string &host, int verbosity, uint16_t port, bool lineBuffer)
+{
 
     buffered = lineBuffer;
-    if (!openSocket(host, port)) return false;
+    if (!openSocket(host, port))
+        return false;
     setNonBlocking();
     connected = true;
     return true;
 }
 
-bool NetcatService::openSocket(const std::string& host, uint16_t port)
+bool NetcatService::openSocket(const std::string &host, uint16_t port)
 {
     sock = ::socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
-    if (sock < 0) return false;
+    if (sock < 0)
+        return false;
 
     sockaddr_in dest{};
     dest.sin_family = AF_INET;
-    dest.sin_port   = htons(port);
+    dest.sin_port = htons(port);
     inet_pton(AF_INET, host.c_str(), &dest.sin_addr);
 
-    if (::connect(sock, (sockaddr*)&dest, sizeof(dest)) != 0) {
+    if (::connect(sock, (sockaddr *)&dest, sizeof(dest)) != 0)
+    {
         ::close(sock);
         sock = -1;
         return false;
@@ -66,35 +73,41 @@ bool NetcatService::isConnected() const
 
 void NetcatService::writeChar(char c)
 {
-    if (!isConnected()) return;
+    if (!isConnected())
+        return;
 
     // Write to the socket in a line-by-line or char-by-char
-    if (buffered) {
+    if (buffered)
+    {
         txBuf.push_back(c);
-        if (c == '\n') {
+        if (c == '\n')
+        {
             ::send(sock, txBuf.data(), txBuf.size(), 0);
             txBuf.clear();
         }
-    } else {
+    }
+    else
+    {
         ::send(sock, &c, 1, 0);
     }
 }
 
 std::string NetcatService::readOutputNonBlocking()
 {
-    if (!isConnected()) 
+    if (!isConnected())
         return "";
 
     char buf[256];
-    int  n = ::recv(sock, buf, sizeof(buf), 0);
-    if (n <= 0) 
-        return "";          // EWOULDBLOCK or closed
+    int n = ::recv(sock, buf, sizeof(buf), 0);
+    if (n <= 0)
+        return ""; // EWOULDBLOCK or closed
     return std::string(buf, n);
 }
 
 void NetcatService::close()
 {
-    if (sock >= 0) {
+    if (sock >= 0)
+    {
         ::shutdown(sock, SHUT_RDWR);
         ::close(sock);
         sock = -1;
