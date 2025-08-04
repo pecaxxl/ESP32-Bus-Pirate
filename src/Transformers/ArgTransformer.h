@@ -30,4 +30,6 @@ public:
     bool isValidSignedNumber(const std::string& input);
     std::string toHex(uint32_t value, int width = 2);
     std::string formatFloat(double value, int decimals);
+    std::string toAsciiLine(uint32_t address, const std::vector<uint8_t>& line);
+    std::string toAsciiLine(uint32_t startAddr, const std::vector<uint16_t>& words);
 };

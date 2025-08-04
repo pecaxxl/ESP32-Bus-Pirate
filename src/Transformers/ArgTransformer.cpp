@@ -269,3 +269,59 @@ std::string ArgTransformer::formatFloat(double value, int decimals) {
     snprintf(buf, sizeof(buf), ("%." + std::to_string(decimals) + "f").c_str(), value);
     return std::string(buf);
 }
+
+std::string ArgTransformer::toAsciiLine(uint32_t address, const std::vector<uint8_t>& line) {
+    std::stringstream ss;
+
+    // Address
+    ss << std::hex << std::uppercase << std::setfill('0')
+       << std::setw(6) << address << ": ";
+
+    // Hex
+    for (size_t i = 0; i < 16; ++i) {
+        if (i < line.size()) {
+            ss << std::setw(2) << (int)line[i] << " ";
+        } else {
+            ss << "   ";
+        }
+    }
+
+    // ASCII
+    ss << " ";
+    for (size_t i = 0; i < line.size(); ++i) {
+        char c = static_cast<char>(line[i]);
+        ss << (isprint(c) ? c : '.');
+    }
+
+    return ss.str();
+}
+
+std::string ArgTransformer::toAsciiLine(uint32_t startAddr, const std::vector<uint16_t>& words) {
+    std::stringstream line;
+
+    // Adress
+    line << std::hex << std::uppercase << std::setfill('0')
+         << std::setw(6) << startAddr << ": ";
+
+    // HEX : 8 x 16-bit (4 hex digits)
+    for (size_t i = 0; i < words.size(); ++i) {
+        line << std::setw(4) << words[i] << " ";
+    }
+
+    // Padding
+    for (size_t i = words.size(); i < 8; ++i) {
+        line << "     ";
+    }
+
+    // ASCII
+    line << " ";
+    for (uint16_t word : words) {
+        char high = (word >> 8) & 0xFF;
+        char low  = word & 0xFF;
+
+        line << (isprint(high) ? high : '.');
+        line << (isprint(low)  ? low  : '.');
+    }
+
+    return line.str();
+}

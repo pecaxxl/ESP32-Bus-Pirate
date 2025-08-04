@@ -280,3 +280,29 @@ uint16_t UserInputManager::readValidatedCanId(const std::string& label, uint16_t
         return id;
     }
 }
+
+int UserInputManager::readValidatedChoiceIndex(const std::string& label, const std::vector<std::string>& choices, int defaultIndex) {
+    // Display choices
+    terminalView.println(label + ":");
+    for (size_t i = 0; i < choices.size(); ++i) {
+        std::string prefix = (i == defaultIndex) ? "*" : " ";
+        terminalView.println("  [" + std::to_string(i + 1) + "] " + prefix + choices[i]);
+    }
+
+    // Ask for index
+    terminalView.print("Enter index (default " + std::to_string(defaultIndex + 1) + "): ");
+    std::string input = getLine();
+    input = argTransformer.toLower(argTransformer.filterPrintable(input));
+
+    // Default
+    if (input.empty()) return defaultIndex;
+
+    // Validate index
+    int index;
+    if (!argTransformer.parseInt(input, index) || index < 1 || index >= (int)choices.size()) {
+        terminalView.println("❌ Invalid choice. Using default.");
+        return defaultIndex;
+    }
+
+    return index - 1; // Convert to 0 based index
+}
