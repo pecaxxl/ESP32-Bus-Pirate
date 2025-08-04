@@ -51,6 +51,14 @@ private:
     uint8_t twoWireIoPin = 2;
     uint8_t twoWireRstPin = 3;
 
+    // ThreeWire Default Pins
+    uint8_t threeWireCsPin = 5;
+    uint8_t threeWireSkPin = 18;
+    uint8_t threeWireDiPin = 23;
+    uint8_t threeWireDoPin = 19;
+    bool threeWireOrg8 = false; // 16-bit organization by default
+    uint8_t threeWireeEepromModelIndex = 0; // Default eeprom model index
+
     // UART Default Configuration
     unsigned long uartBaudRate = 9600;
     uint32_t uartConfig = 0x800001c; // SERIAL_8N1 by default
@@ -170,6 +178,21 @@ public:
     void setTwoWireClkPin(uint8_t pin) { twoWireClkPin = pin; }
     void setTwoWireIoPin(uint8_t pin) { twoWireIoPin = pin; }
     void setTwoWireRstPin(uint8_t pin) { twoWireRstPin = pin; }
+
+    // ThreeWire
+    uint8_t getThreeWireCsPin() const { return threeWireCsPin; }
+    uint8_t getThreeWireSkPin() const { return threeWireSkPin; }
+    uint8_t getThreeWireDiPin() const { return threeWireDiPin; }
+    uint8_t getThreeWireDoPin() const { return threeWireDoPin; }
+    bool isThreeWireOrg8() const { return threeWireOrg8; }
+    uint8_t getThreeWireEepromModelIndex() const { return threeWireeEepromModelIndex; }
+
+    void setThreeWireCsPin(uint8_t pin) { threeWireCsPin = pin; }
+    void setThreeWireSkPin(uint8_t pin) { threeWireSkPin = pin ; }
+    void setThreeWireDiPin(uint8_t pin) { threeWireDiPin = pin; }
+    void setThreeWireDoPin(uint8_t pin) { threeWireDoPin = pin; }
+    void setThreeWireOrg8(bool org8) { threeWireOrg8 = org8; }
+    void setThreeWireEepromModelIndex(uint8_t index) { threeWireeEepromModelIndex = index; }
 
     // UART
     unsigned long getUartBaudRate() const { return uartBaudRate; }
@@ -368,8 +391,17 @@ public:
         #ifdef TWOWIRE_IO_PIN
             twoWireIoPin = TWOWIRE_IO_PIN;
         #endif
-        #ifdef TWOWIRE_RST_PIN
-            twoWireRstPin = TWOWIRE_RST_PIN;
+        #ifdef THREEWIRE_CS_PIN
+            threeWireCsPin = THREEWIRE_CS_PIN;
+        #endif
+        #ifdef THREEWIRE_SK_PIN
+            threeWireSkPin = THREEWIRE_SK_PIN;
+        #endif
+        #ifdef THREEWIRE_DI_PIN 
+            threeWireDiPin = THREEWIRE_DI_PIN;
+        #endif
+        #ifdef THREEWIRE_DO_PIN 
+            threeWireDoPin = THREEWIRE_DO_PIN;
         #endif
         #ifdef LED_DATA_PIN
             ledDataPin = LED_DATA_PIN;
