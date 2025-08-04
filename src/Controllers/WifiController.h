@@ -19,7 +19,8 @@ public:
         IInput& terminalInput, 
         IInput& deviceInput,
         WifiService& wifiService, 
-        SshService& sshService, 
+        SshService& sshService,
+        NetcatService& netcatService,
         NvsService& nvsService, 
         ArgTransformer& argTransformer
     );

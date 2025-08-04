@@ -3,7 +3,7 @@
 /*
 Constructor
 */
-WifiController::WifiController(ITerminalView& terminalView, IInput& terminalInput, IInput& deviceInput, WifiService& wifiService, SshService& sshService, NvsService& nvsService, ArgTransformer& argTransformer)
+WifiController::WifiController(ITerminalView& terminalView, IInput& terminalInput, IInput& deviceInput, WifiService& wifiService, SshService& sshService, NetcatService& netcatService, NvsService& nvsService, ArgTransformer& argTransformer)
     : terminalView(terminalView), terminalInput(terminalInput), deviceInput(deviceInput), wifiService(wifiService), sshService(sshService), nvsService(nvsService), argTransformer(argTransformer) {}
 
 /*
@@ -405,7 +405,7 @@ void WifiController::handleNetcat(const TerminalCommand& cmd){
     // Wait 5sec for connection success
     unsigned long start = millis();
     while (!netcatService.isConnected() && millis() - start < 5000) {
-        delay(500);
+        delay(50);
     }
 
     // Can't connect
@@ -415,9 +415,9 @@ void WifiController::handleNetcat(const TerminalCommand& cmd){
         return;
     }
 
-
     // Connected, start the bridge loop
     terminalView.println("Netcat: Connected. Shell started... Press [ANY ESP32 KEY] to stop.\n");
+
     while (true) {
         char terminalKey = terminalInput.readChar();
         if (terminalKey != KEY_NONE) netcatService.writeChar(terminalKey);

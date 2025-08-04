@@ -1,116 +1,103 @@
 #include "NetcatService.h"
+#include <lwip/sockets.h>
+#include <cstring>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include <Arduino.h>
 
 struct NetcatTaskParams {
     std::string host;
     int verbosity;
-    int port;
+    bool buffered;
+    uint16_t port;
     NetcatService* service;
 };
 
-void NetcatService::startTask(const std::string& host, int verbosity, int port) {
-    auto* params = new NetcatTaskParams{host, verbosity, port, this};
+void NetcatService::startTask(const std::string& host, int verbosity, uint16_t port, bool lineBuffer) {
+    auto* params = new NetcatTaskParams{host, verbosity, lineBuffer, port, this};
     xTaskCreatePinnedToCore(connectTask, "NetcatConnect", 20000, params, 1, nullptr, 1);
-    delay(2000); // let the task begins
+    delay(500); // start task delay
 }
 
 void NetcatService::connectTask(void* pvParams) {
     auto* params = static_cast<NetcatTaskParams*>(pvParams);
-    params->service->connect(params->host, params->verbosity, params->port);
+    params->service->connect(params->host, params->verbosity, params->port, params->buffered);
     delete params;
     vTaskDelete(nullptr);
 }
 
-bool NetcatService::connect(const std::string& host, int verbosity, int port) {
-    // session = ssh_new();
-    // if (!session) return false;
+bool NetcatService::connect(const std::string& host, int verbosity, uint16_t port, bool lineBuffer) {
 
-    // ssh_options_set(session, SSH_OPTIONS_HOST, host.c_str());
-    // ssh_options_set(session, SSH_OPTIONS_USER, user.c_str());
-    // ssh_options_set(session, SSH_OPTIONS_PORT, &port);
-    // ssh_options_set(session, SSH_OPTIONS_LOG_VERBOSITY, &verbosity);
-
-    // if (ssh_connect(session) != SSH_OK) {
-    //     close();
-    //     return false;
-    // }
-
-    // if (!authenticate(pass)) return false;
-    if (!openChannel()) return false;
-    if (!requestPty()) return false;
-    if (!startShell()) return false;
-
+    buffered = lineBuffer;
+    if (!openSocket(host, port)) return false;
+    setNonBlocking();
     connected = true;
     return true;
 }
 
-bool NetcatService::authenticate(const std::string& password) {
-    // int rc = ssh_userauth_password(session, nullptr, password.c_str());
-    // if (rc != SSH_AUTH_SUCCESS) {
-    //     return false;
-    // }
+bool NetcatService::openSocket(const std::string& host, uint16_t port)
+{
+    sock = ::socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+    if (sock < 0) return false;
+
+    sockaddr_in dest{};
+    dest.sin_family = AF_INET;
+    dest.sin_port   = htons(port);
+    inet_pton(AF_INET, host.c_str(), &dest.sin_addr);
+
+    if (::connect(sock, (sockaddr*)&dest, sizeof(dest)) != 0) {
+        ::close(sock);
+        sock = -1;
+        return false;
+    }
     return true;
 }
 
-bool NetcatService::openChannel() {
-    // channel = ssh_channel_new(session);
-    // if (!channel || ssh_channel_open_session(channel) != SSH_OK) {
-    //     return false;
-    // }
-    return true;
+void NetcatService::setNonBlocking()
+{
+    int flags = fcntl(sock, F_GETFL, 0);
+    fcntl(sock, F_SETFL, flags | O_NONBLOCK);
 }
 
-bool NetcatService::requestPty() {
-    // if (ssh_channel_request_pty(channel) != SSH_OK) {
-    //     return false;
-    // }
-    return true;
+bool NetcatService::isConnected() const
+{
+    return sock >= 0 && connected;
 }
 
-bool NetcatService::startShell() {
-    // if (ssh_channel_request_shell(channel) != SSH_OK) {
-    //     return false;
-    // }
-    return true;
-}
-
-bool NetcatService::isConnected() const {
-    // if (!connected || !session || !channel) return false;
-    //return ssh_channel_is_open(channel) && !ssh_channel_is_eof(channel);
-    return true;
-}
-
-void NetcatService::writeChar(char c) {
+void NetcatService::writeChar(char c)
+{
     if (!isConnected()) return;
-    //ssh_channel_write(channel, &c, 1);
+
+    // Write to the socket in a line-by-line or char-by-char
+    if (buffered) {
+        txBuf.push_back(c);
+        if (c == '\n') {
+            ::send(sock, txBuf.data(), txBuf.size(), 0);
+            txBuf.clear();
+        }
+    } else {
+        ::send(sock, &c, 1, 0);
+    }
 }
 
-std::string NetcatService::readOutput() {
-    if (!isConnected()) return "";
+std::string NetcatService::readOutputNonBlocking()
+{
+    if (!isConnected()) 
+        return "";
+
     char buf[256];
-    //int n = ssh_channel_read(channel, buf, sizeof(buf), 0);
-    //return (n > 0) ? std::string(buf, n) : "";
-    return 0;
+    int  n = ::recv(sock, buf, sizeof(buf), 0);
+    if (n <= 0) 
+        return "";          // EWOULDBLOCK or closed
+    return std::string(buf, n);
 }
 
-std::string NetcatService::readOutputNonBlocking() {
-    if (!isConnected()) return "";
-    char buf[256];
-    //int n = ssh_channel_read_nonblocking(channel, buf, sizeof(buf), 0);
-    //return (n > 0) ? std::string(buf, n) : "";
-    return 0;
-}
-
-void NetcatService::close() {
-    // if (channel) {
-    //     ssh_channel_close(channel);
-    //     ssh_channel_free(channel);
-    //     channel = nullptr;
-    // }
-    // if (session) {
-    //     ssh_disconnect(session);
-    //     ssh_free(session);
-    //     session = nullptr;
-    // }
+void NetcatService::close()
+{
+    if (sock >= 0) {
+        ::shutdown(sock, SHUT_RDWR);
+        ::close(sock);
+        sock = -1;
+    }
     connected = false;
 }
