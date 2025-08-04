@@ -507,7 +507,7 @@ void WifiController::handleNetcat(const TerminalCommand &cmd)
     }
 
     // Connected, start the bridge loop
-    terminalView.println("Netcat: Connected. Shell started... Press [ANY ESP32 KEY] to stop.\n");
+    terminalView.println("Netcat: Connected. Shell started... Press [CTRL+C] or [ESC] to stop.\n");
 
     while (true)
     {
