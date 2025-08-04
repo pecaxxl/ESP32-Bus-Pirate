@@ -489,7 +489,7 @@ void WifiController::handleNetcat(const TerminalCommand &cmd)
 
     // Connect, start the netcat task
     terminalView.println("Netcat: Connecting to " + host + " with port " + port_str + "...");
-    netcatService.startTask(host, false, port);
+    netcatService.startTask(host, 0, port, true);
 
     // Wait 5sec for connection success
     unsigned long start = millis();
@@ -512,16 +512,23 @@ void WifiController::handleNetcat(const TerminalCommand &cmd)
     while (true)
     {
         char terminalKey = terminalInput.readChar();
-        if (terminalKey != KEY_NONE)
-            netcatService.writeChar(terminalKey);
+        if (terminalKey == KEY_NONE){
+            continue;
+        }
 
-        char deviceKey = deviceInput.readChar();
-        if (deviceKey != KEY_NONE)
-            break;
+        netcatService.writeChar(terminalKey);
+        terminalView.print(std::string(1, terminalKey));        // local echo
+        if (terminalKey == 0x1B || terminalKey == 0x03) break;  // ESC or CTRL+C to exit
+        if (terminalKey == '\r' || terminalKey == '\n')
+            terminalView.println("");
 
         std::string output = netcatService.readOutputNonBlocking();
         if (!output.empty())
             terminalView.print(output);
+
+        char deviceKey = deviceInput.readChar();
+        if (deviceKey != KEY_NONE)
+            break;
 
         delay(10);
     }

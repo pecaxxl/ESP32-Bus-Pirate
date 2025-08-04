@@ -80,7 +80,7 @@ void NetcatService::writeChar(char c)
     if (buffered)
     {
         txBuf.push_back(c);
-        if (c == '\n')
+        if (c == '\n' || c == '\r')
         {
             ::send(sock, txBuf.data(), txBuf.size(), 0);
             txBuf.clear();
