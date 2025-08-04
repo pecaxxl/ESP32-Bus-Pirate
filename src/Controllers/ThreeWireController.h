@@ -5,30 +5,64 @@
 
 #include <vector>
 #include "Interfaces/ITerminalView.h"
-#include "Services/SpiService.h" 
+#include "States/GlobalState.h"
+#include "Services/ThreeWireService.h"
 #include "Interfaces/IInput.h"
 #include "Models/TerminalCommand.h"
 #include "Models/ByteCode.h"
+#include "Managers/UserInputManager.h"
+#include "Transformers/ArgTransformer.h"
 
 class ThreeWireController {
 public:
-    // Constructor
-    ThreeWireController(ITerminalView& terminalIiew, IInput& terminalInput);
+    ThreeWireController(
+        ITerminalView& terminalView,
+        IInput& terminalInput,
+        UserInputManager& userInputManager,
+        ThreeWireService& threeWireService,
+        ArgTransformer& argTransformer);
 
-    // Entry point for handle raw user command
+    // Entry point for command handling
     void handleCommand(const TerminalCommand& cmd);
 
-    // Handle compiled bytecode instructions
+    // Entry point for instruction handling
     void handleInstruction(const std::vector<ByteCode>& bytecodes);
 
-    // Ensure 3WIRE is configured before use
+    // Ensure configured before any action
     void ensureConfigured();
 
 private:
-    ITerminalView& terminalView;  // Terminal output
-    IInput& terminalInput;       // User input
-    bool configured = false;     // Init state
+    ITerminalView& terminalView;
+    IInput& terminalInput;
+    ThreeWireService threeWireService;
+    UserInputManager& userInputManager;
+    ArgTransformer& argTransformer;
+    GlobalState& state = GlobalState::getInstance();
+    bool configured = false;
+    bool org8 = true;
 
-    // Set up 3WIRE parameters
+    // Command handlers for eeprom operations
+    void handleEeprom(const TerminalCommand& cmd);
+
+    // Probe for EEPROM presence
+    void handleEepromProbe();
+
+    // EEPROM read from start address to count (default 1)
+    void handleEepromRead(const TerminalCommand& cmd);
+
+    // EEPROM write to address with optional data value (prompt if not provided)
+    void handleEepromWrite(const TerminalCommand& cmd);
+
+    // EEPROM dump based on model bytes size
+    void handleEepromDump();
+
+    // EEPROM erase operation based on model bytes size
+    void handleEepromErase();
+
+    // Configuration handler for settings
     void handleConfig();
+
+    // Available commands
+    void handleHelp();
+    
 };
