@@ -349,7 +349,12 @@ void UtilityController::handleHelp() {
 
     terminalView.println("");
     terminalView.println(" 8. 3WIRE:");
-    terminalView.println("  [NYI]                 - Not Yet Implemented");
+    terminalView.println("  eeprom probe         - Detect 93CXX chip presence");
+    terminalView.println("  eeprom read <a> [n]  - Read value from address");
+    terminalView.println("  eeprom write <a> [v] - Write value(s) to address");
+    terminalView.println("  eeprom dump          - Dump entire EEPROM memory");
+    terminalView.println("  eeprom erase         - Erase entire EEPROM memory");
+    terminalView.println("  config               - Configure settings");
 
     terminalView.println("");
     terminalView.println(" 9. DIO:");
