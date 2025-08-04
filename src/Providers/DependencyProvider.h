@@ -28,6 +28,7 @@ and injecting shared instances of core components
 #include "Services/SshService.h"
 #include "Services/JtagService.h"
 #include "Services/CanService.h"
+#include "Services/ThreeWireService.h"
 #include "Controllers/UartController.h"
 #include "Controllers/I2cController.h"
 #include "Controllers/OneWireController.h"
@@ -78,6 +79,7 @@ public:
     I2cService& getI2cService();
     OneWireService& getOneWireService();
     TwoWireService& getTwoWireService();
+    ThreeWireService& getThreeWireService();
     InfraredService& getInfraredService();
     IUsbService& getUsbService();
     SpiService& getSpiService();
@@ -147,6 +149,7 @@ private:
     I2cService i2cService;
     OneWireService oneWireService;
     TwoWireService twoWireService;
+    ThreeWireService threeWireService;
     InfraredService infraredService;
     HdUartService hdUartService;
     SpiService spiService;
