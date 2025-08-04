@@ -11,24 +11,24 @@ It supports sniffing, sending, scripting, and interacting with various digital p
 - Interactive command-line interface (CLI) via **USB Serial or WiFi Web**.
 - **Modes for:**
   - HiZ (default)
-  - I2C
-  - SPI
-  - UART / Half-Duplex UART
-  - 1-WIRE
-  - 2WIRE / 3WIRE (planned)
-  - DIO (Digital I/O)
+  - I2C (scan, glitch, slave mode, dump)
+  - SPI (flash, sdcard, slave mode)
+  - UART / Half-Duplex UART (bridge, read, write)
+  - 1-WIRE (ibutton, temp sensor)
+  - 2WIRE (smartcard) / 3WIRE (eeprom)
+  - DIO (Digital I/O, read, pullup, set)
   - Infrared (device-b-gone, send and receive)
   - USB (HID, mouse, keyboard, gamepad, storage)
   - Bluetooth (BLE HID, scan, spoofing, sniffing)
-  - Wi-Fi (scan, AP, connect, sniff, spoofing)
-  - JTAG
-  - LED control
+  - Wi-Fi (scan, AP, connect, sniff, deauth)
+  - JTAG (scan pinout, SWD)
+  - LED control (animations, set LEDs)
   - I2S
   - CAN
 
 - **Protocol sniffers** for I2C, Wi-Fi, Bluetooth, 1Wire, CAN.
 - Baudrate **auto-detection** and various tools for UART.
-- Registers manipulation, glitch, dump tool for I2C.
+- Registers manipulation, dump tools for I2C.
 - Scripting using **Bus Pirate-style bytecode** instructions.
 - Device-B-Gone command with more than 80 supported INFRARED protocols.
 - Direct I/O management, PWM, pin state.
@@ -85,7 +85,7 @@ The wiki is the best place to learn how everything works.
 
 1. 🔧 Flash the firmware  
    - Download the latest release from the [Releases](https://github.com/geo-tp/ESP32-Bus-Pirate/releases) page, and flash it using your favorite tool (`esptool.py`, `PlatformIO`, etc.).
-   - You can also burn it on [M5Burner](https://docs.m5stack.com/en/download), in the M5stick or Cardputer category.
+   - You can also burn it on [M5Burner](https://docs.m5stack.com/en/download), in the M5stick, AtomS3, M5StampS3 or Cardputer category.
 
 2. 🔌 Connect via Serial or Web
    - Serial: any terminal app (see [Connect via Serial](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/99-Serial))
@@ -124,6 +124,8 @@ Both interfaces share the same command structure and can be used interchangeably
 ## Using the ESP32 Bus Pirate to speak UART over WiFi
 ![Using the ESP32 Bus pirate with UART](images/demo2.gif)
 
+## Contribute
+See [How To Contribute](https://github.com/geo-tp/ESP32-Bus-Pirate/wiki/99-Contribute) section, which outlines a simple way to add a new command to any mode.
 
 ## Warning
 > ⚠️ **Voltage Warning**: Devices should only operate at **3.3V** or **5V**.  
