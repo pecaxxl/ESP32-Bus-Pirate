@@ -1,8 +1,8 @@
 #pragma once
 
 /*
-The DependencyProvider is responsible for creating, holding, 
-and injecting shared instances of core components 
+The DependencyProvider is responsible for creating, holding,
+and injecting shared instances of core components
 (such as services, controllers, etc) throughout the application.
 */
 
@@ -56,91 +56,92 @@ and injecting shared instances of core components
 #include "Managers/SdCardManager.h"
 #include "Config/TerminalTypeConfigurator.h"
 
-class DependencyProvider {
+class DependencyProvider
+{
 public:
-    DependencyProvider(ITerminalView& terminalView, IDeviceView& deviceView,
-                       IInput& terminalInput, IInput& deviceInput,
-                       IUsbService& usbService,
-                       IUsbController& usbController);
-
+    DependencyProvider(ITerminalView &terminalView, IDeviceView &deviceView,
+                       IInput &terminalInput, IInput &deviceInput,
+                       IUsbService &usbService,
+                       IUsbController &usbController);
 
     // Core Components
-    ITerminalView& getTerminalView();
-    void setTerminalView(ITerminalView& view);
-    IDeviceView& getDeviceView();
-    IInput& getTerminalInput();
-    IInput& getDeviceInput();
+    ITerminalView &getTerminalView();
+    void setTerminalView(ITerminalView &view);
+    IDeviceView &getDeviceView();
+    IInput &getTerminalInput();
+    IInput &getDeviceInput();
 
     // Services
-    SdService& getSdService();
-    NvsService& getNvsService();
-    LedService& getLedService();
-    UartService& getUartService();
-    I2cService& getI2cService();
-    OneWireService& getOneWireService();
-    TwoWireService& getTwoWireService();
+    SdService &getSdService();
+    NvsService &getNvsService();
+    LedService &getLedService();
+    UartService &getUartService();
+    I2cService &getI2cService();
+    OneWireService &getOneWireService();
+    TwoWireService &getTwoWireService();
     ThreeWireService& getThreeWireService();
-    InfraredService& getInfraredService();
-    IUsbService& getUsbService();
-    SpiService& getSpiService();
-    HdUartService& getHdUartService();
-    PinService& getPinService();
-    BluetoothService& getBluetoothService();
-    WifiService& getWifiService();
-    I2sService& getI2sService();
-    SshService& getSshService();
-    JtagService& getJtagService();
-    CanService& getCanService();
-    
+    InfraredService &getInfraredService();
+    IUsbService &getUsbService();
+    SpiService &getSpiService();
+    HdUartService &getHdUartService();
+    PinService &getPinService();
+    BluetoothService &getBluetoothService();
+    WifiService &getWifiService();
+    I2sService &getI2sService();
+    SshService &getSshService();
+    NetcatService &getNetcatService();
+    JtagService &getJtagService();
+    CanService &getCanService();
+  
     // Controllers
-    UartController& getUartController();
-    I2cController& getI2cController();
-    UtilityController& getUtilityController();
-    OneWireController& getOneWireController();
-    InfraredController& getInfraredController();
-    IUsbController& getUsbController();
-    HdUartController& getHdUartController();
-    SpiController& getSpiController();
-    JtagController& getJtagController();
-    TwoWireController& getTwoWireController();
-    ThreeWireController& getThreeWireController();
-    DioController& getDioController();
-    LedController& getLedController();
-    BluetoothController& getBluetoothController();
-    WifiController& getWifiController();
-    I2sController& getI2sController();
-    CanController& getCanController();
+    UartController &getUartController();
+    I2cController &getI2cController();
+    UtilityController &getUtilityController();
+    OneWireController &getOneWireController();
+    InfraredController &getInfraredController();
+    IUsbController &getUsbController();
+    HdUartController &getHdUartController();
+    SpiController &getSpiController();
+    JtagController &getJtagController();
+    TwoWireController &getTwoWireController();
+    ThreeWireController &getThreeWireController();
+    DioController &getDioController();
+    LedController &getLedController();
+    BluetoothController &getBluetoothController();
+    WifiController &getWifiController();
+    I2sController &getI2sController();
+    CanController &getCanController();
 
     // Transformers
-    TerminalCommandTransformer& getCommandTransformer();
-    InstructionTransformer& getInstructionTransformer();
-    ArgTransformer& getArgTransformer();
-    WebRequestTransformer& getWebRequestTransformer();
+    TerminalCommandTransformer &getCommandTransformer();
+    InstructionTransformer &getInstructionTransformer();
+    ArgTransformer &getArgTransformer();
+    WebRequestTransformer &getWebRequestTransformer();
 
     // Managers
-    CommandHistoryManager& getCommandHistoryManager();
-    UserInputManager& getUserInputManager();
-    BinaryAnalyzeManager& getBinaryAnalyzeManager();
-    SdCardManager& getSdCardManager();
+    CommandHistoryManager &getCommandHistoryManager();
+    UserInputManager &getUserInputManager();
+    BinaryAnalyzeManager &getBinaryAnalyzeManager();
+    SdCardManager &getSdCardManager();
 
     // Selectors
-    HorizontalSelector& getHorizontalSelector();
+    HorizontalSelector &getHorizontalSelector();
 
     // Config
-    TerminalTypeConfigurator& getTerminalTypeConfigurator();
+    TerminalTypeConfigurator &getTerminalTypeConfigurator();
 
     // Disable
     void disableAllProtocols();
 
 private:
     // Core Components
-    ITerminalView& terminalView;
-    IDeviceView& deviceView;
-    IInput& terminalInput;
-    IInput& deviceInput;
-    IUsbService& usbService;
-    IUsbController& usbController;
-    
+    ITerminalView &terminalView;
+    IDeviceView &deviceView;
+    IInput &terminalInput;
+    IInput &deviceInput;
+    IUsbService &usbService;
+    IUsbController &usbController;
+
     // Services
     SdService sdService;
     NvsService nvsService;
@@ -158,6 +159,7 @@ private:
     BluetoothService bluetoothService;
     I2sService i2sService;
     SshService sshService;
+    NetcatService netcatService;
     JtagService jtagService;
     CanService canService;
 

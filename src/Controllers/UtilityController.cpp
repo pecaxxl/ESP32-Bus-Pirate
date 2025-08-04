@@ -424,6 +424,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  disconnect           - Disconnect from Wi-Fi");
     terminalView.println("  ap <ssid> <password> - Set access point");
     terminalView.println("  ssh <h> <u> <p> [p]  - Open SSH session");
+    terminalView.println("  nc <h> <p>           - Open netcat session");
     terminalView.println("  webui                - Show the web UI IP");
     terminalView.println("  deauth <ssid>        - Deauthenticate hosts on AP");
     terminalView.println("  reset                - Reset interface");

@@ -3,40 +3,70 @@
 /*
 Constructor
 */
-WifiController::WifiController(ITerminalView& terminalView, IInput& terminalInput, IInput& deviceInput, WifiService& wifiService, SshService& sshService, NvsService& nvsService, ArgTransformer& argTransformer)
-    : terminalView(terminalView), terminalInput(terminalInput), deviceInput(deviceInput), wifiService(wifiService), sshService(sshService), nvsService(nvsService), argTransformer(argTransformer) {}
+WifiController::WifiController(ITerminalView &terminalView, IInput &terminalInput, IInput &deviceInput, WifiService &wifiService, SshService &sshService, NetcatService &netcatService, NvsService &nvsService, ArgTransformer &argTransformer)
+    : terminalView(terminalView), terminalInput(terminalInput), deviceInput(deviceInput), wifiService(wifiService), sshService(sshService), netcatService(netcatService), nvsService(nvsService), argTransformer(argTransformer) {}
 
 /*
 Entry point for command
 */
-void WifiController::handleCommand(const TerminalCommand& cmd) {
-    const auto& root = cmd.getRoot();
+void WifiController::handleCommand(const TerminalCommand &cmd)
+{
+    const auto &root = cmd.getRoot();
 
-    if (root == "connect") {
+    if (root == "connect")
+    {
         handleConnect(cmd);
-    } else if (root == "disconnect") {
+    }
+    else if (root == "disconnect")
+    {
         handleDisconnect(cmd);
-    } else if (root == "status") {
+    }
+    else if (root == "status")
+    {
         handleStatus(cmd);
-    } else if (root == "ap") {
+    }
+    else if (root == "ap")
+    {
         handleAp(cmd);
-    } else if (root == "spoof") {
+    }
+    else if (root == "spoof")
+    {
         handleSpoof(cmd);
-    } else if (root == "scan") {
+    }
+    else if (root == "scan")
+    {
         handleScan(cmd);
-    } else if (root == "ping") {
+    }
+    else if (root == "ping")
+    {
         handlePing(cmd);
-    } else if (root == "sniff") {
+    }
+    else if (root == "sniff")
+    {
         handleSniff(cmd);
-    } else if (root == "webui") {
+    }
+    else if (root == "webui")
+    {
         handleWebUi(cmd);
-    } else if (root == "ssh") {
+    }
+    else if (root == "ssh")
+    {
         handleSsh(cmd);
-    } else if (root == "reset") {
+    }
+    else if (root == "nc")
+    {
+        handleNetcat(cmd);
+    }
+    else if (root == "reset")
+    {
         handleReset();
-    } else if (root == "deauth") {
+    }
+    else if (root == "deauth")
+    {
         handleDeauth(cmd);
-    } else {
+    }
+    else
+    {
         handleHelp();
     }
 }
@@ -44,10 +74,12 @@ void WifiController::handleCommand(const TerminalCommand& cmd) {
 /*
 Connect
 */
-void WifiController::handleConnect(const TerminalCommand& cmd) {
+void WifiController::handleConnect(const TerminalCommand &cmd)
+{
     auto args = argTransformer.splitArgs(cmd.getSubcommand());
 
-    if (cmd.getSubcommand().empty()) {
+    if (cmd.getSubcommand().empty())
+    {
         terminalView.println("Usage: connect <ssid> <password>");
         return;
     }
@@ -59,7 +91,8 @@ void WifiController::handleConnect(const TerminalCommand& cmd) {
 
     wifiService.setModeApSta();
     wifiService.connect(ssid, password);
-    if (wifiService.isConnected()) {
+    if (wifiService.isConnected())
+    {
         terminalView.println("");
         terminalView.println("WiFi: Connected to Wi-Fi!");
         terminalView.println("      Reset the device and choose WiFi Web,");
@@ -81,8 +114,9 @@ void WifiController::handleConnect(const TerminalCommand& cmd) {
         nvsService.saveString(state.getNvsSsidField(), ssid);
         nvsService.saveString(state.getNvsPasswordField(), password);
         nvsService.close();
-
-    } else {
+    }
+    else
+    {
         terminalView.println("WiFi: Connection failed.");
     }
 }
@@ -90,7 +124,8 @@ void WifiController::handleConnect(const TerminalCommand& cmd) {
 /*
 Disconnect
 */
-void WifiController::handleDisconnect(const TerminalCommand& cmd) {
+void WifiController::handleDisconnect(const TerminalCommand &cmd)
+{
     wifiService.disconnect();
     terminalView.println("WiFi: Disconnected.");
 }
@@ -98,14 +133,18 @@ void WifiController::handleDisconnect(const TerminalCommand& cmd) {
 /*
 Status
 */
-void WifiController::handleStatus(const TerminalCommand& cmd) {
-    if (wifiService.isConnected()) {
+void WifiController::handleStatus(const TerminalCommand &cmd)
+{
+    if (wifiService.isConnected())
+    {
         terminalView.println("WiFi: Connected");
         terminalView.println("  IP:  " + wifiService.getLocalIP());
-    } else {
+    }
+    else
+    {
         terminalView.println("WiFi: Not connected.");
     }
-    
+
     terminalView.println("  STA MAC: " + wifiService.getMacAddressSta());
     terminalView.println("   AP MAC: " + wifiService.getMacAddressAp());
 }
@@ -113,10 +152,12 @@ void WifiController::handleStatus(const TerminalCommand& cmd) {
 /*
 Access Point
 */
-void WifiController::handleAp(const TerminalCommand& cmd) {
+void WifiController::handleAp(const TerminalCommand &cmd)
+{
     auto ssid = cmd.getSubcommand();
 
-    if (ssid.empty()) {
+    if (ssid.empty())
+    {
         terminalView.println("Usage: ap <ssid> <password>");
         return;
     }
@@ -124,13 +165,17 @@ void WifiController::handleAp(const TerminalCommand& cmd) {
     std::string password = cmd.getArgs();
 
     // Already connected, mode AP+STA
-    if (wifiService.isConnected()) {
+    if (wifiService.isConnected())
+    {
         wifiService.setModeApSta();
-    } else {
+    }
+    else
+    {
         wifiService.setModeApOnly();
     }
 
-    if (wifiService.startAccessPoint(ssid, password)) {
+    if (wifiService.startAccessPoint(ssid, password))
+    {
         terminalView.println("WiFi: Access Point started with SSID " + ssid);
         terminalView.println("AP IP: " + wifiService.getApIp());
 
@@ -140,14 +185,18 @@ void WifiController::handleAp(const TerminalCommand& cmd) {
         auto password = nvsService.getString(nvsPasswordField, "");
 
         // Try to reconnect to saved WiFi
-        if (!ssid.empty() && !password.empty()) {
+        if (!ssid.empty() && !password.empty())
+        {
             wifiService.connect(ssid, password);
         }
 
-        if (wifiService.isConnected()) {
+        if (wifiService.isConnected())
+        {
             terminalView.println("STA IP: " + wifiService.getLocalIp());
         }
-    } else {
+    }
+    else
+    {
         terminalView.println("WiFi: Failed to start Access Point.");
     }
 }
@@ -155,27 +204,32 @@ void WifiController::handleAp(const TerminalCommand& cmd) {
 /*
 Scan
 */
-void WifiController::handleScan(const TerminalCommand&) {
+void WifiController::handleScan(const TerminalCommand &)
+{
     terminalView.println("WiFi: Scanning for networks...");
     delay(300);
 
     auto networks = wifiService.scanDetailedNetworks();
 
-    for (const auto& net : networks) {
+    for (const auto &net : networks)
+    {
         std::string line = "  SSID: " + net.ssid;
         line += " | Sec: " + wifiService.encryptionTypeToString(net.encryption);
         line += " | BSSID: " + net.bssid;
         line += " | CH: " + std::to_string(net.channel);
         line += " | RSSI: " + std::to_string(net.rssi) + " dBm";
-        if (net.open) line += " [open]";
-        if (net.vulnerable) line += " [vulnerable]";
-        if (net.hidden) line += " [hidden]";
+        if (net.open)
+            line += " [open]";
+        if (net.vulnerable)
+            line += " [vulnerable]";
+        if (net.hidden)
+            line += " [hidden]";
 
         terminalView.println(line);
     }
 
-
-    if (networks.empty()) {
+    if (networks.empty())
+    {
         terminalView.println("WiFi: No networks found.");
     }
 }
@@ -183,14 +237,18 @@ void WifiController::handleScan(const TerminalCommand&) {
 /*
 Ping
 */
-void WifiController::handlePing(const TerminalCommand& cmd) {
+void WifiController::handlePing(const TerminalCommand &cmd)
+{
     std::string host = cmd.getSubcommand();
 
     int responseTimeMs = wifiService.ping(host);
 
-    if (responseTimeMs >= 0) {
+    if (responseTimeMs >= 0)
+    {
         terminalView.println("WiFi: Ping on " + host + " successful (" + std::to_string(responseTimeMs) + " ms).");
-    } else {
+    }
+    else
+    {
         terminalView.println("WiFi: Ping failed.");
     }
 }
@@ -198,7 +256,8 @@ void WifiController::handlePing(const TerminalCommand& cmd) {
 /*
 Sniff
 */
-void WifiController::handleSniff(const TerminalCommand& cmd) {
+void WifiController::handleSniff(const TerminalCommand &cmd)
+{
     terminalView.println("WiFi Sniffing started... Press [ENTER] to stop.\n");
 
     wifiService.startPassiveSniffing();
@@ -208,23 +267,28 @@ void WifiController::handleSniff(const TerminalCommand& cmd) {
     unsigned long lastHop = 0;
     unsigned long lastPull = 0;
 
-    while (true) {
+    while (true)
+    {
         // Enter Press
         char key = terminalInput.readChar();
-        if (key == '\r' || key == '\n') break;
+        if (key == '\r' || key == '\n')
+            break;
 
         // Read sniff data
-        if (millis() - lastPull > 20) {
+        if (millis() - lastPull > 20)
+        {
             auto logs = wifiService.getSniffLog();
-            for (const auto& line : logs) {
+            for (const auto &line : logs)
+            {
                 terminalView.println(line);
             }
             lastPull = millis();
         }
 
         // Switch channel every 100ms
-        if (millis() - lastHop > 100) {
-            channel = (channel % 13) + 1;  // channel 1 to 13
+        if (millis() - lastHop > 100)
+        {
+            channel = (channel % 13) + 1; // channel 1 to 13
             wifiService.switchChannel(channel);
             lastHop = millis();
         }
@@ -239,27 +303,32 @@ void WifiController::handleSniff(const TerminalCommand& cmd) {
 /*
 Spoof
 */
-void WifiController::handleSpoof(const TerminalCommand& cmd) {
+void WifiController::handleSpoof(const TerminalCommand &cmd)
+{
     auto mode = cmd.getSubcommand();
-    auto mac= cmd.getArgs();
+    auto mac = cmd.getArgs();
 
-    if (mode.empty() && mac.empty()) {
+    if (mode.empty() && mac.empty())
+    {
         terminalView.println("Usage: spoof sta <mac>");
         terminalView.println("       spoof ap <mac>");
         return;
     }
 
-    WifiService::MacInterface iface = (mode == "sta") 
-        ? WifiService::MacInterface::Station
-        : WifiService::MacInterface::AccessPoint;
+    WifiService::MacInterface iface = (mode == "sta")
+                                          ? WifiService::MacInterface::Station
+                                          : WifiService::MacInterface::AccessPoint;
 
     terminalView.println("WiFi: Spoofing " + mode + " MAC to " + mac + "...");
 
     bool ok = wifiService.spoofMacAddress(mac, iface);
 
-    if (ok) {
+    if (ok)
+    {
         terminalView.println("WiFi: MAC spoofed successfully.");
-    } else {
+    }
+    else
+    {
         terminalView.println("WiFi: Failed to spoof MAC.");
     }
 }
@@ -267,7 +336,8 @@ void WifiController::handleSpoof(const TerminalCommand& cmd) {
 /*
 Reset
 */
-void WifiController::handleReset() {
+void WifiController::handleReset()
+{
     wifiService.reset();
     terminalView.println("WiFi: Interface reset. Disconnected.");
 }
@@ -275,8 +345,10 @@ void WifiController::handleReset() {
 /*
 Web Interface
 */
-void WifiController::handleWebUi(const TerminalCommand&) {
-    if (wifiService.isConnected()) {
+void WifiController::handleWebUi(const TerminalCommand &)
+{
+    if (wifiService.isConnected())
+    {
         auto ip = wifiService.getLocalIP();
         terminalView.println("");
         terminalView.println("[WARNING] If you're connected via serial,");
@@ -293,7 +365,9 @@ void WifiController::handleWebUi(const TerminalCommand&) {
         terminalView.println("     • Red   = Connection failed, try connect again with serial");
         terminalView.println("");
         terminalView.println("WiFi Web UI: http://" + ip);
-    } else {
+    }
+    else
+    {
         terminalView.println("WiFi Web UI: Not connected. Connect first to see address.");
     }
 }
@@ -301,26 +375,31 @@ void WifiController::handleWebUi(const TerminalCommand&) {
 /*
 SSH
 */
-void WifiController::handleSsh(const TerminalCommand& cmd) {
+void WifiController::handleSsh(const TerminalCommand &cmd)
+{
     // Check connection
-    if (!wifiService.isConnected()) {
+    if (!wifiService.isConnected())
+    {
         terminalView.println("SSH: You must be connected to Wi-Fi. Use 'connect' first.");
         return;
     }
 
     // Check args
     auto args = argTransformer.splitArgs(cmd.getArgs());
-    if (cmd.getSubcommand().empty() || args.size() < 2) {
+    if (cmd.getSubcommand().empty() || args.size() < 2)
+    {
         terminalView.println("Usage: ssh <host> <user> <password> [port]");
         return;
     }
 
     // Check port
     int port = 22;
-    if (args.size() == 3) {
-        if (argTransformer.isValidNumber(args[2])) {
+    if (args.size() == 3)
+    {
+        if (argTransformer.isValidNumber(args[2]))
+        {
             port = argTransformer.parseHexOrDec16(args[2]);
-        } 
+        }
     }
 
     std::string host = cmd.getSubcommand();
@@ -333,12 +412,14 @@ void WifiController::handleSsh(const TerminalCommand& cmd) {
 
     // Wait 5sec for connection success
     unsigned long start = millis();
-    while (!sshService.isConnected() && millis() - start < 5000) {
+    while (!sshService.isConnected() && millis() - start < 5000)
+    {
         delay(500);
     }
 
     // Can't connect
-    if (!sshService.isConnected()) {
+    if (!sshService.isConnected())
+    {
         terminalView.println("\r\nSSH: Connection failed.");
         sshService.close();
         return;
@@ -346,15 +427,19 @@ void WifiController::handleSsh(const TerminalCommand& cmd) {
 
     // Connected, start the bridge loop
     terminalView.println("SSH: Connected. Shell started... Press [ANY ESP32 KEY] to stop.\n");
-    while (true) {
+    while (true)
+    {
         char terminalKey = terminalInput.readChar();
-        if (terminalKey != KEY_NONE) sshService.writeChar(terminalKey);
+        if (terminalKey != KEY_NONE)
+            sshService.writeChar(terminalKey);
 
         char deviceKey = deviceInput.readChar();
-        if (deviceKey != KEY_NONE) break;
+        if (deviceKey != KEY_NONE)
+            break;
 
         std::string output = sshService.readOutputNonBlocking();
-        if (!output.empty()) terminalView.print(output);
+        if (!output.empty())
+            terminalView.print(output);
 
         delay(10);
     }
@@ -364,10 +449,100 @@ void WifiController::handleSsh(const TerminalCommand& cmd) {
     terminalView.println("\r\n\nSSH: Session closed.");
 }
 
+void WifiController::handleNetcat(const TerminalCommand &cmd)
+{
+    // Check connection
+    if (!wifiService.isConnected())
+    {
+        terminalView.println("Netcat: You must be connected to Wi-Fi. Use 'connect' first.");
+        return;
+    }
+
+    // Check args
+    auto args = argTransformer.splitArgs(cmd.getArgs());
+    if (cmd.getSubcommand().empty() || args.size() < 1)
+    {
+        terminalView.println("Usage: nc <host> <port>");
+        return;
+    }
+
+    std::string host = cmd.getSubcommand();
+    std::string port_str = args[0];
+
+    // Check port
+    int port = 1;
+    if (argTransformer.isValidNumber(port_str))
+    {
+        port = argTransformer.parseHexOrDec16(port_str);
+    }
+    else
+    {
+        terminalView.println("Netcat: Invalid port number. Use a valid integer.");
+        return;
+    }
+
+    if (port < 1 || port > 65535)
+    {
+        terminalView.println("Netcat: Port must be between 1 and 65535.");
+        return;
+    }
+
+    // Connect, start the netcat task
+    terminalView.println("Netcat: Connecting to " + host + " with port " + port_str + "...");
+    netcatService.startTask(host, 0, port, true);
+
+    // Wait 5sec for connection success
+    unsigned long start = millis();
+    while (!netcatService.isConnected() && millis() - start < 5000)
+    {
+        delay(50);
+    }
+
+    // Can't connect
+    if (!netcatService.isConnected())
+    {
+        terminalView.println("\r\nNetcat: Connection failed.");
+        netcatService.close();
+        return;
+    }
+
+    // Connected, start the bridge loop
+    terminalView.println("Netcat: Connected. Shell started... Press [CTRL+C] or [ESC] to stop.\n");
+
+    while (true)
+    {
+        char terminalKey = terminalInput.readChar();
+        if (terminalKey == KEY_NONE){
+            continue;
+        }
+
+        netcatService.writeChar(terminalKey);
+        terminalView.print(std::string(1, terminalKey));        // local echo
+        if (terminalKey == 0x1B || terminalKey == 0x03) break;  // ESC or CTRL+C to exit
+        if (terminalKey == '\r' || terminalKey == '\n')
+            terminalView.println("");
+
+        std::string output = netcatService.readOutputNonBlocking();
+        if (!output.empty())
+            terminalView.print(output);
+
+        char deviceKey = deviceInput.readChar();
+        if (deviceKey != KEY_NONE)
+            break;
+
+        delay(10);
+    }
+
+    // Close Netcat
+    netcatService.close();
+    terminalView.println("\r\n\nNetcat: Session closed.");
+}
+
 /*
 Config
 */
-void WifiController::handleConfig() {
+void WifiController::handleConfig()
+{
     terminalView.println("[WARNING] If you're connected via Web CLI,");
     terminalView.println("          executing Wi-Fi commands may cause ");
     terminalView.println("          the terminal session to disconnect.");
@@ -377,7 +552,8 @@ void WifiController::handleConfig() {
 /*
 Help
 */
-void WifiController::handleHelp() {
+void WifiController::handleHelp()
+{
     terminalView.println("WiFi commands:");
     terminalView.println("  scan");
     terminalView.println("  ping <host>");
@@ -389,6 +565,7 @@ void WifiController::handleHelp() {
     terminalView.println("  disconnect");
     terminalView.println("  ap <ssid> <password>");
     terminalView.println("  ssh <host> <username> <password> [port]");
+    terminalView.println("  nc <host> <port>");
     terminalView.println("  webui");
     terminalView.println("  reset");
     terminalView.println("  deauth <ap> [bursts]");
@@ -397,8 +574,10 @@ void WifiController::handleHelp() {
 /*
 Ensure Configuration
 */
-void WifiController::ensureConfigured() {
-    if (!configured) {
+void WifiController::ensureConfigured()
+{
+    if (!configured)
+    {
         handleConfig();
         configured = true;
     }
@@ -407,16 +586,18 @@ void WifiController::ensureConfigured() {
 /*
 Deathenticate stations attack
 */
-void WifiController::handleDeauth(const TerminalCommand& cmd)
+void WifiController::handleDeauth(const TerminalCommand &cmd)
 {
     auto target = cmd.getSubcommand();
 
     // if the SSID have space in name, e.g "Router Wifi"
-    if (!cmd.getArgs().empty()) {
+    if (!cmd.getArgs().empty())
+    {
         target += " " + cmd.getArgs();
     }
-    
-    if (target.empty()) {
+
+    if (target.empty())
+    {
         terminalView.println("Usage: deauth <ssid>");
         return;
     }
@@ -425,6 +606,8 @@ void WifiController::handleDeauth(const TerminalCommand& cmd)
 
     bool ok = wifiService.deauthApBySsid(target);
 
-    if (ok) terminalView.println("WiFi: Deauth frames sent.");
-    else    terminalView.println("WiFi: SSID not found.");
+    if (ok)
+        terminalView.println("WiFi: Deauth frames sent.");
+    else
+        terminalView.println("WiFi: SSID not found.");
 }
