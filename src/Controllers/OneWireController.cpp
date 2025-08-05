@@ -105,7 +105,6 @@ void OneWireController::handleRead() {
     }
 }
 
-
 /*
 ID Read
 */
@@ -172,32 +171,37 @@ Write
 void OneWireController::handleWrite(const TerminalCommand& cmd) {
     std::string sub = cmd.getSubcommand();
 
-    if (sub == "id") {
-        std::vector<uint8_t> idBytes = argTransformer.parseByteList(cmd.getArgs());
+    if (sub == "id" || sub == "sp") {
+        std::vector<uint8_t> bytes;
 
-        if (idBytes.size() != 8) {
-            terminalView.println("OneWire Write: ID must be exactly 8 bytes.");
+        // Bytes are given in command line
+        if (!cmd.getArgs().empty()) {
+            bytes = argTransformer.parseByteList(cmd.getArgs());
+        } else {
+            // Interactive input if no arguments are given
+            std::string prompt = "Enter 8-byte (28 FF AA...) ";
+
+            std::string input = userInputManager.readValidatedHexString(prompt, 8, false);
+            bytes = argTransformer.parseHexList(input);
+        }
+
+        // Length check
+        if (bytes.size() != 8) {
+            terminalView.println("OneWire Write: Must be exactly 8 bytes.");
             return;
         }
 
-        handleIdWrite(idBytes);
-    }
-
-    else if (sub == "sp") {
-        std::vector<uint8_t> spBytes = argTransformer.parseByteList(cmd.getArgs());
-
-        if (spBytes.size() != 8) {
-            terminalView.println("OneWire Write: Scratchpad must be exactly 8 bytes.");
-            return;
+        if (sub == "id") {
+            handleIdWrite(bytes);
+        } else {
+            handleScratchpadWrite(bytes);
         }
-
-        handleScratchpadWrite(spBytes);
     }
 
     else {
         terminalView.println("OneWire Write: Invalid syntax. Use:");
-        terminalView.println("  write id <8 bytes>");
-        terminalView.println("  write sp <8 bytes>");
+        terminalView.println("  write id [8 bytes]");
+        terminalView.println("  write sp [8 bytes]");
     }
 }
 
@@ -555,8 +559,8 @@ void OneWireController::handleHelp() {
     terminalView.println("  ping");
     terminalView.println("  sniff");
     terminalView.println("  read");
-    terminalView.println("  write id <8 bytes>");
-    terminalView.println("  write sp <8 bytes>");
+    terminalView.println("  write id [8 bytes]");
+    terminalView.println("  write sp [8 bytes]");
     terminalView.println("  copy ibutton");
     terminalView.println("  temp");
     terminalView.println("  config");

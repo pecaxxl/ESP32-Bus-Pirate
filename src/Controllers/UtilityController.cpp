@@ -276,8 +276,8 @@ void UtilityController::handleHelp() {
     terminalView.println("  ping                 - Ping 1-Wire device");
     terminalView.println("  sniff                - View 1-Wire traffic");
     terminalView.println("  read                 - Read ID + SP");
-    terminalView.println("  write id <8 bytes>   - Write ibutton ID");
-    terminalView.println("  write sp <8 bytes>   - Write scratchpad");
+    terminalView.println("  write id [8 bytes]   - Write ibutton ID");
+    terminalView.println("  write sp [8 bytes]   - Write scratchpad");
     terminalView.println("  temp                 - Read temperature");
     terminalView.println("  copy ibutton         - Copy ibutton tag");
     terminalView.println("  config               - Configure settings");
