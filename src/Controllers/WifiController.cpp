@@ -13,62 +13,20 @@ void WifiController::handleCommand(const TerminalCommand &cmd)
 {
     const auto &root = cmd.getRoot();
 
-    if (root == "connect")
-    {
-        handleConnect(cmd);
-    }
-    else if (root == "disconnect")
-    {
-        handleDisconnect(cmd);
-    }
-    else if (root == "status")
-    {
-        handleStatus(cmd);
-    }
-    else if (root == "ap")
-    {
-        handleAp(cmd);
-    }
-    else if (root == "spoof")
-    {
-        handleSpoof(cmd);
-    }
-    else if (root == "scan")
-    {
-        handleScan(cmd);
-    }
-    else if (root == "ping")
-    {
-        handlePing(cmd);
-    }
-    else if (root == "sniff")
-    {
-        handleSniff(cmd);
-    }
-    else if (root == "webui")
-    {
-        handleWebUi(cmd);
-    }
-    else if (root == "ssh")
-    {
-        handleSsh(cmd);
-    }
-    else if (root == "nc")
-    {
-        handleNetcat(cmd);
-    }
-    else if (root == "reset")
-    {
-        handleReset();
-    }
-    else if (root == "deauth")
-    {
-        handleDeauth(cmd);
-    }
-    else
-    {
-        handleHelp();
-    }
+    if (root == "connect") handleConnect(cmd);
+    else if (root == "disconnect") handleDisconnect(cmd);
+    else if (root == "status") handleStatus(cmd);
+    else if (root == "ap") handleAp(cmd);
+    else if (root == "spoof") handleSpoof(cmd);
+    else if (root == "scan") handleScan(cmd);
+    else if (root == "ping") handlePing(cmd);
+    else if (root == "sniff") handleSniff(cmd);
+    else if (root == "webui") handleWebUi(cmd);
+    else if (root == "ssh") handleSsh(cmd);
+    else if (root == "nc") handleNetcat(cmd);
+    else if (root == "reset") handleReset();
+    else if (root == "deauth") handleDeauth(cmd);
+    else handleHelp();
 }
 
 /*
