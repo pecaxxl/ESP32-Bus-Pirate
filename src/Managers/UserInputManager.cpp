@@ -299,7 +299,7 @@ int UserInputManager::readValidatedChoiceIndex(const std::string& label, const s
 
     // Validate index
     int index;
-    if (!argTransformer.parseInt(input, index) || index < 1 || index >= (int)choices.size()) {
+    if (!argTransformer.parseInt(input, index) || index < 1 || index > (int)choices.size()) {
         terminalView.println("❌ Invalid choice. Using default.");
         return defaultIndex;
     }

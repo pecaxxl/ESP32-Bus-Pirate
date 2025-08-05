@@ -3,7 +3,7 @@
 SpiController::SpiController(ITerminalView& terminalView, IInput& terminalInput, 
                              SpiService& spiService, SdService& sdService, ArgTransformer& argTransformer,
                              UserInputManager& userInputManager, BinaryAnalyzeManager& binaryAnalyzeManager,
-                             SdCardManager& sdCardManager)
+                             SdCardShell& sdCardShell)
     : terminalView(terminalView),
       terminalInput(terminalInput),
       spiService(spiService),
@@ -11,7 +11,7 @@ SpiController::SpiController(ITerminalView& terminalView, IInput& terminalInput,
       argTransformer(argTransformer),
       userInputManager(userInputManager),
       binaryAnalyzeManager(binaryAnalyzeManager),
-      sdCardManager(sdCardManager)
+      sdCardShell(sdCardShell)
 {}
 
 /*
@@ -679,7 +679,7 @@ void SpiController::handleSdCard() {
     
     // SD Shell
     terminalView.println("SD Card: Mounted successfully. Loading...\n");
-    sdCardManager.runShell();
+    sdCardShell.run();
 
     // Reconfigure
     sdService.end();

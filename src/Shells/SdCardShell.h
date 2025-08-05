@@ -8,10 +8,10 @@
 #include "Transformers/ArgTransformer.h"
 #include "Managers/CommandHistoryManager.h"
 
-class SdCardManager {
+class SdCardShell {
 public:
-    SdCardManager(SdService& sdService, ITerminalView& view, IInput& input,  ArgTransformer& argTransformer);
-    void runShell();
+    SdCardShell(SdService& sdService, ITerminalView& view, IInput& input,  ArgTransformer& argTransformer);
+    void run();
 
 private:
     SdService& sd;

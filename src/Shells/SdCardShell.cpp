@@ -1,9 +1,9 @@
-#include "SdCardManager.h"
+#include "SdCardShell.h"
 
-SdCardManager::SdCardManager(SdService& sdService, ITerminalView& view, IInput& input, ArgTransformer& argTransformer)
+SdCardShell::SdCardShell(SdService& sdService, ITerminalView& view, IInput& input, ArgTransformer& argTransformer)
     : sd(sdService), terminalView(view), terminalInput(input), currentDir("/"), argTransformer(argTransformer) {}
 
-void SdCardManager::runShell() {
+void SdCardShell::run() {
     terminalView.println("- SD Shell: Type 'help' for commands. Type 'exit' to quit.");
 
     while (true) {
@@ -19,7 +19,7 @@ void SdCardManager::runShell() {
     terminalView.println("- Exiting SD shell.\n");
 }
 
-void SdCardManager::executeCommand(const std::string& input) {
+void SdCardShell::executeCommand(const std::string& input) {
     std::istringstream iss(input);
     std::string cmd;
     iss >> cmd;
@@ -35,7 +35,7 @@ void SdCardManager::executeCommand(const std::string& input) {
     else terminalView.println("Unknown command: " + cmd);
 }
 
-void SdCardManager::cmdLs() {
+void SdCardShell::cmdLs() {
     auto files = sd.listElementsCached(currentDir);
 
     for (const auto& f : files) {
@@ -76,7 +76,7 @@ void SdCardManager::cmdLs() {
     }
 }
 
-void SdCardManager::cmdCd(std::istringstream& iss) {
+void SdCardShell::cmdCd(std::istringstream& iss) {
     std::string arg;
     iss >> arg;
 
@@ -100,7 +100,7 @@ void SdCardManager::cmdCd(std::istringstream& iss) {
     }
 }
 
-void SdCardManager::cmdMkdir(std::istringstream& iss) {
+void SdCardShell::cmdMkdir(std::istringstream& iss) {
     std::string name;
     iss >> name;
     if (name.empty()) {
@@ -115,7 +115,7 @@ void SdCardManager::cmdMkdir(std::istringstream& iss) {
     else terminalView.println("Failed to create directory.");
 }
 
-void SdCardManager::cmdTouch(std::istringstream& iss) {
+void SdCardShell::cmdTouch(std::istringstream& iss) {
     std::string name;
     iss >> name;
     if (name.empty()) {
@@ -130,7 +130,7 @@ void SdCardManager::cmdTouch(std::istringstream& iss) {
     else terminalView.println("Failed to create file.");
 }
 
-void SdCardManager::cmdRm(std::istringstream& iss) {
+void SdCardShell::cmdRm(std::istringstream& iss) {
     std::string name;
     iss >> name;
     if (name.empty()) {
@@ -155,7 +155,7 @@ void SdCardManager::cmdRm(std::istringstream& iss) {
     }
 }
 
-void SdCardManager::cmdHelp() {
+void SdCardShell::cmdHelp() {
     terminalView.println(" Available commands:");
     terminalView.println("  ls                : List files in the directory");
     terminalView.println("  cd <dir>          : Change directory");
@@ -169,7 +169,7 @@ void SdCardManager::cmdHelp() {
     terminalView.println("  exit              : Exit SD shell");
 }
 
-void SdCardManager::cmdCat(std::istringstream& iss) {
+void SdCardShell::cmdCat(std::istringstream& iss) {
     constexpr size_t MAX_DISPLAY_CHARS = 4096;
 
     std::string filename;
@@ -195,7 +195,7 @@ void SdCardManager::cmdCat(std::istringstream& iss) {
     }
 }
 
-void SdCardManager::cmdEcho(std::istringstream& iss) {
+void SdCardShell::cmdEcho(std::istringstream& iss) {
     std::vector<std::string> tokens;
     std::string word;
 
@@ -249,7 +249,7 @@ void SdCardManager::cmdEcho(std::istringstream& iss) {
     }
 }
 
-std::string SdCardManager::readLine() {
+std::string SdCardShell::readLine() {
     std::string line;
     size_t cursorIndex = 0;
 
@@ -319,7 +319,7 @@ std::string SdCardManager::readLine() {
     }
 }
 
-std::string SdCardManager::normalizePath(const std::string& path) {
+std::string SdCardShell::normalizePath(const std::string& path) {
     std::vector<std::string> parts;
     std::istringstream ss(path);
     std::string token;
@@ -342,7 +342,7 @@ std::string SdCardManager::normalizePath(const std::string& path) {
     return result;
 }
 
-std::string SdCardManager::resolveRelativePath(const std::string& base, const std::string& arg) {
+std::string SdCardShell::resolveRelativePath(const std::string& base, const std::string& arg) {
     std::string combined = base;
     if (!combined.empty() && combined.back() != '/') {
         combined += '/';

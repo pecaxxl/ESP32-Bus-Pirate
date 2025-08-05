@@ -12,14 +12,14 @@
 #include "Transformers/ArgTransformer.h"
 #include "Managers/UserInputManager.h"
 #include "Managers/BinaryAnalyzeManager.h"
-#include "Managers/SdCardManager.h"
+#include "Shells/SdCardShell.h"
 #include "States/GlobalState.h"
 #include "Data/FlashDatabase.h"
 
 class SpiController {
 public:
     // Constructor
-    SpiController(ITerminalView& terminalView, IInput& terminalInput, SpiService& spiService, SdService& sdService, ArgTransformer& argTransformer, UserInputManager& userInputManager, BinaryAnalyzeManager& binaryAnalyzeManager, SdCardManager& sdCardManager); 
+    SpiController(ITerminalView& terminalView, IInput& terminalInput, SpiService& spiService, SdService& sdService, ArgTransformer& argTransformer, UserInputManager& userInputManager, BinaryAnalyzeManager& binaryAnalyzeManager, SdCardShell& sdCardShell); 
 
     // Entry point for handle raw user command
     void handleCommand(const TerminalCommand& cmd);
@@ -38,7 +38,7 @@ private:
     ArgTransformer& argTransformer;
     UserInputManager& userInputManager;
     BinaryAnalyzeManager& binaryAnalyzeManager;
-    SdCardManager& sdCardManager;
+    SdCardShell& sdCardShell;
     GlobalState& state = GlobalState::getInstance();
     bool configured = false;
 
