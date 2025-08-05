@@ -33,16 +33,17 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       commandHistoryManager(),
       binaryAnalyzeManager(spiService, terminalView, terminalInput),
       userInputManager(terminalView, terminalInput, argTransformer),
-      sdCardManager(sdService, terminalView, terminalInput, argTransformer),
+      sdCardShell(sdService, terminalView, terminalInput, argTransformer),
+      universalRemoteShell(terminalView, terminalInput, infraredService, argTransformer, userInputManager),
       horizontalSelector(deviceView, deviceInput),
       terminalTypeConfigurator(horizontalSelector),
       uartController(terminalView, terminalInput, deviceInput, uartService, sdService, hdUartService, argTransformer, userInputManager),
       i2cController(terminalView, terminalInput, i2cService, argTransformer, userInputManager),
       oneWireController(terminalView, terminalInput, oneWireService, argTransformer, userInputManager),
-      infraredController(terminalView, terminalInput, infraredService, argTransformer, userInputManager),
+      infraredController(terminalView, terminalInput, infraredService, argTransformer, userInputManager, universalRemoteShell),
       utilityController(terminalView, deviceView, terminalInput, pinService, userInputManager, argTransformer),
       hdUartController(terminalView, terminalInput, deviceInput, hdUartService, uartService, argTransformer, userInputManager),
-      spiController(terminalView, terminalInput, spiService, sdService, argTransformer, userInputManager, binaryAnalyzeManager, sdCardManager),
+      spiController(terminalView, terminalInput, spiService, sdService, argTransformer, userInputManager, binaryAnalyzeManager, sdCardShell),
       jtagController(terminalView, terminalInput, jtagService, userInputManager),
       twoWireController(terminalView, terminalInput, userInputManager, twoWireService),
       threeWireController(terminalView, terminalInput, userInputManager, threeWireService, argTransformer),
@@ -112,7 +113,10 @@ WebRequestTransformer &DependencyProvider::getWebRequestTransformer() { return w
 CommandHistoryManager &DependencyProvider::getCommandHistoryManager() { return commandHistoryManager; }
 UserInputManager &DependencyProvider::getUserInputManager() { return userInputManager; }
 BinaryAnalyzeManager &DependencyProvider::getBinaryAnalyzeManager() { return binaryAnalyzeManager; }
-SdCardManager &DependencyProvider::getSdCardManager() { return sdCardManager; }
+
+// Shells
+SdCardShell &DependencyProvider::getSdCardShell() { return sdCardShell; }
+UniversalRemoteShell &DependencyProvider::getUniversalRemoteShell() { return universalRemoteShell; }
 
 // Selectors
 HorizontalSelector &DependencyProvider::getHorizontalSelector() { return horizontalSelector; }
