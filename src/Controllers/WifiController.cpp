@@ -407,6 +407,9 @@ void WifiController::handleSsh(const TerminalCommand &cmd)
     terminalView.println("\r\n\nSSH: Session closed.");
 }
 
+/*
+Netcat
+*/
 void WifiController::handleNetcat(const TerminalCommand &cmd)
 {
     // Check connection
@@ -489,8 +492,6 @@ void WifiController::handleNetcat(const TerminalCommand &cmd)
         if (!output.empty())
             terminalView.print(output);
 
-
-
         delay(10);
     }
 
@@ -529,7 +530,7 @@ void WifiController::handleHelp()
     terminalView.println("  nc <host> <port>");
     terminalView.println("  webui");
     terminalView.println("  reset");
-    terminalView.println("  deauth <ap> [bursts]");
+    terminalView.println("  deauth <ssid>");
 }
 
 /*
