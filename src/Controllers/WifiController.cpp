@@ -13,62 +13,20 @@ void WifiController::handleCommand(const TerminalCommand &cmd)
 {
     const auto &root = cmd.getRoot();
 
-    if (root == "connect")
-    {
-        handleConnect(cmd);
-    }
-    else if (root == "disconnect")
-    {
-        handleDisconnect(cmd);
-    }
-    else if (root == "status")
-    {
-        handleStatus(cmd);
-    }
-    else if (root == "ap")
-    {
-        handleAp(cmd);
-    }
-    else if (root == "spoof")
-    {
-        handleSpoof(cmd);
-    }
-    else if (root == "scan")
-    {
-        handleScan(cmd);
-    }
-    else if (root == "ping")
-    {
-        handlePing(cmd);
-    }
-    else if (root == "sniff")
-    {
-        handleSniff(cmd);
-    }
-    else if (root == "webui")
-    {
-        handleWebUi(cmd);
-    }
-    else if (root == "ssh")
-    {
-        handleSsh(cmd);
-    }
-    else if (root == "nc")
-    {
-        handleNetcat(cmd);
-    }
-    else if (root == "reset")
-    {
-        handleReset();
-    }
-    else if (root == "deauth")
-    {
-        handleDeauth(cmd);
-    }
-    else
-    {
-        handleHelp();
-    }
+    if (root == "connect") handleConnect(cmd);
+    else if (root == "disconnect") handleDisconnect(cmd);
+    else if (root == "status") handleStatus(cmd);
+    else if (root == "ap") handleAp(cmd);
+    else if (root == "spoof") handleSpoof(cmd);
+    else if (root == "scan") handleScan(cmd);
+    else if (root == "ping") handlePing(cmd);
+    else if (root == "sniff") handleSniff(cmd);
+    else if (root == "webui") handleWebUi(cmd);
+    else if (root == "ssh") handleSsh(cmd);
+    else if (root == "nc") handleNetcat(cmd);
+    else if (root == "reset") handleReset();
+    else if (root == "deauth") handleDeauth(cmd);
+    else handleHelp();
 }
 
 /*
@@ -507,10 +465,15 @@ void WifiController::handleNetcat(const TerminalCommand &cmd)
     }
 
     // Connected, start the bridge loop
-    terminalView.println("Netcat: Connected. Shell started... Press [CTRL+C] or [ESC] to stop.\n");
+    terminalView.println("Netcat: Connected. Shell started...\n");
+    terminalView.println("Press [CTRL+C],[ESC] or [ANY ESP32 BUTTON] to stop.\n");
 
     while (true)
     {
+        char deviceKey = deviceInput.readChar();
+        if (deviceKey != KEY_NONE)
+            break;
+
         char terminalKey = terminalInput.readChar();
         if (terminalKey == KEY_NONE){
             continue;
@@ -526,9 +489,7 @@ void WifiController::handleNetcat(const TerminalCommand &cmd)
         if (!output.empty())
             terminalView.print(output);
 
-        char deviceKey = deviceInput.readChar();
-        if (deviceKey != KEY_NONE)
-            break;
+
 
         delay(10);
     }
