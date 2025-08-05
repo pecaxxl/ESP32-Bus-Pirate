@@ -1,35 +1,35 @@
 #include "InfraredController.h"
 
-InfraredController::InfraredController(ITerminalView& view, IInput& terminalInput, InfraredService& service, ArgTransformer& argTransformer, UserInputManager& userInputManager)
-    : terminalView(view), terminalInput(terminalInput), infraredService(service), argTransformer(argTransformer), userInputManager(userInputManager) {}
+/*
+Constructor
+*/
+InfraredController::InfraredController(
+    ITerminalView&           view,
+    IInput&                  terminalInput,
+    InfraredService&         service,
+    ArgTransformer&          argTransformer,
+    UserInputManager&        userInputManager,
+    UniversalRemoteShell&    universalRemoteShell
+)
+    : terminalView(view),
+      terminalInput(terminalInput),
+      infraredService(service),
+      argTransformer(argTransformer),
+      userInputManager(userInputManager),
+      universalRemoteShell(universalRemoteShell)
+{}
 
 /*
 Entry point to handle Infrared command
 */
 void InfraredController::handleCommand(const TerminalCommand& command) {
-    if (command.getRoot() == "config") {
-        handleConfig();
-    } 
-
-    else if (command.getRoot() == "send") {
-        handleSend(command);
-    } 
-
-    else if (command.getRoot() == "receive") {
-        handleReceive();
-    } 
-
-    else if (command.getRoot() == "devicebgone") {
-        handleDeviceBgone();
-    }
-
-    else if (command.getRoot() == "setprotocol") {
-        handleSetProtocol();
-    }
-
-    else {
-        handleHelp();
-    }
+    if (command.getRoot() == "config")            handleConfig();
+    else if (command.getRoot() == "send")         handleSend(command);
+    else if (command.getRoot() == "receive")      handleReceive();
+    else if (command.getRoot() == "devicebgone")  handleDeviceBgone();
+    else if (command.getRoot() == "remote")       handleRemote();
+    else if (command.getRoot() == "setprotocol")  handleSetProtocol();
+    else handleHelp();
 }
 
 /*
@@ -62,7 +62,7 @@ void InfraredController::handleSend(const TerminalCommand& command) {
 
     for (int i = 0; i < 3; ++i) {
         infraredService.sendInfraredCommand(infraredCommand);
-        delay(150);
+        delay(100);
     }
 
     terminalView.println("IR command sent with protocol " + InfraredProtocolMapper::toString(state.getInfraredProtocol()));
@@ -116,7 +116,7 @@ void InfraredController::handleDeviceBgone() {
 
         for (int i = 0; i < 2; ++i) { // send 2x per command
             infraredService.sendInfraredCommand(cmd);
-            delay(150);
+            delay(100);
         }
 
         terminalView.println(
@@ -128,6 +128,13 @@ void InfraredController::handleDeviceBgone() {
     }
 
     terminalView.println("Device-B-Gone sequence completed.");
+}
+
+/*
+Universal Remote
+*/
+void InfraredController::handleRemote() {
+    universalRemoteShell.run();
 }
 
 /*
@@ -219,6 +226,7 @@ void InfraredController::handleHelp() {
     terminalView.println("  receive");
     terminalView.println("  setprotocol");
     terminalView.println("  devicebgone");
+    terminalView.println("  remote");
     terminalView.println("  config");
 }
 

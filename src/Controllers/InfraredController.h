@@ -13,13 +13,14 @@
 #include "Transformers/ArgTransformer.h"
 #include "Managers/UserInputManager.h"
 #include "States/GlobalState.h"
+#include "Shells/UniversalRemoteShell.h"
 
 class InfraredController {
 public:
     // Constructor
     InfraredController(ITerminalView& view, IInput& terminalInput, 
                        InfraredService& service, ArgTransformer& ArgTransformer,
-                       UserInputManager& userInputManager);
+                       UserInputManager& userInputManager, UniversalRemoteShell& universalRemoteShell);
 
     // Entry point for Infraredcommand dispatch
     void handleCommand(const TerminalCommand& command);
@@ -34,6 +35,7 @@ private:
     GlobalState& state = GlobalState::getInstance();
     ArgTransformer& argTransformer;
     UserInputManager& userInputManager;
+    UniversalRemoteShell& universalRemoteShell;
     bool configured = false;
 
     // Configure IR settings
@@ -50,6 +52,9 @@ private:
 
     // Set IR protocol
     void handleSetProtocol();
+
+    // Universal remote shell
+    void handleRemote();
 
     // Show help text
     void handleHelp();
