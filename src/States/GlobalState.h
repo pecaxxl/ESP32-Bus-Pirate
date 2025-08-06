@@ -391,6 +391,9 @@ public:
         #ifdef TWOWIRE_IO_PIN
             twoWireIoPin = TWOWIRE_IO_PIN;
         #endif
+        #ifdef TWOWIRE_RST_PIN
+            twoWireRstPin = TWOWIRE_RST_PIN;
+        #endif
         #ifdef THREEWIRE_CS_PIN
             threeWireCsPin = THREEWIRE_CS_PIN;
         #endif
