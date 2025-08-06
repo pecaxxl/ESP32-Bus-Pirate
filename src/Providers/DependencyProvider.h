@@ -57,6 +57,7 @@ and injecting shared instances of core components
 #include "Shells/UniversalRemoteShell.h"
 #include "Shells/I2cEepromShell.h"
 #include "Shells/SpiFlashShell.h"
+#include "Shells/SmartCardShell.h"
 #include "Config/TerminalTypeConfigurator.h"
 
 class DependencyProvider
@@ -131,6 +132,7 @@ public:
     UniversalRemoteShell &getUniversalRemoteShell();
     I2cEepromShell &getI2cEepromShell();
     SpiFlashShell &getSpiFlashShell();
+    SmartCardShell &getSmartCardShell();
 
     // Selectors
     HorizontalSelector &getHorizontalSelector();
@@ -205,6 +207,7 @@ private:
     UniversalRemoteShell universalRemoteShell;
     I2cEepromShell i2cEepromShell;
     SpiFlashShell spiFlashShell;
+    SmartCardShell smartCardShell;
     
     // Selectors
     HorizontalSelector horizontalSelector;
