@@ -38,6 +38,7 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       smartCardShell(twoWireService, terminalView, terminalInput, argTransformer, userInputManager),
       universalRemoteShell(terminalView, terminalInput, infraredService, argTransformer, userInputManager),
       i2cEepromShell(terminalView, terminalInput, i2cService, argTransformer, userInputManager, binaryAnalyzeManager),
+      threeWireEepromShell(terminalView, terminalInput, userInputManager, threeWireService, argTransformer),
       horizontalSelector(deviceView, deviceInput),
       terminalTypeConfigurator(horizontalSelector),
       uartController(terminalView, terminalInput, deviceInput, uartService, sdService, hdUartService, argTransformer, userInputManager),
@@ -49,7 +50,7 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       spiController(terminalView, terminalInput, spiService, sdService, argTransformer, userInputManager, binaryAnalyzeManager, sdCardShell, spiFlashShell),
       jtagController(terminalView, terminalInput, jtagService, userInputManager),
       twoWireController(terminalView, terminalInput, userInputManager, twoWireService, smartCardShell),
-      threeWireController(terminalView, terminalInput, userInputManager, threeWireService, argTransformer),
+      threeWireController(terminalView, terminalInput, userInputManager, threeWireService, argTransformer, threeWireEepromShell),
       dioController(terminalView, terminalInput, pinService, argTransformer),
       ledController(terminalView, terminalInput, ledService, argTransformer, userInputManager),
       bluetoothController(terminalView, terminalInput, bluetoothService, argTransformer),
@@ -122,6 +123,7 @@ SdCardShell &DependencyProvider::getSdCardShell() { return sdCardShell; }
 UniversalRemoteShell &DependencyProvider::getUniversalRemoteShell() { return universalRemoteShell; }
 I2cEepromShell &DependencyProvider::getI2cEepromShell() { return i2cEepromShell; }
 SpiFlashShell &DependencyProvider::getSpiFlashShell() { return spiFlashShell; }
+SmartCardShell &DependencyProvider::getSmartCardShell() { return smartCardShell; }
 
 // Selectors
 HorizontalSelector &DependencyProvider::getHorizontalSelector() { return horizontalSelector; }

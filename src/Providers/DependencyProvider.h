@@ -58,6 +58,7 @@ and injecting shared instances of core components
 #include "Shells/I2cEepromShell.h"
 #include "Shells/SpiFlashShell.h"
 #include "Shells/SmartCardShell.h"
+#include "Shells/ThreeWireEepromShell.h"
 #include "Config/TerminalTypeConfigurator.h"
 
 class DependencyProvider
@@ -133,6 +134,7 @@ public:
     I2cEepromShell &getI2cEepromShell();
     SpiFlashShell &getSpiFlashShell();
     SmartCardShell &getSmartCardShell();
+    ThreeWireEepromShell &getThreeWireEepromShell();
 
     // Selectors
     HorizontalSelector &getHorizontalSelector();
@@ -208,6 +210,7 @@ private:
     I2cEepromShell i2cEepromShell;
     SpiFlashShell spiFlashShell;
     SmartCardShell smartCardShell;
+    ThreeWireEepromShell threeWireEepromShell;
     
     // Selectors
     HorizontalSelector horizontalSelector;
