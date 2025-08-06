@@ -55,6 +55,7 @@ and injecting shared instances of core components
 #include "Managers/UserInputManager.h"
 #include "Shells/SdCardShell.h"
 #include "Shells/UniversalRemoteShell.h"
+#include "Shells/I2cEepromShell.h"
 #include "Config/TerminalTypeConfigurator.h"
 
 class DependencyProvider
@@ -127,6 +128,7 @@ public:
     // Shells
     SdCardShell &getSdCardShell();
     UniversalRemoteShell &getUniversalRemoteShell();
+    I2cEepromShell &getI2cEepromShell();
 
     // Selectors
     HorizontalSelector &getHorizontalSelector();
@@ -199,6 +201,7 @@ private:
     // Shells
     SdCardShell sdCardShell;
     UniversalRemoteShell universalRemoteShell;
+    I2cEepromShell i2cEepromShell;
 
     // Selectors
     HorizontalSelector horizontalSelector;

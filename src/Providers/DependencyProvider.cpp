@@ -31,14 +31,15 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       argTransformer(),
       webRequestTransformer(),
       commandHistoryManager(),
-      binaryAnalyzeManager(spiService, terminalView, terminalInput),
+      binaryAnalyzeManager(terminalView, terminalInput),
       userInputManager(terminalView, terminalInput, argTransformer),
       sdCardShell(sdService, terminalView, terminalInput, argTransformer),
       universalRemoteShell(terminalView, terminalInput, infraredService, argTransformer, userInputManager),
+      i2cEepromShell(terminalView, terminalInput, i2cService, argTransformer, userInputManager, binaryAnalyzeManager),
       horizontalSelector(deviceView, deviceInput),
       terminalTypeConfigurator(horizontalSelector),
       uartController(terminalView, terminalInput, deviceInput, uartService, sdService, hdUartService, argTransformer, userInputManager),
-      i2cController(terminalView, terminalInput, i2cService, argTransformer, userInputManager),
+      i2cController(terminalView, terminalInput, i2cService, argTransformer, userInputManager, i2cEepromShell),
       oneWireController(terminalView, terminalInput, oneWireService, argTransformer, userInputManager),
       infraredController(terminalView, terminalInput, infraredService, argTransformer, userInputManager, universalRemoteShell),
       utilityController(terminalView, deviceView, terminalInput, pinService, userInputManager, argTransformer),
@@ -117,6 +118,7 @@ BinaryAnalyzeManager &DependencyProvider::getBinaryAnalyzeManager() { return bin
 // Shells
 SdCardShell &DependencyProvider::getSdCardShell() { return sdCardShell; }
 UniversalRemoteShell &DependencyProvider::getUniversalRemoteShell() { return universalRemoteShell; }
+I2cEepromShell &DependencyProvider::getI2cEepromShell() { return i2cEepromShell; }
 
 // Selectors
 HorizontalSelector &DependencyProvider::getHorizontalSelector() { return horizontalSelector; }
