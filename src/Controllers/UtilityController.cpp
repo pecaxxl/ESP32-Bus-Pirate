@@ -276,7 +276,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  ping                 - Ping 1-Wire device");
     terminalView.println("  sniff                - View 1-Wire traffic");
     terminalView.println("  read                 - Read ID + SP");
-    terminalView.println("  write id [8 bytes]   - Write ibutton ID");
+    terminalView.println("  write id [8 bytes]   - Write device ID");
     terminalView.println("  write sp [8 bytes]   - Write scratchpad");
     terminalView.println("  temp                 - Read temperature");
     terminalView.println("  ibutton              - iButton operations");
@@ -314,7 +314,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  dump <addr> [len]    - Read all registers");
     terminalView.println("  glitch <addr>        - Run attack sequence");
     terminalView.println("  flood <addr>         - Saturate target I/O");
-    terminalView.println("  eeprom [addr]        - EEPROM operations");
+    terminalView.println("  eeprom [addr]        - I2C EEPROM operations");
     terminalView.println("  recover              - Attempt bus recovery");
     terminalView.println("  config               - Configure settings");
     terminalView.println("  [0x13 0x4B 0x1]      - Instruction syntax");
@@ -324,7 +324,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  sniff                - View traffic");
     terminalView.println("  sdcard               - SD operations");
     terminalView.println("  slave                - Emulate SPI slave");
-    terminalView.println("  flash                - Flash operations");
+    terminalView.println("  flash                - SPI Flash operations");
     terminalView.println("  config               - Configure settings");
     terminalView.println("  [0x9F r:3]           - Instruction syntax");
 
@@ -337,7 +337,7 @@ void UtilityController::handleHelp() {
 
     terminalView.println("");
     terminalView.println(" 8. 3WIRE:");
-    terminalView.println("  eeprom               - EEPROM operations");
+    terminalView.println("  eeprom               - 3WIRE EEPROM operations");
     terminalView.println("  config               - Configure settings");
 
     terminalView.println("");
