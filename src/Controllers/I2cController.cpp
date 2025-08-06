@@ -2,8 +2,8 @@
 
 I2cController::I2cController(ITerminalView& terminalView, IInput& terminalInput, 
                              I2cService& i2cService, ArgTransformer& argTransformer, 
-                             UserInputManager& userInputManager)
-    : terminalView(terminalView), terminalInput(terminalInput), i2cService(i2cService), argTransformer(argTransformer), userInputManager(userInputManager) {}
+                             UserInputManager& userInputManager, I2cEepromShell& eepromShell)
+    : terminalView(terminalView), terminalInput(terminalInput), i2cService(i2cService), argTransformer(argTransformer), userInputManager(userInputManager), eepromShell(eepromShell) {}
 
 /*
 Entry point to handle I2C command
@@ -18,6 +18,7 @@ void I2cController::handleCommand(const TerminalCommand& cmd) {
     else if (cmd.getRoot() == "slave") handleSlave(cmd);
     else if (cmd.getRoot() == "glitch") handleGlitch(cmd);
     else if (cmd.getRoot() == "flood") handleFlood(cmd);
+    else if (cmd.getRoot() == "eeprom") handleEeprom(cmd);
     else if (cmd.getRoot() == "recover") handleRecover();
     else if (cmd.getRoot() == "config") handleConfig();
     else handleHelp();
@@ -619,6 +620,32 @@ void I2cController::handleFlood(const TerminalCommand& cmd) {
 }
 
 /*
+EEPROM
+*/
+void I2cController::handleEeprom(const TerminalCommand& cmd) {
+    uint8_t addr = 0x50; // Default EEPROM I2C address
+
+    auto sub = cmd.getSubcommand();
+    if (!sub.empty()) {
+        if (!argTransformer.isValidNumber(sub)) {
+            terminalView.println("Usage: eeprom [addr]");
+            return;
+        }
+
+        auto parsed = argTransformer.parseHexOrDec(sub);
+        if (parsed < 0x03 || parsed > 0x77) { // plage valide I2C 7-bit
+            terminalView.println("❌ Invalid I2C address. Must be between 0x03 and 0x77.");
+            return;
+        }
+
+        addr = parsed;
+    }
+
+    eepromShell.run(addr);
+    ensureConfigured();
+}
+
+/*
 Help
 */
 void I2cController::handleHelp() {
@@ -633,6 +660,7 @@ void I2cController::handleHelp() {
     terminalView.println("  glitch <addr>");
     terminalView.println("  flood <addr>");
     terminalView.println("  recover");
+    terminalView.println("  eeprom");
     terminalView.println("  config");
     terminalView.println("  raw instructions, e.g: [0x13 0x4B r:8]");
 }

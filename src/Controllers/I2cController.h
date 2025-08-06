@@ -12,13 +12,14 @@
 #include "Transformers/ArgTransformer.h"
 #include "Managers/UserInputManager.h"
 #include "Vendors/i2c_sniffer.h"
+#include "Shells/I2cEepromShell.h"
 
 struct I2cSniffState;
 
 class I2cController {
 public:
     // Constructor
-    I2cController(ITerminalView& terminalView, IInput& terminalInput, I2cService& i2cService, ArgTransformer& argTransformer, UserInputManager& userInputManager);
+    I2cController(ITerminalView& terminalView, IInput& terminalInput, I2cService& i2cService, ArgTransformer& argTransformer, UserInputManager& userInputManager, I2cEepromShell& eepromShell);
 
     // Entry point for I2C command
     void handleCommand(const TerminalCommand& cmd);
@@ -36,6 +37,7 @@ private:
     ArgTransformer& argTransformer;
     UserInputManager& userInputManager;
     GlobalState& state = GlobalState::getInstance();
+    I2cEepromShell& eepromShell;
     bool configured = false;
     
     // Ping an I2C address
@@ -64,6 +66,9 @@ private:
 
     // Configure I2C parameters
     void handleConfig();
+
+    // I2C EEPROM operations
+    void handleEeprom(const TerminalCommand& cmd);
 
     // Show I2C help message
     void handleHelp();
