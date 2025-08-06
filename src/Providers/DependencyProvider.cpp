@@ -34,6 +34,7 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       binaryAnalyzeManager(terminalView, terminalInput),
       userInputManager(terminalView, terminalInput, argTransformer),
       sdCardShell(sdService, terminalView, terminalInput, argTransformer),
+      spiFlashShell(spiService, terminalView, terminalInput, argTransformer, userInputManager, binaryAnalyzeManager),
       universalRemoteShell(terminalView, terminalInput, infraredService, argTransformer, userInputManager),
       i2cEepromShell(terminalView, terminalInput, i2cService, argTransformer, userInputManager, binaryAnalyzeManager),
       horizontalSelector(deviceView, deviceInput),
@@ -44,7 +45,7 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       infraredController(terminalView, terminalInput, infraredService, argTransformer, userInputManager, universalRemoteShell),
       utilityController(terminalView, deviceView, terminalInput, pinService, userInputManager, argTransformer),
       hdUartController(terminalView, terminalInput, deviceInput, hdUartService, uartService, argTransformer, userInputManager),
-      spiController(terminalView, terminalInput, spiService, sdService, argTransformer, userInputManager, binaryAnalyzeManager, sdCardShell),
+      spiController(terminalView, terminalInput, spiService, sdService, argTransformer, userInputManager, binaryAnalyzeManager, sdCardShell, spiFlashShell),
       jtagController(terminalView, terminalInput, jtagService, userInputManager),
       twoWireController(terminalView, terminalInput, userInputManager, twoWireService),
       threeWireController(terminalView, terminalInput, userInputManager, threeWireService, argTransformer),
@@ -119,6 +120,7 @@ BinaryAnalyzeManager &DependencyProvider::getBinaryAnalyzeManager() { return bin
 SdCardShell &DependencyProvider::getSdCardShell() { return sdCardShell; }
 UniversalRemoteShell &DependencyProvider::getUniversalRemoteShell() { return universalRemoteShell; }
 I2cEepromShell &DependencyProvider::getI2cEepromShell() { return i2cEepromShell; }
+SpiFlashShell &DependencyProvider::getSpiFlashShell() { return spiFlashShell; }
 
 // Selectors
 HorizontalSelector &DependencyProvider::getHorizontalSelector() { return horizontalSelector; }
