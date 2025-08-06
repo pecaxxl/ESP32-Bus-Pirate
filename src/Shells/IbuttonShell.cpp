@@ -23,7 +23,7 @@ void IbuttonShell::run() {
     };
 
     while (true) {
-        terminalView.println("\n=== iButton Shell ===");
+        terminalView.println("\n=== iButton RW1990 Shell ===");
         int index = userInputManager.readValidatedChoiceIndex("Select an action", actions, 0);
 
         if (index == -1 || actions[index] == "🚪 Exit Shell") {
@@ -145,7 +145,7 @@ void IbuttonShell::cmdCopyId() {
     uint8_t id[8];
     oneWireService.write(0x33);  // Read ROM
     oneWireService.readBytes(id, 8);
-    std::vector<uint8_t> idVec(id, id + 8);  // ✅ ID sécurisé dans un vecteur
+    std::vector<uint8_t> idVec(id, id + 8); 
 
     // Print ID
     std::ostringstream oss;
