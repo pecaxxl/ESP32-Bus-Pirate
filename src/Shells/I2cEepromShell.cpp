@@ -15,8 +15,8 @@ I2cEepromShell::I2cEepromShell(
     binaryAnalyzeManager(binaryAnalyzeManager) {}
 
 void I2cEepromShell::run(uint8_t addr) {
-    terminalView.println("I2C EEPROM Shell started...\n");
-    
+    terminalView.println("\n=== I2C EEPROM Shell ===");
+
     // Select EEPROM model
     int selectedModelIndex = userInputManager.readValidatedChoiceIndex("Select EEPROM type", models, 0);
     if (selectedModelIndex < 0) {
