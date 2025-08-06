@@ -1,7 +1,5 @@
 #pragma once
 
-// Placeholder implementation for SPI controller
-
 #include <vector>
 #include "Interfaces/ITerminalView.h"
 #include "Services/SpiService.h" 

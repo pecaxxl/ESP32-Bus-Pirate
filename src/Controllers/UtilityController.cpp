@@ -331,14 +331,7 @@ void UtilityController::handleHelp() {
     terminalView.println("");
     terminalView.println(" 7. 2WIRE:");
     terminalView.println("  sniff                - View traffic [NYI]");
-    terminalView.println("  smartcard probe      - Detect and decode ATR");
-    terminalView.println("  smartcard security   - Show security memory");
-    terminalView.println("  smartcard dump       - Dump full memory");
-    terminalView.println("  smartcard psc [get]  - Read current PSC (PIN Code)");
-    terminalView.println("  smartcard psc set    - Set a new PSC (PIN Code)");
-    terminalView.println("  smartcard unlock     - Unlock card with PIN Code");
-    terminalView.println("  smartcard write      - Write to main memory");
-    terminalView.println("  smartcard protect    - Protect card main memory");
+    terminalView.println("  smartcard            - Smartcard operations");
     terminalView.println("  config               - Configure settings");
     terminalView.println("  [0xAB r:4]           - Instruction syntax");
 
