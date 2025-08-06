@@ -4,6 +4,7 @@
 #include <Wire.h>
 #include <vector>
 #include "Models/ByteCode.h"
+#include <SparkFun_External_EEPROM.h>
 
 class I2cService {
 public:
@@ -51,13 +52,33 @@ public:
     // Instructions
     std::string executeByteCode(const std::vector<ByteCode>& bytecodes);
 
+    // EEPROM
+    bool initEeprom(uint16_t chipSizeKb = 512, uint8_t addr=0x50);
+    bool eepromWriteByte(uint16_t address, uint8_t value);
+    uint8_t eepromReadByte(uint16_t address);
+    bool eepromPutString(uint32_t address, const std::string& str);
+    bool eepromGetString(uint32_t address, std::string& outStr);
+    uint32_t eepromLength();
+    uint32_t eepromGetMemorySize();
+    uint16_t eepromPageSize();
+    uint8_t  eepromWriteTimeMs();
+    uint8_t  eepromAddressBytes();
+    bool     eepromIsConnected();
+    bool     eepromIsBusy();
+    void     eepromErase(uint8_t fill = 0x00);
+    bool     eepromDetectMemorySize();
+    uint8_t  eepromDetectAddressBytes();
+    uint16_t eepromDetectPageSize();
+    uint8_t  eepromDetectWriteTime(uint8_t testCount = 8);
+
+
 private:
     static std::vector<std::string> slaveLog;
     static portMUX_TYPE slaveLogMux;
     static uint8_t slaveResponseBuffer[16];
     static size_t slaveResponseLength;
     static I2cService* activeSlaveInstance;
-
+    ExternalEEPROM eeprom;
     static void onSlaveReceive(int len);
     static void onSlaveRequest();
 

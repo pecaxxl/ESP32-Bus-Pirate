@@ -470,3 +470,86 @@ void I2cService::randomClockPulseNoise(uint8_t scl, uint8_t sda, uint32_t freqHz
         delayMicroseconds(random(d));
     }
 }
+
+bool I2cService::initEeprom(uint16_t chipSizeKb, uint8_t addr) {
+    eeprom.setMemoryType(chipSizeKb);
+    return eeprom.begin(addr);
+}
+
+bool I2cService::eepromWriteByte(uint16_t address, uint8_t value) {
+    return eeprom.write(address, value);
+}
+
+uint8_t I2cService::eepromReadByte(uint16_t address) {
+    return eeprom.read(address);
+}
+
+bool I2cService::eepromPutString(uint32_t address, const std::string& str) {
+    String arduinoStr(str.c_str());
+    return eeprom.putString(address, arduinoStr) > 0;
+}
+
+bool I2cService::eepromGetString(uint32_t address, std::string& outStr) {
+    String arduinoStr;
+    eeprom.getString(address, arduinoStr);
+    outStr = std::string(arduinoStr.c_str());
+    return true;
+}
+
+void I2cService::eepromErase(uint8_t fill) {
+    eeprom.erase(fill);
+}
+
+bool I2cService::eepromDetectMemorySize() {
+    uint32_t size = eeprom.detectMemorySizeBytes();
+    if (size > 0) {
+        eeprom.setMemorySizeBytes(size);
+        return true;
+    }
+    return false;
+}
+
+uint8_t I2cService::eepromDetectAddressBytes() {
+    uint8_t bytes = eeprom.detectAddressBytes();
+    eeprom.setAddressBytes(bytes);
+    return bytes;
+}
+
+uint16_t I2cService::eepromDetectPageSize() {
+    uint16_t size = eeprom.detectPageSizeBytes();
+    eeprom.setPageSizeBytes(size);
+    return size;
+}
+
+uint8_t I2cService::eepromDetectWriteTime(uint8_t testCount) {
+    return eeprom.detectWriteTimeMs(testCount);
+}
+
+
+uint32_t I2cService::eepromLength() {
+    return eeprom.length();
+}
+
+uint32_t I2cService::eepromGetMemorySize()  {
+    return eeprom.getMemorySizeBytes();
+}
+
+uint16_t I2cService::eepromPageSize()  {
+    return eeprom.getPageSizeBytes();
+}
+
+uint8_t I2cService::eepromWriteTimeMs() {
+    return eeprom.getWriteTimeMs();
+}
+
+uint8_t I2cService::eepromAddressBytes() {
+    return eeprom.getAddressBytes();
+}
+
+bool I2cService::eepromIsConnected() {
+    return eeprom.isConnected();
+}
+
+bool I2cService::eepromIsBusy() {
+    return eeprom.isBusy();
+}
