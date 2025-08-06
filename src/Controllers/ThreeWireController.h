@@ -12,6 +12,7 @@
 #include "Models/ByteCode.h"
 #include "Managers/UserInputManager.h"
 #include "Transformers/ArgTransformer.h"
+#include "Shells/ThreeWireEepromShell.h"
 
 class ThreeWireController {
 public:
@@ -20,7 +21,9 @@ public:
         IInput& terminalInput,
         UserInputManager& userInputManager,
         ThreeWireService& threeWireService,
-        ArgTransformer& argTransformer);
+        ArgTransformer& argTransformer,
+        ThreeWireEepromShell& threeWireEepromShell
+    );
 
     // Entry point for command handling
     void handleCommand(const TerminalCommand& cmd);
@@ -37,27 +40,13 @@ private:
     ThreeWireService threeWireService;
     UserInputManager& userInputManager;
     ArgTransformer& argTransformer;
+    ThreeWireEepromShell& threeWireEepromShell;
     GlobalState& state = GlobalState::getInstance();
     bool configured = false;
     bool org8 = true;
 
     // Command handlers for eeprom operations
     void handleEeprom(const TerminalCommand& cmd);
-
-    // Probe for EEPROM presence
-    void handleEepromProbe();
-
-    // EEPROM read from start address to count (default 1)
-    void handleEepromRead(const TerminalCommand& cmd);
-
-    // EEPROM write to address with optional data value (prompt if not provided)
-    void handleEepromWrite(const TerminalCommand& cmd);
-
-    // EEPROM dump based on model bytes size
-    void handleEepromDump();
-
-    // EEPROM erase operation based on model bytes size
-    void handleEepromErase();
 
     // Configuration handler for settings
     void handleConfig();
