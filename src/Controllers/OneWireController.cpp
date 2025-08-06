@@ -5,8 +5,8 @@ Constructor
 */
 OneWireController::OneWireController(ITerminalView& terminalView, IInput& terminalInput, 
                                     OneWireService& service, ArgTransformer& argTransformer,
-                                    UserInputManager& userInputManager)
-    : terminalView(terminalView), terminalInput(terminalInput), oneWireService(service), argTransformer(argTransformer), userInputManager(userInputManager) {
+                                    UserInputManager& userInputManager, IbuttonShell& ibuttonShell)
+    : terminalView(terminalView), terminalInput(terminalInput), oneWireService(service), argTransformer(argTransformer), userInputManager(userInputManager), ibuttonShell(ibuttonShell) {
 }
 
 /*
@@ -18,7 +18,7 @@ void OneWireController::handleCommand(const TerminalCommand& command) {
     else if (command.getRoot() == "sniff")  handleSniff();
     else if (command.getRoot() == "read")   handleRead();
     else if (command.getRoot() == "write")  handleWrite(command);
-    else if (command.getRoot() == "copy")   handleCopy(command);
+    else if (command.getRoot() == "ibutton")   handleIbutton(command);
     else if (command.getRoot() == "temp")   handleTemperature();
     else if (command.getRoot() == "config") handleConfig();
     else                                    handleHelp();
@@ -209,7 +209,7 @@ void OneWireController::handleWrite(const TerminalCommand& cmd) {
 ID Write
 */
 void OneWireController::handleIdWrite(std::vector<uint8_t> idBytes) {
-    const int maxRetries = 5;
+    const int maxRetries = 8;
     int attempt = 0;
     bool success = false;
 
@@ -262,7 +262,7 @@ void OneWireController::handleIdWrite(std::vector<uint8_t> idBytes) {
 Scratchpad Write
 */
 void OneWireController::handleScratchpadWrite(std::vector<uint8_t> scratchpadBytes) {
-    const int maxRetries = 5;
+    const int maxRetries = 8;
     int attempt = 0;
     bool success = false;
 
@@ -325,65 +325,10 @@ void OneWireController::handleScratchpadWrite(std::vector<uint8_t> scratchpadByt
 }
 
 /*
-Copy
+iButton
 */
-void OneWireController::handleCopy(const TerminalCommand& command) {
-    if (command.getSubcommand() == "ibutton") {
-        handleIdCopy();
-    } else {
-        terminalView.println("OneWire Copy: Invalid syntax. Use:");
-        terminalView.println("  copy ibutton");
-    }
-}
-
-/*
-ID Copy (ibutton)
-*/
-void OneWireController::handleIdCopy() {
-    terminalView.println("OneWire Copy: Insert source tag... Press [ENTER] to stop\n");
-    uint8_t id[8];
-
-    // Wait source tag
-    while (!oneWireService.reset()) {
-        auto key = terminalInput.readChar();
-        if (key == '\r' || key == '\n') {
-            terminalView.println("");
-            terminalView.println("OneWire Copy: Stopped by user.");
-            return;
-        }
-        delay(100);
-    }
-
-    // Read
-    terminalView.println("OneWire Read: in progress...");
-    oneWireService.write(0x33);  // Read ROM
-    oneWireService.readBytes(id, 8);
-
-    // Print Rom ID
-    std::ostringstream oss;
-    oss << std::uppercase << std::hex << std::setfill('0');
-    for (int i = 0; i < 8; ++i) {
-        oss << std::setw(2) << static_cast<int>(id[i]);
-        if (i < 7) oss << " ";
-    }
-    terminalView.println("ROM ID: " + oss.str());
-
-
-    // Wait target tag
-    terminalView.println("Remove source tag and insert target clone... Press [ENTER] when ready.");
-    while (true) {
-        auto c = terminalInput.readChar();
-        if (c == '\r' || c== '\n') {
-            terminalView.println("");
-            terminalView.println("OneWire Copy: Starting ID write...");
-            break;
-        }
-
-    }
-
-    // Write readed ID to target tag
-    std::vector<uint8_t> idVec(id, id + 8);
-    handleIdWrite(idVec);
+void OneWireController::handleIbutton(const TerminalCommand& command) {
+    ibuttonShell.run();
 }
 
 /*
@@ -561,7 +506,7 @@ void OneWireController::handleHelp() {
     terminalView.println("  read");
     terminalView.println("  write id [8 bytes]");
     terminalView.println("  write sp [8 bytes]");
-    terminalView.println("  copy ibutton");
+    terminalView.println("  ibutton");
     terminalView.println("  temp");
     terminalView.println("  config");
     terminalView.println("  raw instructions, [0X33 r:8] ...");

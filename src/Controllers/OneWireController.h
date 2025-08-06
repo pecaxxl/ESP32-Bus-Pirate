@@ -9,13 +9,14 @@
 #include "States/GlobalState.h"
 #include "Transformers/ArgTransformer.h"
 #include "Managers/UserInputManager.h"
+#include "Shells/IbuttonShell.h"
 
 class OneWireController {
 public:
     // Constructor
     OneWireController(ITerminalView& terminalView, IInput& terminalInput, 
                       OneWireService& service, ArgTransformer& argTransformer,
-                      UserInputManager& userInputManager);
+                      UserInputManager& userInputManager, IbuttonShell& ibuttonShell);
 
     // Entry point for handle command
     void handleCommand(const TerminalCommand& cmd);
@@ -32,6 +33,7 @@ private:
     OneWireService& oneWireService;
     ArgTransformer& argTransformer;
     UserInputManager& userInputManager;
+    IbuttonShell& ibuttonShell;
     GlobalState& state = GlobalState::getInstance();
     bool configured = false;
 
@@ -62,15 +64,12 @@ private:
     // Write raw data to the bus
     void handleWrite(const TerminalCommand& command);
 
-    // Write a ROM ID to a device (e.g. iButton emulator)
+    // Write a ROM ID to a device
     void handleIdWrite(std::vector<uint8_t> idBytes);
 
-    // Copy 1wire data
-    void handleCopy(const TerminalCommand& command);
+    // Interactive iButton shell
+    void handleIbutton(const TerminalCommand& command);
     
-    // Read a source ibutton to copy its ID on another one
-    void handleIdCopy();
-
     // Write to scratchpad memory
     void handleScratchpadWrite(std::vector<uint8_t> scratchpadBytes);
 
