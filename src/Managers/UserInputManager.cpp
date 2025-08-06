@@ -211,7 +211,8 @@ std::string UserInputManager::readValidatedHexString(const std::string& label, s
         }
 
         // If ignoring length, ensure at least 1 hex char
-        if (ignoreLen && input.empty()) {
+        if (input.empty()) {
+            if (ignoreLen) return "00"; // Default to "00" if empty
             terminalView.println("❌ Input cannot be empty.");
             continue;
         }
