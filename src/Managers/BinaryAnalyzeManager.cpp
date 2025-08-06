@@ -4,8 +4,8 @@
 #include <sstream>
 #include <iomanip>
 
-BinaryAnalyzeManager::BinaryAnalyzeManager(SpiService& spi, ITerminalView& view, IInput& input)
-    : spiService(spi), terminalView(view), terminalInput(input) {}
+BinaryAnalyzeManager::BinaryAnalyzeManager(ITerminalView& view, IInput& input)
+    : terminalView(view), terminalInput(input) {}
 
 const char* BinaryAnalyzeManager::detectSensitivePattern(const uint8_t* buf, size_t size) {
     static const char* patterns[] = {
@@ -70,22 +70,27 @@ BinaryBlockStats BinaryAnalyzeManager::analyzeBlock(const uint8_t* buffer, size_
     return {entropy, printable, nulls, ff, detectFileSignature(buffer, size)};
 }
 
-BinaryAnalyzeManager::AnalysisResult BinaryAnalyzeManager::analyze(uint32_t start, uint32_t flashSize, uint32_t blockSize) {
+BinaryAnalyzeManager::AnalysisResult BinaryAnalyzeManager::analyze(
+    uint32_t start,
+    uint32_t totalSize,
+    std::function<void(uint32_t address, uint8_t* buffer, uint32_t size)> fetch,
+    uint32_t blockSize
+) {
     const uint32_t overlap = 32;
     uint8_t buffer[blockSize + overlap];
 
     uint32_t printableTotal = 0, nullsTotal = 0, ffTotal = 0, blocks = 0;
     float entropySum = 0;
     std::vector<std::string> foundFiles, foundSecrets;
-    uint32_t totalBlocks = (flashSize - start) / blockSize;
+    uint32_t totalBlocks = (totalSize - start) / blockSize;
     uint32_t dotInterval = std::max(totalBlocks / 30, 1u);
 
     terminalView.print("In progress");
 
-    for (uint32_t addr = start; addr < flashSize; addr += blockSize, ++blocks) {
+    for (uint32_t addr = start; addr < totalSize; addr += blockSize, ++blocks) {
         uint32_t readAddr = (addr >= overlap) ? (addr - overlap) : 0;
         uint32_t readSize = (addr >= overlap) ? (blockSize + overlap) : (blockSize + addr);
-        spiService.readFlashData(readAddr, buffer, readSize);
+        fetch(readAddr, buffer, readSize);
 
         const uint8_t* blockData = buffer + (addr >= overlap ? overlap : 0);
 
@@ -123,6 +128,63 @@ BinaryAnalyzeManager::AnalysisResult BinaryAnalyzeManager::analyze(uint32_t star
 
     float avgEntropy = (blocks > 0) ? (entropySum / blocks) : 0;
     return {avgEntropy, blocks * blockSize, blocks, printableTotal, nullsTotal, ffTotal, foundFiles, foundSecrets};
+}
+
+std::string BinaryAnalyzeManager::formatAnalysis(const AnalysisResult& result) {
+    if (result.totalBytes == 0) return "❌ No data analyzed.\n";
+
+    float printablePct = 100.0f * result.printableTotal / result.totalBytes;
+    float nullsPct     = 100.0f * result.nullsTotal     / result.totalBytes;
+    float ffPct        = 100.0f * result.ffTotal        / result.totalBytes;
+    uint32_t dataBytes = result.totalBytes - (result.nullsTotal + result.ffTotal);
+    float dataPct      = 100.0f * dataBytes / result.totalBytes;
+
+    float normalizedEntropy = result.avgEntropy / 8.0f;
+    int barLength = 20;
+    int filled = std::round(normalizedEntropy * barLength);
+
+    std::string bar = "[";
+    for (int i = 0; i < barLength; ++i)
+        bar += (i < filled) ? '#' : '.';
+    bar += "]";
+
+    std::string interpretation;
+    if (normalizedEntropy >= 0.95f)
+        interpretation = "→ likely encrypted/compressed";
+    else if (normalizedEntropy >= 0.85f)
+        interpretation = "→ mostly compressed";
+    else if (normalizedEntropy >= 0.65f)
+        interpretation = "→ mixed content";
+    else if (normalizedEntropy >= 0.4f)
+        interpretation = "→ partially structured";
+    else if (normalizedEntropy >= 0.2f)
+        interpretation = "→ contains padding";
+    else
+        interpretation = "→ likely empty";
+
+    char line[512];
+    snprintf(line, sizeof(line),
+        "\n\n\r📊 Analysis Summary:\n\r"
+        " • Total bytes:     %u\n\r"
+        " • Blocks analyzed: %u\n\r"
+        " • Avg. entropy:    %.2f / 8.00\n\r"
+        " • Entropy bar:     %s %s\n\r"
+        " • Printable chars: %.2f%%\n\r"
+        " • Null bytes:      %.2f%%\n\r"
+        " • 0xFF bytes:      %.2f%%\n\r"
+        " • Data bytes:      %.2f%%\n\r",
+        result.totalBytes,
+        result.blocks,
+        result.avgEntropy,
+        bar.c_str(),
+        interpretation.c_str(),
+        printablePct,
+        nullsPct,
+        ffPct,
+        dataPct
+    );
+
+    return std::string(line);
 }
 
 std::vector<std::string> BinaryAnalyzeManager::extractPrintableStrings(const uint8_t* buf, size_t size, size_t minLen) {

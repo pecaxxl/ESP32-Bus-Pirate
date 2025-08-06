@@ -33,12 +33,17 @@ public:
         std::vector<std::string> foundSecrets;
     };
 
-    BinaryAnalyzeManager(SpiService& spi, ITerminalView& view, IInput& input);
+    BinaryAnalyzeManager(ITerminalView& view, IInput& input);
 
-    AnalysisResult analyze(uint32_t start, uint32_t flashSize, uint32_t blockSize = 512);
-
+    AnalysisResult analyze(
+        uint32_t start,
+        uint32_t totalSize,
+        std::function<void(uint32_t address, uint8_t* buffer, uint32_t size)> fetch,
+        uint32_t blockSize = 512
+    );
+    
+    std::string formatAnalysis(const AnalysisResult& result);
 private:
-    SpiService& spiService;
     IInput& terminalInput;
     ITerminalView& terminalView;
 
