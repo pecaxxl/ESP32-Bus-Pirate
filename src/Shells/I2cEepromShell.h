@@ -18,7 +18,7 @@ public:
         BinaryAnalyzeManager & binaryAnalyzeManager
     );
 
-    void run(uint8_t addr);
+    void run(uint8_t addr = 0x50);
 
 private:
     // Available actions
