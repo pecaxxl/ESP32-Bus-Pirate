@@ -27,7 +27,7 @@ void I2cEepromShell::run(uint8_t addr) {
     // Initialize EEPROM
     uint16_t selectedType = memoryLengths[selectedModelIndex];
     if (!i2cService.initEeprom(selectedType, addr)) {
-        terminalView.println("❌ EEPROM not detected at selected configuration.");
+        terminalView.println("❌ EEPROM not detected at 0x" + argTransformer.toHex(addr, 2) + ". Aborting.\n");
         return;
     }
     
@@ -175,7 +175,7 @@ void I2cEepromShell::cmdErase() {
     bool confirm = userInputManager.readYesNo("⚠️  Are you sure you want to erase the EEPROM?", false);
     if (confirm) {
         terminalView.println("Erasing...");
-        i2cService.eepromErase(0x00);
+        i2cService.eepromErase(0xFF);
         terminalView.println("✅ EEPROM erased.\n");
     } else {
         terminalView.println("Operation cancelled.\n");

@@ -660,7 +660,7 @@ void I2cController::handleHelp() {
     terminalView.println("  glitch <addr>");
     terminalView.println("  flood <addr>");
     terminalView.println("  recover");
-    terminalView.println("  eeprom");
+    terminalView.println("  eeprom [addr]");
     terminalView.println("  config");
     terminalView.println("  raw instructions, e.g: [0x13 0x4B r:8]");
 }
