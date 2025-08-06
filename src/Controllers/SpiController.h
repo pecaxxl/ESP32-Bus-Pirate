@@ -11,15 +11,24 @@
 #include "Models/ByteCode.h"
 #include "Transformers/ArgTransformer.h"
 #include "Managers/UserInputManager.h"
-#include "Managers/BinaryAnalyzeManager.h"
 #include "Shells/SdCardShell.h"
+#include "Shells/SpiFlashShell.h"
 #include "States/GlobalState.h"
 #include "Data/FlashDatabase.h"
 
 class SpiController {
 public:
     // Constructor
-    SpiController(ITerminalView& terminalView, IInput& terminalInput, SpiService& spiService, SdService& sdService, ArgTransformer& argTransformer, UserInputManager& userInputManager, BinaryAnalyzeManager& binaryAnalyzeManager, SdCardShell& sdCardShell); 
+    SpiController(
+        ITerminalView& terminalView, 
+        IInput& terminalInput, SpiService& 
+        spiService, SdService& sdService, 
+        ArgTransformer& argTransformer, 
+        UserInputManager& userInputManager, 
+        BinaryAnalyzeManager& binaryAnalyzeManager, 
+        SdCardShell& sdCardShell,
+        SpiFlashShell& spiFlashShell
+    ); 
 
     // Entry point for handle raw user command
     void handleCommand(const TerminalCommand& cmd);
@@ -39,6 +48,7 @@ private:
     UserInputManager& userInputManager;
     BinaryAnalyzeManager& binaryAnalyzeManager;
     SdCardShell& sdCardShell;
+    SpiFlashShell& spiFlashShell;
     GlobalState& state = GlobalState::getInstance();
     bool configured = false;
 
@@ -51,31 +61,6 @@ private:
     // Handle EEPROM operations
     void handleEeprom(const TerminalCommand& cmd);
 
-    // Probe flash chip and identify it
-    void handleFlashProbe();
-
-    // Analyze flash content
-    void handleFlashAnalyze(const TerminalCommand& cmd);
-
-    // Extract strings from the flash content
-    void handleFlashStrings(const TerminalCommand& cmd);
-
-    // Search pattern into the flash content
-    void handleFlashSearch(const TerminalCommand& cmd);
-
-    // Read data from flash memory
-    void handleFlashRead(const TerminalCommand& cmd);
-    void readFlashInChunks(uint32_t address, uint32_t length);
-
-    // Write data to flash memory
-    void handleFlashWrite(const TerminalCommand& cmd);
-
-    // Erase flash memory
-    void handleFlashErase(const TerminalCommand& cmd);
-
-    // Check before any flash action
-    bool checkFlashPresent();
-
     // SD operations
     void handleSdCard();
 
@@ -87,5 +72,4 @@ private:
 
     // Available commands
     void handleHelp();
-
 };
