@@ -59,6 +59,7 @@ and injecting shared instances of core components
 #include "Shells/SpiFlashShell.h"
 #include "Shells/SmartCardShell.h"
 #include "Shells/ThreeWireEepromShell.h"
+#include "Shells/IbuttonShell.h"
 #include "Config/TerminalTypeConfigurator.h"
 
 class DependencyProvider
@@ -135,6 +136,7 @@ public:
     SpiFlashShell &getSpiFlashShell();
     SmartCardShell &getSmartCardShell();
     ThreeWireEepromShell &getThreeWireEepromShell();
+    IbuttonShell &getIbuttonShell();
 
     // Selectors
     HorizontalSelector &getHorizontalSelector();
@@ -211,6 +213,7 @@ private:
     SpiFlashShell spiFlashShell;
     SmartCardShell smartCardShell;
     ThreeWireEepromShell threeWireEepromShell;
+    IbuttonShell ibuttonShell;
     
     // Selectors
     HorizontalSelector horizontalSelector;

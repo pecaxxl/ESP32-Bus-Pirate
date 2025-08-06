@@ -37,13 +37,14 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       spiFlashShell(spiService, terminalView, terminalInput, argTransformer, userInputManager, binaryAnalyzeManager),
       smartCardShell(twoWireService, terminalView, terminalInput, argTransformer, userInputManager),
       universalRemoteShell(terminalView, terminalInput, infraredService, argTransformer, userInputManager),
+      ibuttonShell(terminalView, terminalInput, userInputManager, argTransformer, oneWireService),
       i2cEepromShell(terminalView, terminalInput, i2cService, argTransformer, userInputManager, binaryAnalyzeManager),
       threeWireEepromShell(terminalView, terminalInput, userInputManager, threeWireService, argTransformer),
       horizontalSelector(deviceView, deviceInput),
       terminalTypeConfigurator(horizontalSelector),
       uartController(terminalView, terminalInput, deviceInput, uartService, sdService, hdUartService, argTransformer, userInputManager),
       i2cController(terminalView, terminalInput, i2cService, argTransformer, userInputManager, i2cEepromShell),
-      oneWireController(terminalView, terminalInput, oneWireService, argTransformer, userInputManager),
+      oneWireController(terminalView, terminalInput, oneWireService, argTransformer, userInputManager, ibuttonShell),
       infraredController(terminalView, terminalInput, infraredService, argTransformer, userInputManager, universalRemoteShell),
       utilityController(terminalView, deviceView, terminalInput, pinService, userInputManager, argTransformer),
       hdUartController(terminalView, terminalInput, deviceInput, hdUartService, uartService, argTransformer, userInputManager),
@@ -124,6 +125,8 @@ UniversalRemoteShell &DependencyProvider::getUniversalRemoteShell() { return uni
 I2cEepromShell &DependencyProvider::getI2cEepromShell() { return i2cEepromShell; }
 SpiFlashShell &DependencyProvider::getSpiFlashShell() { return spiFlashShell; }
 SmartCardShell &DependencyProvider::getSmartCardShell() { return smartCardShell; }
+ThreeWireEepromShell &DependencyProvider::getThreeWireEepromShell() { return threeWireEepromShell; }
+IbuttonShell &DependencyProvider::getIbuttonShell() { return ibuttonShell; }
 
 // Selectors
 HorizontalSelector &DependencyProvider::getHorizontalSelector() { return horizontalSelector; }
