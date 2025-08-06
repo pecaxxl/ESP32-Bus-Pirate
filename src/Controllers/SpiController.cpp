@@ -18,46 +18,14 @@ SpiController::SpiController(ITerminalView& terminalView, IInput& terminalInput,
 Entry point for command
 */
 void SpiController::handleCommand(const TerminalCommand& cmd) {
-
-    if (cmd.getRoot() == "sniff") {
-        handleSniff();
-    }
-
-    else if(cmd.getRoot() == "sdcard") {
-        handleSdCard();
-    }
-
-    else if(cmd.getRoot() == "slave") {
-        handleSlave();
-    }
-
-    else if (cmd.getRoot() == "flash") {
-        if (cmd.getSubcommand() == "probe") {
-            handleFlashProbe();
-        } else if (cmd.getSubcommand() == "analyze") {
-            handleFlashAnalyze(cmd);
-        } else if (cmd.getSubcommand() == "strings") {
-            handleFlashStrings(cmd);
-        } else if (cmd.getSubcommand() == "search") {
-            handleFlashSearch(cmd);
-        } else if (cmd.getSubcommand() == "read") {
-            handleFlashRead(cmd);
-        } else if (cmd.getSubcommand() == "write") {
-            handleFlashWrite(cmd);
-        } else if (cmd.getSubcommand() == "erase") {
-            handleFlashErase(cmd);
-        } else {
-            terminalView.println("Unknown SPI flash command. Use: probe, analyze, strings, read, write, erase");
-        }
-    } 
-
-    else if (cmd.getRoot() == "config") {
-        handleConfig();
-    }
-    
-    else {
-        handleHelp();
-    }
+    if      (cmd.getRoot() == "sniff")  handleSniff();
+    else if (cmd.getRoot() == "sdcard") handleSdCard();
+    else if (cmd.getRoot() == "slave")  handleSlave();
+    else if (cmd.getRoot() == "flash")  handleFlash(cmd);
+    else if (cmd.getRoot() == "eeprom") handleEeprom(cmd);
+    else if (cmd.getRoot() == "help")   handleHelp();
+    else if (cmd.getRoot() == "config") handleConfig();
+    else handleHelp();
 }
 
 /*
@@ -76,6 +44,28 @@ Sniff
 */
 void SpiController::handleSniff() {
         terminalView.println("SPI sniff [NYI]");
+}
+
+/*
+Flash
+*/
+void SpiController::handleFlash(const TerminalCommand& cmd) {
+    // TODO: create a SPI flash shell
+    if      (cmd.getSubcommand() == "probe")   handleFlashProbe();
+    else if (cmd.getSubcommand() == "analyze") handleFlashAnalyze(cmd);
+    else if (cmd.getSubcommand() == "strings") handleFlashStrings(cmd);
+    else if (cmd.getSubcommand() == "search")  handleFlashSearch(cmd);
+    else if (cmd.getSubcommand() == "read")    handleFlashRead(cmd);
+    else if (cmd.getSubcommand() == "write")   handleFlashWrite(cmd);
+    else if (cmd.getSubcommand() == "erase")   handleFlashErase(cmd);
+    else terminalView.println("Unknown SPI flash command. Use: probe, analyze, strings, read, write, erase");
+}
+
+/*
+EEPROM
+*/
+void SpiController::handleEeprom(const TerminalCommand& cmd) {
+    terminalView.println("EEPROM operations [NYI]");
 }
 
 /*
@@ -148,7 +138,13 @@ void SpiController::handleFlashAnalyze(const TerminalCommand& cmd) {
     uint32_t flashSize = chip ? chip->capacityBytes : spiService.calculateFlashCapacity(id[2]);
 
     // Analyze
-    BinaryAnalyzeManager::AnalysisResult result = binaryAnalyzeManager.analyze(start, flashSize);
+    BinaryAnalyzeManager::AnalysisResult result = binaryAnalyzeManager.analyze(
+        0,
+        flashSize,
+        [&](uint32_t addr, uint8_t* buf, uint32_t len) {
+            spiService.readFlashData(addr, buf, len);
+        }
+    );
 
     // Calculate Summary
     float printablePct = 100.0f * result.printableTotal / result.totalBytes;
@@ -582,7 +578,7 @@ void SpiController::handleFlashErase(const TerminalCommand& cmd) {
     terminalView.print("In progress");
     for (uint32_t i = 0; i < totalSectors; ++i) {
         uint32_t addr = i * sectorSize;
-        spiService.eraseSector(addr, freq);
+        spiService.eraseFlashSector(addr, freq);
 
         // Display a dot
         if (i % 64 == 0) terminalView.print(".");

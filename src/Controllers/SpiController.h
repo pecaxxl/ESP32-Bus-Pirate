@@ -45,6 +45,12 @@ private:
     // Passive bus monitor
     void handleSniff();
 
+    // Handle SPI flash operations
+    void handleFlash(const TerminalCommand& cmd);
+
+    // Handle EEPROM operations
+    void handleEeprom(const TerminalCommand& cmd);
+
     // Probe flash chip and identify it
     void handleFlashProbe();
 
@@ -81,6 +87,5 @@ private:
 
     // Available commands
     void handleHelp();
-
 
 };
