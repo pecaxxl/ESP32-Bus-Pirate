@@ -31,7 +31,7 @@ public:
     void writeFlashPatch(uint32_t address, const std::vector<uint8_t>& data, uint32_t freq);
 
     // EEPROM
-    bool initEeprom(uint8_t mosi, uint8_t miso, uint8_t sclk, uint8_t cs, uint16_t pageSize, uint32_t memSize, uint8_t wp=255);
+    bool initEeprom(uint8_t mosi, uint8_t miso, uint8_t sclk, uint8_t cs, uint16_t pageSize, uint32_t memSize, uint16_t wp=999);
     bool writeEeprom(uint32_t address, uint8_t value);
     uint8_t readEeprom(uint32_t address);
     bool writeEepromBuffer(uint32_t address, const uint8_t* data, size_t len);

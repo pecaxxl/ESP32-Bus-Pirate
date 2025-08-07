@@ -301,7 +301,7 @@ std::vector<std::vector<uint8_t>> SpiService::getSlaveData() {
 
 // #### EEPROM ######
 
-bool SpiService::initEeprom(uint8_t mosi, uint8_t miso, uint8_t sclk, uint8_t cs, uint16_t pageSize, uint32_t memSize,  uint8_t wp) {
+bool SpiService::initEeprom(uint8_t mosi, uint8_t miso, uint8_t sclk, uint8_t cs, uint16_t pageSize, uint32_t memSize,  uint16_t wp) {
     if (eepromInitialized) return true;
     SPI.end();
     csPin = cs;
