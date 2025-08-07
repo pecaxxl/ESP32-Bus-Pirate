@@ -327,6 +327,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  sdcard               - SD operations");
     terminalView.println("  slave                - Emulate SPI slave");
     terminalView.println("  flash                - SPI Flash operations");
+    terminalView.println("  eeprom               - SPI EEPROM operations");
     terminalView.println("  config               - Configure settings");
     terminalView.println("  [0x9F r:3]           - Instruction syntax");
 
