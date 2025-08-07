@@ -4,6 +4,7 @@
 #include <cstring>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <Data/NmapUtils.h>
 
 struct NmapTaskParams
 {
