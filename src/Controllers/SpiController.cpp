@@ -6,7 +6,7 @@ Constructor
 SpiController::SpiController(ITerminalView& terminalView, IInput& terminalInput, 
                              SpiService& spiService, SdService& sdService, ArgTransformer& argTransformer,
                              UserInputManager& userInputManager, BinaryAnalyzeManager& binaryAnalyzeManager,
-                             SdCardShell& sdCardShell, SpiFlashShell& spiFlashShell)
+                             SdCardShell& sdCardShell, SpiFlashShell& spiFlashShell, SpiEepromShell& spiEepromShell)
     : terminalView(terminalView),
       terminalInput(terminalInput),
       spiService(spiService),
@@ -15,7 +15,8 @@ SpiController::SpiController(ITerminalView& terminalView, IInput& terminalInput,
       userInputManager(userInputManager),
       binaryAnalyzeManager(binaryAnalyzeManager),
       sdCardShell(sdCardShell),
-      spiFlashShell(spiFlashShell)
+      spiFlashShell(spiFlashShell),
+      spiEepromShell(spiEepromShell)
 {}
 
 /*
@@ -61,7 +62,10 @@ void SpiController::handleFlash(const TerminalCommand& cmd) {
 EEPROM
 */
 void SpiController::handleEeprom(const TerminalCommand& cmd) {
-    terminalView.println("EEPROM operations [NYI]");
+    terminalView.println("\n[WARNING] SPI EEPROM is not fully implemented. Don't use it for real operations.");
+    terminalInput.waitPress();
+    spiEepromShell.run();
+    ensureConfigured();
 }
 
 /*
