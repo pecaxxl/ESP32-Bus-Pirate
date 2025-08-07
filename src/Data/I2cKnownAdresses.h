@@ -472,4 +472,4 @@ inline const I2cKnownAddress i2cKnownAddresses[] = {
 {0xD1, "Grove Mini Motor Driver CH1 Read (Alt)", "Motor Driver"},
 
 };
-static const size_t knownAddressesCount = sizeof(i2cKnownAddresses) / sizeof(i2cKnownAddresses[0]);
+static const size_t i2cknownAddressesCount = sizeof(i2cKnownAddresses) / sizeof(i2cKnownAddresses[0]);

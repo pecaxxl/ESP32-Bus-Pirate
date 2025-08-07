@@ -526,11 +526,11 @@ void I2cController::handleIdentify(const TerminalCommand& cmd) {
     uint16_t len = 256;
 
     std::stringstream ss;
-    ss << "\n\r 📟 I2C " + cmd.getSubcommand() + " Identification Result\n";
+    ss << "\n\r 📟 I2C 0x" + argTransformer.toHex(address) + " Identification Result\n";
 
     // Search for known addresses
     bool matchFound = false;
-    for (size_t i = 0; i < knownAddressesCount; ++i) {
+    for (size_t i = 0; i < i2cknownAddressesCount; ++i) {
         if (i2cKnownAddresses[i].address == address) {
             matchFound = true;
             ss << "\r  ➤ Could be: - [" << i2cKnownAddresses[i].type << "] " << i2cKnownAddresses[i].component << "\n";
