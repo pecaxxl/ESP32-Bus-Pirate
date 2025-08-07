@@ -57,6 +57,7 @@ and injecting shared instances of core components
 #include "Shells/UniversalRemoteShell.h"
 #include "Shells/I2cEepromShell.h"
 #include "Shells/SpiFlashShell.h"
+#include "Shells/SpiEepromShell.h"
 #include "Shells/SmartCardShell.h"
 #include "Shells/ThreeWireEepromShell.h"
 #include "Shells/IbuttonShell.h"
@@ -134,6 +135,7 @@ public:
     UniversalRemoteShell &getUniversalRemoteShell();
     I2cEepromShell &getI2cEepromShell();
     SpiFlashShell &getSpiFlashShell();
+    SpiEepromShell &getSpiEepromShell();
     SmartCardShell &getSmartCardShell();
     ThreeWireEepromShell &getThreeWireEepromShell();
     IbuttonShell &getIbuttonShell();
@@ -211,6 +213,7 @@ private:
     UniversalRemoteShell universalRemoteShell;
     I2cEepromShell i2cEepromShell;
     SpiFlashShell spiFlashShell;
+    SpiEepromShell spiEepromShell;
     SmartCardShell smartCardShell;
     ThreeWireEepromShell threeWireEepromShell;
     IbuttonShell ibuttonShell;

@@ -35,6 +35,7 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       userInputManager(terminalView, terminalInput, argTransformer),
       sdCardShell(sdService, terminalView, terminalInput, argTransformer),
       spiFlashShell(spiService, terminalView, terminalInput, argTransformer, userInputManager, binaryAnalyzeManager),
+      spiEepromShell(spiService, terminalView, terminalInput, argTransformer, userInputManager),
       smartCardShell(twoWireService, terminalView, terminalInput, argTransformer, userInputManager),
       universalRemoteShell(terminalView, terminalInput, infraredService, argTransformer, userInputManager),
       ibuttonShell(terminalView, terminalInput, userInputManager, argTransformer, oneWireService),
@@ -48,7 +49,7 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       infraredController(terminalView, terminalInput, infraredService, argTransformer, userInputManager, universalRemoteShell),
       utilityController(terminalView, deviceView, terminalInput, pinService, userInputManager, argTransformer),
       hdUartController(terminalView, terminalInput, deviceInput, hdUartService, uartService, argTransformer, userInputManager),
-      spiController(terminalView, terminalInput, spiService, sdService, argTransformer, userInputManager, binaryAnalyzeManager, sdCardShell, spiFlashShell),
+      spiController(terminalView, terminalInput, spiService, sdService, argTransformer, userInputManager, binaryAnalyzeManager, sdCardShell, spiFlashShell, spiEepromShell),
       jtagController(terminalView, terminalInput, jtagService, userInputManager),
       twoWireController(terminalView, terminalInput, userInputManager, twoWireService, smartCardShell),
       threeWireController(terminalView, terminalInput, userInputManager, threeWireService, argTransformer, threeWireEepromShell),
@@ -124,6 +125,7 @@ SdCardShell &DependencyProvider::getSdCardShell() { return sdCardShell; }
 UniversalRemoteShell &DependencyProvider::getUniversalRemoteShell() { return universalRemoteShell; }
 I2cEepromShell &DependencyProvider::getI2cEepromShell() { return i2cEepromShell; }
 SpiFlashShell &DependencyProvider::getSpiFlashShell() { return spiFlashShell; }
+SpiEepromShell &DependencyProvider::getSpiEepromShell() { return spiEepromShell; }
 SmartCardShell &DependencyProvider::getSmartCardShell() { return smartCardShell; }
 ThreeWireEepromShell &DependencyProvider::getThreeWireEepromShell() { return threeWireEepromShell; }
 IbuttonShell &DependencyProvider::getIbuttonShell() { return ibuttonShell; }
