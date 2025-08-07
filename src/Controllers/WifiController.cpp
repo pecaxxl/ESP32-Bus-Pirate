@@ -513,6 +513,10 @@ void WifiController::handleNmap(const TerminalCommand &cmd)
         return;
     }
 
+    // Parse args
+    auto hosts_arg = cmd.getSubcommand();
+    nmapService.parseHosts(hosts_arg);
+
     nmapService.startTask("127.0.0.1", 0);
 
     terminalView.println("\r\n\nNmap: Session closed.");
