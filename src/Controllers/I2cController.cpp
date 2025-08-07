@@ -1,9 +1,23 @@
 #include "I2cController.h"
 
-I2cController::I2cController(ITerminalView& terminalView, IInput& terminalInput, 
-                             I2cService& i2cService, ArgTransformer& argTransformer, 
-                             UserInputManager& userInputManager, I2cEepromShell& eepromShell)
-    : terminalView(terminalView), terminalInput(terminalInput), i2cService(i2cService), argTransformer(argTransformer), userInputManager(userInputManager), eepromShell(eepromShell) {}
+/*
+Constructor
+*/
+I2cController::I2cController(
+    ITerminalView& terminalView,
+    IInput& terminalInput,
+    I2cService& i2cService,
+    ArgTransformer& argTransformer,
+    UserInputManager& userInputManager,
+    I2cEepromShell& eepromShell
+)
+    : terminalView(terminalView),
+      terminalInput(terminalInput),
+      i2cService(i2cService),
+      argTransformer(argTransformer),
+      userInputManager(userInputManager),
+      eepromShell(eepromShell)
+{}
 
 /*
 Entry point to handle I2C command
@@ -12,6 +26,7 @@ void I2cController::handleCommand(const TerminalCommand& cmd) {
     if (cmd.getRoot() == "scan") handleScan();
     else if (cmd.getRoot() == "sniff") handleSniff();
     else if (cmd.getRoot() == "ping") handlePing(cmd);
+    else if (cmd.getRoot() == "identify") handleIdentify(cmd);
     else if (cmd.getRoot() == "write") handleWrite(cmd);
     else if (cmd.getRoot() == "read") handleRead(cmd);
     else if (cmd.getRoot() == "dump") handleDump(cmd);
@@ -496,6 +511,40 @@ void I2cController::printHexDump(uint16_t start, uint16_t len,
 }
 
 /*
+Identify
+*/
+void I2cController::handleIdentify(const TerminalCommand& cmd) {
+    // Validate subcommand
+    if (!argTransformer.isValidNumber(cmd.getSubcommand())) {
+        terminalView.println("Usage: identify <addr>");
+        return;
+    }
+
+    // Parse I2C address
+    uint8_t address = argTransformer.parseHexOrDec(cmd.getSubcommand());
+    uint16_t start = 0x00;
+    uint16_t len = 256;
+
+    std::stringstream ss;
+    ss << "\n\r 📟 I2C " + cmd.getSubcommand() + " Identification Result\n";
+
+    // Search for known addresses
+    bool matchFound = false;
+    for (size_t i = 0; i < knownAddressesCount; ++i) {
+        if (i2cKnownAddresses[i].address == address) {
+            matchFound = true;
+            ss << "\r  ➤ Could be: - [" << i2cKnownAddresses[i].type << "] " << i2cKnownAddresses[i].component << "\n";
+        }
+    }
+
+    if (!matchFound) {
+        ss << "\r  ➤ No match found for address 0x" << argTransformer.toHex(address) << "\n";
+    }
+
+    terminalView.println(ss.str());
+}
+
+/*
 Recover
 */
 void I2cController::handleRecover() {
@@ -728,6 +777,7 @@ void I2cController::handleHelp() {
     terminalView.println("Unknown I2C command. Usage:");
     terminalView.println("  scan");
     terminalView.println("  ping <addr>");
+    terminalView.println("  identify <addr>");
     terminalView.println("  sniff");
     terminalView.println("  slave <addr>");
     terminalView.println("  read <addr> <reg>");
