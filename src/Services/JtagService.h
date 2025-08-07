@@ -82,6 +82,8 @@ private:
     void getDeviceIDs(int count, std::vector<uint32_t>& ids);
     uint32_t bypassTest(int count, uint32_t pattern);
     bool isValidDeviceID(uint32_t id);
+    void jtagResetChannels(const std::vector<uint8_t>& pins, int trstPin, bool pulsePins);
+    void jtagInitChannels(const std::vector<uint8_t>& pins, bool pulsePins);
 
     // SWD helpers
     void swdClockPulse();
