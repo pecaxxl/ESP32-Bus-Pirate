@@ -6,6 +6,7 @@
 #include <Services/NvsService.h>
 #include <Services/SshService.h>
 #include <Services/NetcatService.h>
+#include <Services/NmapService.h>
 #include <Transformers/ArgTransformer.h>
 #include <Models/TerminalCommand.h>
 #include <States/GlobalState.h>
@@ -21,6 +22,7 @@ public:
         WifiService& wifiService, 
         SshService& sshService,
         NetcatService& netcatService,
+        NmapService& nmapService,
         NvsService& nvsService, 
         ArgTransformer& argTransformer
     );
@@ -39,6 +41,7 @@ private:
     NvsService& nvsService;
     SshService& sshService;
     NetcatService& netcatService;
+    NmapService& nmapService;
     ArgTransformer& argTransformer;
     GlobalState& state = GlobalState::getInstance();
     bool configured = false;
@@ -77,7 +80,10 @@ private:
     // Connect using netcat 
     void handleNetcat(const TerminalCommand& cmd);
 
-    // Deathenticate attack
+    // Scan using nmap
+    void handleNmap(const TerminalCommand& cmd);
+
+    // Deauthentication attack
     void handleDeauth(const TerminalCommand& cmd);
 
     // Reset Wi-Fi configuration

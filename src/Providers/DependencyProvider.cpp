@@ -56,7 +56,7 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       ledController(terminalView, terminalInput, ledService, argTransformer, userInputManager),
       bluetoothController(terminalView, terminalInput, bluetoothService, argTransformer),
       i2sController(terminalView, terminalInput, i2sService, argTransformer, userInputManager),
-      wifiController(terminalView, terminalInput, deviceInput, wifiService, sshService, netcatService, nvsService, argTransformer),
+      wifiController(terminalView, terminalInput, deviceInput, wifiService, sshService, netcatService, nmapService, nvsService, argTransformer),
       canController(terminalView, terminalInput, userInputManager, canService, argTransformer)
 {
 }
@@ -86,6 +86,7 @@ BluetoothService &DependencyProvider::getBluetoothService() { return bluetoothSe
 I2sService &DependencyProvider::getI2sService() { return i2sService; }
 SshService &DependencyProvider::getSshService() { return sshService; }
 NetcatService &DependencyProvider::getNetcatService() { return netcatService; }
+NmapService &DependencyProvider::getNmapService() { return nmapService; }
 JtagService &DependencyProvider::getJtagService() { return jtagService; }
 CanService &DependencyProvider::getCanService() { return canService; }
 

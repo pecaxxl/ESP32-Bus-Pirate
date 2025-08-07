@@ -3,8 +3,8 @@
 /*
 Constructor
 */
-WifiController::WifiController(ITerminalView &terminalView, IInput &terminalInput, IInput &deviceInput, WifiService &wifiService, SshService &sshService, NetcatService &netcatService, NvsService &nvsService, ArgTransformer &argTransformer)
-    : terminalView(terminalView), terminalInput(terminalInput), deviceInput(deviceInput), wifiService(wifiService), sshService(sshService), netcatService(netcatService), nvsService(nvsService), argTransformer(argTransformer) {}
+WifiController::WifiController(ITerminalView &terminalView, IInput &terminalInput, IInput &deviceInput, WifiService &wifiService, SshService &sshService, NetcatService &netcatService, NmapService &nmapService, NvsService &nvsService, ArgTransformer &argTransformer)
+    : terminalView(terminalView), terminalInput(terminalInput), deviceInput(deviceInput), wifiService(wifiService), sshService(sshService), netcatService(netcatService), nmapService(nmapService), nvsService(nvsService), argTransformer(argTransformer) {}
 
 /*
 Entry point for command
@@ -24,6 +24,7 @@ void WifiController::handleCommand(const TerminalCommand &cmd)
     else if (root == "webui") handleWebUi(cmd);
     else if (root == "ssh") handleSsh(cmd);
     else if (root == "nc") handleNetcat(cmd);
+    else if (root == "nmap") handleNmap(cmd);
     else if (root == "reset") handleReset();
     else if (root == "deauth") handleDeauth(cmd);
     else handleHelp();
@@ -501,6 +502,24 @@ void WifiController::handleNetcat(const TerminalCommand &cmd)
 }
 
 /*
+Nmap
+*/
+void WifiController::handleNmap(const TerminalCommand &cmd)
+{
+    // Check connection
+    if (!wifiService.isConnected())
+    {
+        terminalView.println("Nmap: You must be connected to Wi-Fi. Use 'connect' first.");
+        return;
+    }
+
+    nmapService.startTask("127.0.0.1", 0);
+
+    terminalView.println("\r\n\nNmap: Session closed.");
+}
+
+
+/*
 Config
 */
 void WifiController::handleConfig()
@@ -528,6 +547,7 @@ void WifiController::handleHelp()
     terminalView.println("  ap <ssid> <password>");
     terminalView.println("  ssh <host> <username> <password> [port]");
     terminalView.println("  nc <host> <port>");
+    terminalView.println("  nmap <host> <port>");
     terminalView.println("  webui");
     terminalView.println("  reset");
     terminalView.println("  deauth <ssid>");
