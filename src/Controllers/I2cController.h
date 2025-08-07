@@ -67,6 +67,9 @@ private:
     // Configure I2C parameters
     void handleConfig();
 
+    // Monitor I2C device registers
+    void handleMonitor(const TerminalCommand& cmd);
+
     // I2C EEPROM operations
     void handleEeprom(const TerminalCommand& cmd);
 

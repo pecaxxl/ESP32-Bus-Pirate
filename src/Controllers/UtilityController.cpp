@@ -314,6 +314,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  dump <addr> [len]    - Read all registers");
     terminalView.println("  glitch <addr>        - Run attack sequence");
     terminalView.println("  flood <addr>         - Saturate target I/O");
+    terminalView.println("  monitor <addr> [ms]  - Monitor register changes");
     terminalView.println("  eeprom [addr]        - I2C EEPROM operations");
     terminalView.println("  recover              - Attempt bus recovery");
     terminalView.println("  config               - Configure settings");
