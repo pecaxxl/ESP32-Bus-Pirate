@@ -32,6 +32,7 @@ void UniversalRemoteShell::run() {
 
     while (true) {
         // Display actions
+        terminalView.println("=== Universal Remote Shell ===");
         int index = userInputManager.readValidatedChoiceIndex("Select a remote action", actions, 0);
         if (index < 0 || index >= (int)actions.size()) {
             terminalView.println("Invalid selection.\n");

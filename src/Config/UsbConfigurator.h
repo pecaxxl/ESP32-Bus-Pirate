@@ -14,7 +14,7 @@ struct UsbComponents {
     IUsbController& usbController;
 };
 
-class UsbFactory {
+class UsbConfigurator {
 public:
-    static UsbComponents create(ITerminalView& terminalView, IInput& terminalInput);
+    static UsbComponents configure(ITerminalView& terminalView, IInput& terminalInput);
 };

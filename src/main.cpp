@@ -19,15 +19,12 @@
 #include <Selectors/HorizontalSelector.h>
 #include <Config/TerminalTypeConfigurator.h>
 #include <Config/WifiTypeConfigurator.h>
+#include <Config/UsbConfigurator.h>
 #include <Enums/TerminalTypeEnum.h>
 #include <States/GlobalState.h>
-#include <Factories/UsbFactory.h>
 
 
-void setup() {
-    
-    GlobalState& state = GlobalState::getInstance();
-    
+void setup() {    
     #if DEVICE_M5STICK
         // Setup the M5stickCplus2
         #include <M5Unified.h>
@@ -62,7 +59,8 @@ void setup() {
     #endif
 
     deviceView.logo();
-    
+    GlobalState& state = GlobalState::getInstance();
+
     // Select the terminal type
     HorizontalSelector selector(deviceView, deviceInput);
     TerminalTypeConfigurator configurator(selector);
@@ -92,7 +90,7 @@ void setup() {
             serialView.setBaudrate(state.getSerialTerminalBaudRate());
 
             // Configure USB
-            auto usb = UsbFactory::create(serialView, serialInput);
+            auto usb = UsbConfigurator::configure(serialView, serialInput);
 
             // Build the provider for serial type and run the dispatcher loop
             DependencyProvider provider(serialView, deviceView, serialInput, deviceInput, usb.usbService, usb.usbController);
@@ -123,7 +121,7 @@ void setup() {
             wsServer.setupRoutes();
 
             // Configure USB
-            auto usb = UsbFactory::create(webView, webInput);
+            auto usb = UsbConfigurator::configure(webView, webInput);
 
             // Build the provider for webui type and run the dispatcher loop
             DependencyProvider provider(webView, deviceView, webInput, deviceInput, usb.usbService, usb.usbController);

@@ -1,4 +1,4 @@
-#include "Factories/UsbFactory.h"
+#include "UsbConfigurator.h"
 
 #if defined(DEVICE_M5STICK)
     #include <Services/UsbM5StickService.h>
@@ -10,7 +10,7 @@
 #endif
 
 
-UsbComponents UsbFactory::create(ITerminalView& terminalView, IInput& terminalInput) {
+UsbComponents UsbConfigurator::configure(ITerminalView& terminalView, IInput& terminalInput) {
 #if defined(DEVICE_M5STICK)
     static ArgTransformer argTransformer;
     static UserInputManager userInputManager(terminalView, terminalInput, argTransformer);
