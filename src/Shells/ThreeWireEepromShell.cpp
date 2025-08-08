@@ -47,11 +47,10 @@ void ThreeWireEepromShell::run() {
     auto doPin = state.getThreeWireDoPin();
     threeWireService.end();
     threeWireService.configure(cs, sk, di, doPin, modelId, org8);
-
-    terminalView.println("\n=== 3WIRE EEPROM Shell ===");
-
+    
     while (true) {
         // Select action
+        terminalView.println("\n=== 3WIRE EEPROM Shell ===");
         int index = userInputManager.readValidatedChoiceIndex("Select EEPROM action", actions, 0);
 
         // Quit
