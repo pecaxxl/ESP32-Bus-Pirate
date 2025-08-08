@@ -74,23 +74,26 @@ bool ThreeWireService::isWriteEnabled() {
 
 std::vector<std::string> ThreeWireService::getSupportedModels() const {
     return {
-        "93C46",
-        "93C56",
-        "93C66",
-        "93C76",
-        "93C86"
+        "93C46  —  128 bytes (8-bit) /   64 bytes (16-bit)",
+        "93C56  —  256 bytes (8-bit) /  128 bytes (16-bit)",
+        "93C66  —  512 bytes (8-bit) /  256 bytes (16-bit)",
+        "93C76  — 1024 bytes (8-bit) /  512 bytes (16-bit)",
+        "93C86  — 2048 bytes (8-bit) / 1024 bytes (16-bit)"
     };
 }
 
 int ThreeWireService::resolveModelId(const std::string& modelStr) const {
-    std::string m = modelStr;
-    std::transform(m.begin(), m.end(), m.begin(), ::toupper);
+    if (modelStr.size() < 5) return -1;
 
-    if (m == "93C46") return 46;
-    if (m == "93C56") return 56;
-    if (m == "93C66") return 66;
-    if (m == "93C76") return 76;
-    if (m == "93C86") return 86;
+    // On extrait juste les 5 premiers caractères (ex: "93C66")
+    std::string prefix = modelStr.substr(0, 5);
+    std::transform(prefix.begin(), prefix.end(), prefix.begin(), ::toupper);
+
+    if (prefix == "93C46") return 46;
+    if (prefix == "93C56") return 56;
+    if (prefix == "93C66") return 66;
+    if (prefix == "93C76") return 76;
+    if (prefix == "93C86") return 86;
 
     return -1;
 }

@@ -27,7 +27,7 @@ void ThreeWireEepromShell::run() {
     std::vector<std::string> modelOptions = threeWireService.getSupportedModels();
     int modelIndex = userInputManager.readValidatedChoiceIndex("\nSelect EEPROM model", modelOptions, state.getThreeWireEepromModelIndex());
     int modelId = threeWireService.resolveModelId(modelOptions[modelIndex]);
-    terminalView.println("Selected model: " + modelOptions[modelIndex] + " (ID: " + std::to_string(modelId) + ")");
+    terminalView.println("\n✅ Selected model: " + modelOptions[modelIndex] + " (ID: " + std::to_string(modelId) + ")");
     state.setThreeWireEepromModelIndex(modelIndex);
 
     // Organization
