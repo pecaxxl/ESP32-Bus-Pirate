@@ -15,24 +15,19 @@ I2cEepromShell::I2cEepromShell(
     binaryAnalyzeManager(binaryAnalyzeManager) {}
 
 void I2cEepromShell::run(uint8_t addr) {
-    terminalView.println("\n=== I2C EEPROM Shell ===");
 
     // Select EEPROM model
-    int selectedModelIndex = userInputManager.readValidatedChoiceIndex("Select EEPROM type", models, 0);
-    if (selectedModelIndex < 0) {
-        terminalView.println("Invalid selection. Aborting.\n");
-        return;
-    }
+    int selectedModelIndex = userInputManager.readValidatedChoiceIndex("\nSelect EEPROM type", models, 0);
     
     // Initialize EEPROM
     uint16_t selectedType = memoryLengths[selectedModelIndex];
     if (!i2cService.initEeprom(selectedType, addr)) {
-        terminalView.println("❌ EEPROM not detected at 0x" + argTransformer.toHex(addr, 2) + ". Aborting.\n");
+        terminalView.println("\n❌ EEPROM not detected at 0x" + argTransformer.toHex(addr, 2) + ". Aborting.\n");
         return;
     }
     
     // Set variables
-    terminalView.println("✅ EEPROM initialized: " + models[selectedModelIndex] + "\n");
+    terminalView.println("\n✅ EEPROM initialized:" + models[selectedModelIndex]);
     selectedModel = models[selectedModelIndex];
     selectedLength = memoryLengths[selectedModelIndex];
     selectedI2cAddress = addr;
@@ -40,6 +35,7 @@ void I2cEepromShell::run(uint8_t addr) {
 
     while (true) {
         // Select action
+        terminalView.println("\n=== I2C EEPROM Shell ===");
         int index = userInputManager.readValidatedChoiceIndex("Select an EEPROM action", actions, 0);
         if (index == -1 || actions[index] == "🚪 Exit Shell") {
             terminalView.println("Exiting EEPROM shell...\n");
@@ -70,13 +66,13 @@ void I2cEepromShell::cmdProbe() {
     terminalView.println(" • Memory Size:  " + std::to_string(memSize) + " bytes");
     terminalView.println(" • Page Size:    " + std::to_string(pageSize) + " bytes");
     terminalView.println(" • Address Size: " + std::to_string(addrBytes) + " byte(s)");
-    terminalView.println(" • Write Time:   " + std::to_string(writeTime) + " ms\n");
+    terminalView.println(" • Write Time:   " + std::to_string(writeTime) + " ms");
 }
 
 void I2cEepromShell::cmdAnalyze() {
     uint32_t eepromSize = i2cService.eepromLength();
     uint32_t start = 0;
-    terminalView.println("🔍 Analyzing EEPROM content...\n");
+    terminalView.println("\n🔍 Analyzing EEPROM content...\n");
 
     // Analyze the EEPROM content in chuncks
     BinaryAnalyzeManager::AnalysisResult result = binaryAnalyzeManager.analyze(
@@ -115,7 +111,7 @@ void I2cEepromShell::cmdRead() {
     auto addr = argTransformer.parseHexOrDec16("0x" + addrStr);
     uint32_t eepromSize = i2cService.eepromLength();
     if (addr >= eepromSize) {
-        terminalView.println("❌ Error: Start address is beyond EEPROM size.\n");
+        terminalView.println("\n❌ Error: Start address is beyond EEPROM size.");
         return;
     }
     
@@ -134,9 +130,7 @@ void I2cEepromShell::cmdRead() {
 
         std::string formattedLine = argTransformer.toAsciiLine(addr + i, line);
         terminalView.println(formattedLine);
-    }
-    
-    terminalView.println("");
+    }    
 }
 
 void I2cEepromShell::cmdWrite() {
@@ -150,12 +144,14 @@ void I2cEepromShell::cmdWrite() {
         i2cService.eepromWriteByte(addr + i, data[i]);
     }
 
-    terminalView.println("✅ Data written.\n");
+    terminalView.println("\n✅ Data written.");
 }
 
 void I2cEepromShell::cmdDump() {
     uint32_t addr = 0;
     uint32_t count = i2cService.eepromLength();
+
+    terminalView.println("");
 
     const uint8_t bytesPerLine = 16;
     for (uint32_t i = 0; i < count; i += bytesPerLine) {
@@ -167,8 +163,6 @@ void I2cEepromShell::cmdDump() {
         std::string formatted = argTransformer.toAsciiLine(addr + i, line);
         terminalView.println(formatted);
     }
-
-    terminalView.println("");
 }
 
 void I2cEepromShell::cmdErase() {
@@ -176,8 +170,8 @@ void I2cEepromShell::cmdErase() {
     if (confirm) {
         terminalView.println("Erasing...");
         i2cService.eepromErase(0xFF);
-        terminalView.println("✅ EEPROM erased.\n");
+        terminalView.println("\n✅ EEPROM erased.");
     } else {
-        terminalView.println("Operation cancelled.\n");
+        terminalView.println("\n❌ Operation cancelled.");
     }
 }
