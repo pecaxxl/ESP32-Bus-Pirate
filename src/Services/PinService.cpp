@@ -23,7 +23,7 @@ void PinService::setLow(uint8_t pin) {
 }
 
 bool PinService::read(uint8_t pin) {
-    return digitalRead(pin);
+    return gpio_get_level((gpio_num_t)pin);
 }
 
 void PinService::togglePullup(uint8_t pin) {

@@ -351,6 +351,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  pullup <pin>         - Set pin pullup");
     terminalView.println("  pwm <pin> freq <dut> - Set PWM on pin");
     terminalView.println("  toggle <pin> <ms>    - Toggle pin periodically");
+    terminalView.println("  measure <pin> [ms]   - Calculate frequency");
     terminalView.println("  analog <pin>         - Read analog value");
     terminalView.println("  reset <pin>          - Reset to default");
 

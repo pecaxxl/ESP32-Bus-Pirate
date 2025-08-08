@@ -48,6 +48,9 @@ private:
     // Read analog value from a pin
     void handleAnalog(const TerminalCommand& cmd);
 
+    // Edge count on a pin
+    void handleMeasure(const TerminalCommand& cmd);
+
     // Display DIO help info
     void handleHelp();
 

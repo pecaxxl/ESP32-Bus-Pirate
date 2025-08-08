@@ -19,6 +19,7 @@ void DioController::handleCommand(const TerminalCommand& cmd) {
     else if (cmd.getRoot() == "pwm")    handlePwm(cmd);
     else if (cmd.getRoot() == "toggle") handleTogglePin(cmd);
     else if (cmd.getRoot() == "analog") handleAnalog(cmd);
+    else if (cmd.getRoot() == "measure") handleMeasure(cmd);
     else if (cmd.getRoot() == "reset")  handleResetPin(cmd);
     else                                handleHelp();
     
@@ -231,6 +232,65 @@ void DioController::handlePwm(const TerminalCommand& cmd) {
 }
 
 /*
+Measure edges
+*/
+void DioController::handleMeasure(const TerminalCommand& cmd) {
+    auto args = argTransformer.splitArgs(cmd.getArgs());
+
+    if (cmd.getSubcommand().empty()) {
+        terminalView.println("Usage: edgecount <pin> [duration_ms]");
+        return;
+    }
+
+    if (!argTransformer.isValidNumber(cmd.getSubcommand())) {
+        terminalView.println("DIO Measure: Invalid pin number.");
+        return;
+    }
+
+    uint8_t pin = argTransformer.toUint8(cmd.getSubcommand());
+    if (!isPinAllowed(pin, "Measure")) return;
+
+    uint32_t durationMs = 1000;
+    if (!args.empty() && argTransformer.isValidNumber(args[0])) {
+        durationMs = std::min(argTransformer.toUint32(args[0]), 5000u);
+        if (durationMs == 5000) {
+            terminalView.println("Note: Duration limited to 5000 ms max.");
+        }
+    }
+
+    terminalView.println("DIO EdgeCount: Sampling pin " + std::to_string(pin) +
+                         " for " + std::to_string(durationMs) + " ms...");
+
+    pinService.setInput(pin);
+    int last = pinService.read(pin);
+    uint32_t rising = 0, falling = 0;
+
+    unsigned long startMs = millis();
+
+    while (millis() - startMs < durationMs) {
+        int current = pinService.read(pin);
+        if (current != last) {
+            if (last == 0 && current == 1) ++rising;
+            else if (last == 1 && current == 0) ++falling;
+            last = current;
+        }
+    }
+
+    terminalView.println("");
+    terminalView.println(" Results:");
+    terminalView.println("  • Rising edges:     " + std::to_string(rising));
+    terminalView.println("  • Falling edges:    " + std::to_string(falling));
+
+    uint32_t totalEdges = rising + falling;
+    float freqHz = (totalEdges / 2.0f) / (durationMs / 1000.0f);
+
+    std::ostringstream oss;
+    oss.precision(2);
+    oss << std::fixed << "  • Approx. frequency: " << freqHz << " Hz\n";
+    terminalView.println(oss.str());
+}
+
+/*
 Toggle
 */
 void DioController::handleTogglePin(const TerminalCommand& cmd) {
@@ -324,6 +384,7 @@ void DioController::handleHelp() {
     terminalView.println("  set <pin> <H/L/I/O>");
     terminalView.println("  pullup <pin>");
     terminalView.println("  pwm <pin> <freq> <duty>");
+    terminalView.println("  measure <pin> [ms]");
     terminalView.println("  toggle <pin> <ms>");
     terminalView.println("  analog <pin>");
     terminalView.println("  reset <pin>");
