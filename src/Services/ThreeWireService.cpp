@@ -85,7 +85,7 @@ std::vector<std::string> ThreeWireService::getSupportedModels() const {
 int ThreeWireService::resolveModelId(const std::string& modelStr) const {
     if (modelStr.size() < 5) return -1;
 
-    // On extrait juste les 5 premiers caractères (ex: "93C66")
+    // Extract the prefix and convert to uppercase
     std::string prefix = modelStr.substr(0, 5);
     std::transform(prefix.begin(), prefix.end(), prefix.begin(), ::toupper);
 
