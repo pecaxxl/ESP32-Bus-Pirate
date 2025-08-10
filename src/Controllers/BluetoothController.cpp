@@ -19,27 +19,16 @@ Entry point for BT command
 void BluetoothController::handleCommand(const TerminalCommand& cmd) {
     const auto& root = cmd.getRoot();
 
-    if (root == "scan") {
-        handleScan();
-    } else if (root == "pair") {
-        handlePair(cmd);
-    } else if (root == "spoof") {
-        handleSpoof(cmd);
-    } else if (root == "sniff") {
-        handleSniff(cmd);
-    } else if (root == "status") {
-        handleStatus();
-    } else if (root == "server") {
-        handleServer(cmd);
-    } else if (root == "keyboard") {
-        handleKeyboard(cmd);
-    } else if (root == "mouse") {
-        handleMouse(cmd);
-    } else if (root == "reset") {
-        handleReset();
-    } else {
-        handleHelp();
-    }
+    if      (root == "scan")     handleScan();
+    else if (root == "pair")     handlePair(cmd);
+    else if (root == "spoof")    handleSpoof(cmd);
+    else if (root == "sniff")    handleSniff(cmd);
+    else if (root == "status")   handleStatus();
+    else if (root == "server")   handleServer(cmd);
+    else if (root == "keyboard") handleKeyboard(cmd);
+    else if (root == "mouse")    handleMouse(cmd);
+    else if (root == "reset")    handleReset();
+    else handleHelp();
 }
 
 /*
@@ -145,6 +134,11 @@ void BluetoothController::handleSniff(const TerminalCommand& cmd) {
 Server
 */
 void BluetoothController::handleServer(const TerminalCommand& cmd) {
+    #ifdef DEVICE_M5STICK
+        terminalView.println("Bluetooth Server: HID Not supported on M5Stick.");
+        return;
+    #endif
+
     if (bluetoothService.getMode() == BluetoothMode::SERVER && bluetoothService.isConnected()) {
         terminalView.println("Bluetooth Server: Already Started");
         return;
@@ -156,7 +150,7 @@ void BluetoothController::handleServer(const TerminalCommand& cmd) {
     }
 
     terminalView.println("Bluetooth Server: Starting BLE HID server as \"" + name + "\"...");
-    bluetoothService.begin(name);
+    bluetoothService.startServer(name);
     terminalView.println("→ You can now pair from your phone or computer.");
 }
 
@@ -252,7 +246,7 @@ void BluetoothController::handleSpoof(const TerminalCommand& cmd) {
 Reset
 */
 void BluetoothController::handleReset() {
-    bluetoothService.end();
+    bluetoothService.stopServer();
     terminalView.println("Bluetooth: Reset complete.");
 }
 
@@ -260,7 +254,9 @@ void BluetoothController::handleReset() {
 Config
 */
 void BluetoothController::handleConfig() {
-    // bluetoothService.init();
+    #ifdef DEVICE_M5STICK
+        bluetoothService.releaseBtClassic();
+    #endif
 }
 
 /*
