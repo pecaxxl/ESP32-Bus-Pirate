@@ -8,33 +8,68 @@
 
 struct NmapTaskParams
 {
-    std::string host;
+    std::vector<std::string> target_hosts;
+    std::vector<uint16_t> target_ports;
     int verbosity;
     NmapService *service;
 };
 
-void NmapService::startTask(const std::string &host, int verbosity)
+void NmapService::scanTarget(const std::string &host, const std::vector<uint16_t> &ports)
 {
-    auto *params = new NmapTaskParams{host, verbosity, this};
-    //xTaskCreatePinnedToCore(connectTask, "NmapConnect", 20000, params, 1, nullptr, 1);
-    delay(500); // start task delay
+
 }
 
-void NmapService::parseHosts(const std::string& hosts_arg)
+void NmapService::connectTask(void *pvParams)
 {
-    // Check if hosts_arg contains at least one letter (domain name)
-    bool hasLetter = false;
-    for (char c : hosts_arg) {
-        if (isalpha(static_cast<unsigned char>(c))) {
-            hasLetter = true;
-            break;
+    auto *params = static_cast<NmapTaskParams *>(pvParams);
+    //params->service->connect(params->target_hosts, params->verbosity, params->target_ports);
+    //delete params;
+    vTaskDelete(nullptr);
+}
+
+void NmapService::startTask(int verbosity)
+{
+    auto *params = new NmapTaskParams{this->target_hosts, this->target_ports, verbosity, this};
+    xTaskCreatePinnedToCore(connectTask, "NmapConnect", 20000, params, 1, nullptr, 1);
+    delay(100); // start task delay
+}
+
+bool NmapService::parseHosts(const std::string& hosts_arg)
+{
+    this->target_hosts = std::vector<std::string>();
+
+    // If we find ',' or '-' or '/network_mask' there are multiple hosts
+    if (hosts_arg.find(',') == std::string::npos && hosts_arg.find('-') == std::string::npos && hosts_arg.find('/') == std::string::npos) {
+        // Single host
+        if (isIpv4(hosts_arg)) {
+            this->target_hosts.push_back(hosts_arg);
+        }
+        else {
+            return false;
         }
     }
-    if (!hasLetter && !isIpv4(hosts_arg)) {
-        // TODO: Handle invalid host
+    else {
+        // Not yet implemented
+        return false;
     }
+    return true;
+}
 
-    // TODO: Handle valid hosts
+bool NmapService::parsePorts(const std::string& ports_arg)
+{
+    this->target_ports = std::vector<uint16_t>();
+
+    // If we find ',' or '-' there are multiple ports
+    if (ports_arg.find(',') != std::string::npos || ports_arg.find('-') != std::string::npos) {
+        // Not yet implemented
+        return false;
+    }
+    else {
+        // Single port
+        uint16_t port = static_cast<uint16_t>(std::stoi(ports_arg));
+        this->target_ports.push_back(port);
+    }
+    return true;
 }
 
 bool NmapService::isIpv4(const std::string& address)
