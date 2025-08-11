@@ -524,18 +524,26 @@ void WifiController::handleNmap(const TerminalCommand &cmd)
     }
 
     // Not yet implemented - getopt
-
     if (args[0] == "-p" && args.size() > 1) {
         // Parse ports
         if(!nmapService.parsePorts(args[1])) {
             terminalView.println("Nmap: Invalid port.");
             return;
         }
+    } else {
+        // Not yet implemented
+        // Set the most popular ports
     }
 
     nmapService.startTask(0);
-
-    terminalView.println("\r\n\nNmap: Session closed.");
+    
+    while(!nmapService.isReady()){
+        delay(100);
+    }
+    terminalView.println(nmapService.getReport());
+    nmapService.clean();
+    
+    terminalView.println("\r\n\nNmap: Scan finished.");
 }
 
 
