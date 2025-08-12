@@ -13,6 +13,8 @@ public:
     void stopReceiver();
     void sendInfraredCommand(InfraredCommand command);
     InfraredCommand receiveInfraredCommand();
+    bool receiveRaw(std::vector<uint16_t>& timings, uint32_t& khz);
+    void sendRaw(const std::vector<uint16_t>& timings, uint32_t khz);
 private:
     uint16_t getKaseikyoVendorIdCode(const std::string& input);
 };

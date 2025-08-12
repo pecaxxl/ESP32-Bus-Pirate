@@ -183,6 +183,52 @@ InfraredCommand InfraredService::receiveInfraredCommand() {
     return command;
 }
 
+bool InfraredService::receiveRaw(std::vector<uint16_t>& timings, uint32_t& khz) {
+    if (!IrReceiver.decode()) {
+        return false;
+    }
+
+    const IRData& data = IrReceiver.decodedIRData;
+    const auto* raw = data.rawDataPtr;
+
+    // Ensure we resume after processing
+    struct ResumeGuard {
+        ~ResumeGuard(){ IrReceiver.resume(); }
+    } guard;
+
+    if (raw == nullptr || raw->rawlen <= 1) {
+        return false;
+    }
+
+    khz = 38; // TODO: default frequency, handle that ?
+
+    timings.clear();
+    timings.reserve(raw->rawlen - 1);
+
+    for (uint16_t i = 1; i < raw->rawlen; i++) {
+        // Convert ticks to microseconds
+        uint32_t us = static_cast<uint32_t>(raw->rawbuf[i]) * MICROS_PER_TICK;
+
+        // sendRaw takes uint16_t (max ~65 ms). Cap if too large.
+        if (us > 0xFFFFu) us = 0xFFFFu;
+
+        timings.push_back(static_cast<uint16_t>(us));
+    }
+
+    return true;
+}
+
+void InfraredService::sendRaw(const std::vector<uint16_t>& timings, uint32_t khz) {
+    if (timings.empty()) return;
+
+    uint16_t* buf = new uint16_t[timings.size()];
+    for (size_t i = 0; i < timings.size(); ++i) buf[i] = timings[i];
+
+    IrSender.sendRaw(buf, timings.size(), khz);
+    delete[] buf;
+}
+
+
 uint16_t InfraredService::getKaseikyoVendorIdCode(const std::string& input) {
     std::string lowerInput = input;
     std::transform(lowerInput.begin(), lowerInput.end(), lowerInput.begin(), ::tolower);
