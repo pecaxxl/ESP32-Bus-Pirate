@@ -8,6 +8,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <Data/NmapUtils.h>
+#include <unordered_set>
 
 struct NmapTaskParams
 {
@@ -70,7 +71,11 @@ NmapOptions NmapService::parseNmapArgs(const std::vector<std::string>& tokens) {
     return nmap_options;
 }
 
-NmapService::NmapService() : ready(false) {}
+NmapService::NmapService() : ready(false), arg_transformer(nullptr) {}
+
+void NmapService::setArgTransformer(ArgTransformer& arg_transformer){
+    this->arg_transformer = &arg_transformer;
+}
 
 const bool NmapService::isReady() {
     return this->ready;
@@ -78,6 +83,81 @@ const bool NmapService::isReady() {
 
 const std::string NmapService::getReport() {
     return this->report;
+}
+
+static int udp_probe_with_timeout(in_addr addr, uint16_t port, int timeout_ms,
+                                  const void* payload, size_t payload_len, int retries = 2)
+{
+    int s = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (s < 0) return nmap_rc_enum::OTHER;
+
+    int rcvbuf = 4096;
+    (void)setsockopt(s, SOL_SOCKET, SO_RCVBUF, &rcvbuf, sizeof(rcvbuf));
+
+    sockaddr_in sa{
+        .sin_family = AF_INET,
+        .sin_port   = htons(port),
+        .sin_addr   = addr 
+    };
+
+    if (::connect(s, (sockaddr*)&sa, sizeof(sa)) < 0) {
+        int e = errno;
+        ::close(s);
+        if (e == EHOSTUNREACH || e == ENETUNREACH) 
+            return nmap_rc_enum::UDP_OPEN_FILTERED;
+        return nmap_rc_enum::OTHER;
+    }
+
+    timeval tv{
+        .tv_sec = timeout_ms / 1000,
+        .tv_usec = (timeout_ms % 1000) * 1000
+    };
+    setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+
+    // Probe message
+    static const char kProbe[] = "PING\n";
+    const void* buf   = (payload && payload_len) ? payload : kProbe;
+    size_t      blen  = (payload && payload_len) ? payload_len : (sizeof(kProbe)-1);
+
+    uint8_t rbuf[512];
+
+    for (int attempt = 0; attempt <= retries; ++attempt) {
+        if (::send(s, buf, blen, 0) < 0) {
+            int e = errno; ::close(s);
+            if (e == EHOSTUNREACH || e == ENETUNREACH)
+                return nmap_rc_enum::UDP_OPEN_FILTERED;
+            return nmap_rc_enum::OTHER;
+        }
+
+        ssize_t n = ::recvfrom(s, rbuf, sizeof(rbuf), MSG_TRUNC, nullptr, nullptr);
+        if (n >= 0) {
+            ::close(s);
+            return nmap_rc_enum::UDP_OPEN;
+        }
+
+        int e = errno;
+        if (e == ECONNREFUSED) {           // ICMP Unreachable
+            ::close(s);
+            return nmap_rc_enum::UDP_CLOSED;
+        }
+        if (e == EMSGSIZE) {               // Datagram larger buffer
+            ::close(s);
+            return nmap_rc_enum::UDP_OPEN;
+        }
+        if (e == EAGAIN || e == EWOULDBLOCK) {
+            vTaskDelay(pdMS_TO_TICKS(10));
+            continue;                      // Retry
+        }
+        if (e == EHOSTUNREACH || e == ENETUNREACH) {
+            ::close(s);
+            return nmap_rc_enum::UDP_OPEN_FILTERED;
+        }
+        ::close(s);
+        return nmap_rc_enum::OTHER;
+    }
+
+    ::close(s);
+    return nmap_rc_enum::UDP_OPEN_FILTERED;
 }
 
 static int tcp_connect_with_timeout(in_addr addr, uint16_t port, int timeout_ms)
@@ -185,6 +265,20 @@ static bool resolveIPv4(const std::string& host, in_addr& out)
     return true;
 }
 
+static inline void trimWhitespaces(std::string& input_str) {
+    if (input_str.empty()) 
+        return;
+
+    const char* whitespaceCharacters = " \t\r\n";
+    input_str.erase(0, input_str.find_first_not_of(whitespaceCharacters));
+
+    size_t pos = input_str.find_last_not_of(whitespaceCharacters);
+    if (pos != std::string::npos) 
+        input_str.erase(pos + 1); 
+    else 
+        input_str.clear();
+}
+
 void NmapService::scanTarget(const std::string &host, const std::vector<uint16_t> &ports)
 {
     in_addr ip{};
@@ -199,13 +293,34 @@ void NmapService::scanTarget(const std::string &host, const std::vector<uint16_t
 
     for (uint16_t p : ports) {
         this->report.append("Scanning port ").append(std::to_string(p)).append("...\r\n");
+        
+        if (this->layer4_protocol == Layer4Protocol::TCP) {
+            int st = tcp_connect_with_timeout(ip, p, CONNECT_TIMEOUT_MS);
+            switch (st) {
+                case nmap_rc_enum::TCP_OPEN:  this->report.append("Port ").append(std::to_string(p)).append("/tcp OPEN\r\n"); break;
+                case nmap_rc_enum::TCP_CLOSED:  this->report.append("Port ").append(std::to_string(p)).append("/tcp CLOSED\r\n"); break;
+                case nmap_rc_enum::TCP_FILTERED:  this->report.append("Port ").append(std::to_string(p)).append("/tcp FILTERED (timeout)\r\n"); break;
+                default: this->report.append("Port ").append(std::to_string(p)).append("/tcp ERROR\r\n"); break;
+            }
+        }
+        else if (this->layer4_protocol == Layer4Protocol::UDP) {
+            int st = udp_probe_with_timeout(ip, p, CONNECT_TIMEOUT_MS, nullptr, 0);
 
-        int st = tcp_connect_with_timeout(ip, p, CONNECT_TIMEOUT_MS);
-        switch (st) {
-            case nmap_rc_enum::TCP_OPEN:  this->report.append("Port ").append(std::to_string(p)).append("/tcp OPEN\r\n"); break;
-            case nmap_rc_enum::TCP_CLOSED:  this->report.append("Port ").append(std::to_string(p)).append("/tcp CLOSED\r\n"); break;
-            case nmap_rc_enum::TCP_FILTERED:  this->report.append("Port ").append(std::to_string(p)).append("/tcp FILTERED (timeout)\r\n"); break;
-            default: this->report.append("Port ").append(std::to_string(p)).append("/tcp ERROR\r\n"); break;
+            // TODO add custom payload per protocol
+            switch (st) {
+                case nmap_rc_enum::UDP_OPEN:
+                    this->report.append("Port ").append(std::to_string(p)).append("/udp OPEN\r\n"); break;
+                case nmap_rc_enum::UDP_CLOSED:
+                    this->report.append("Port ").append(std::to_string(p)).append("/udp CLOSED\r\n"); break;
+                case nmap_rc_enum::UDP_OPEN_FILTERED:
+                    this->report.append("Port ").append(std::to_string(p)).append("/udp OPEN|FILTERED\r\n"); break;
+                default:
+                    this->report.append("Port ").append(std::to_string(p)).append("/udp ERROR\r\n"); break;
+            }
+        }
+        else {
+            // Not an implemented layer 4 protocol
+            return;
         }
 
         // Yield
@@ -264,22 +379,68 @@ bool NmapService::parseHosts(const std::string& hosts_arg)
     return true;
 }
 
+void NmapService::setLayer4(bool layer4_protocol){
+    if (layer4_protocol == true){
+        this->layer4_protocol = Layer4Protocol::TCP;
+    }
+    else {
+        this->layer4_protocol = Layer4Protocol::UDP;
+    }
+}
+
 bool NmapService::parsePorts(const std::string& ports_arg)
 {
     this->target_ports = std::vector<uint16_t>();
 
-    // If we find ',' or '-' there are multiple ports
-    if (ports_arg.find(',') != std::string::npos || ports_arg.find('-') != std::string::npos) {
-        // Not yet implemented
+    if (ports_arg.empty())
         return false;
+
+    std::unordered_set<uint16_t> seen;
+    std::stringstream portsStream(ports_arg);
+    std::string token;
+
+    while (std::getline(portsStream, token, ',')) {
+        trimWhitespaces(token);
+        if (token.empty()) continue;
+
+        // Range?
+        size_t dash = token.find('-');
+        if (dash != std::string::npos) {
+            std::string a = token.substr(0, dash);
+            std::string b = token.substr(dash + 1);
+            trimWhitespaces(a);
+            trimWhitespaces(b);
+
+            uint16_t port1 = this->arg_transformer->parseHexOrDec16(a);
+            uint16_t port2 = this->arg_transformer->parseHexOrDec16(b);
+
+            if (!port1 || !port2)
+                return false;
+
+            if (port1 > port2)
+                std::swap(port1, port2);
+
+            for (uint16_t port = port1; port <= port2; ++port) {
+                if (seen.insert(port).second)
+                    target_ports.push_back(port);
+            }
+        } else {
+            // Single port
+            uint16_t port = this->arg_transformer->parseHexOrDec16(token);
+            if (!port)
+                return false;
+            if (seen.insert(port).second)
+                target_ports.push_back(port);
+        }
     }
-    else {
-        // Single port
-        uint16_t port = static_cast<uint16_t>(std::stoi(ports_arg));
-        this->target_ports.push_back(port);
-    }
+
+    if (target_ports.empty()) 
+        return false;
+
+    std::sort(target_ports.begin(), target_ports.end());
     return true;
 }
+
 
 bool NmapService::isIpv4(const std::string& address)
 {

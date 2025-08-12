@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include "Transformers/ArgTransformer.h"
 
 struct NmapOptions {
     bool tcp = true;         // -t sets TCP only (default)
@@ -10,6 +11,11 @@ struct NmapOptions {
     bool hasPort = false;    // Did user pass `-p` ?
     std::string ports;       // "80", "22,80-90"
     bool hasTrash = false;   // Did user pass non-option tokens?
+};
+
+enum class Layer4Protocol {
+    TCP,
+    UDP
 };
 
 class NmapService {
@@ -24,6 +30,9 @@ public:
 
     static NmapOptions parseNmapArgs(const std::vector<std::string>& tokens);
     void setDefaultPorts(bool tcp);
+    void setArgTransformer(ArgTransformer& arg_transformer);
+    void setLayer4(bool layer4_protocol);
+
 private:
     // Nmap Task, cause overflow if it runs in the main loop, so it must run in a dedicated FreeRTOS task with a larger stack
     static void scanTask(void *pvParams);
@@ -34,5 +43,7 @@ private:
     std::vector<uint16_t> target_ports;
     bool ready;
     std::string report;
+    Layer4Protocol layer4_protocol;
+    ArgTransformer* arg_transformer;
 };
 

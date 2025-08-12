@@ -10,7 +10,10 @@ enum nmap_rc_enum {
     OTHER =-1,
     TCP_OPEN = 0,
     TCP_CLOSED = 1,
-    TCP_FILTERED = 2
+    TCP_FILTERED = 2,
+    UDP_OPEN = 10,
+    UDP_CLOSED = 11,
+    UDP_OPEN_FILTERED = 12
 };
 
 static const int CONNECT_TIMEOUT_MS = 600;

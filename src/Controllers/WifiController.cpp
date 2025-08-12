@@ -523,6 +523,7 @@ void WifiController::handleNmap(const TerminalCommand &cmd)
         return;
     }
 
+    nmapService.setArgTransformer(argTransformer);
     auto tokens = argTransformer.splitArgs(cmd.getArgs());
     auto options = NmapService::parseNmapArgs(tokens);
 
@@ -536,6 +537,7 @@ void WifiController::handleNmap(const TerminalCommand &cmd)
             terminalView.println("Nmap: invalid -p value. Use 80,22,443 or 1000-2000.");
             return;
         }
+        nmapService.setLayer4(options.tcp);
     } else {
         // Set the most popular ports
         nmapService.setDefaultPorts(options.tcp);
