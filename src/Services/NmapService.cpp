@@ -71,7 +71,7 @@ NmapOptions NmapService::parseNmapArgs(const std::vector<std::string>& tokens) {
     return nmap_options;
 }
 
-NmapService::NmapService() : ready(false), arg_transformer(nullptr) {}
+NmapService::NmapService() : ready(false), arg_transformer(nullptr), verbosity(0) {}
 
 void NmapService::setArgTransformer(ArgTransformer& arg_transformer){
     this->arg_transformer = &arg_transformer;
@@ -206,7 +206,7 @@ static int tcp_connect_with_timeout(in_addr addr, uint16_t port, int timeout_ms)
     rc = ::select(s + 1, nullptr, &wfds, &efds, &tv);
     if (rc == 0) {
         ::close(s);
-        return nmap_rc_enum::TCP_FILTERED;
+        return nmap_rc_enum::TCP_CLOSED;
     }
     if (rc < 0)  {
         ::close(s);
@@ -291,16 +291,28 @@ void NmapService::scanTarget(const std::string &host, const std::vector<uint16_t
     inet_ntop(AF_INET, &ip, ipStr, sizeof(ipStr));
     this->report.append("Scanning host: ").append(host).append(" (").append(ipStr).append(")\r\n");
 
+    int closed_ports = ports.size();
     for (uint16_t p : ports) {
-        this->report.append("Scanning port ").append(std::to_string(p)).append("...\r\n");
-        
+        //this->report.append("Scanning port ").append(std::to_string(p)).append("...\r\n");
+
         if (this->layer4_protocol == Layer4Protocol::TCP) {
             int st = tcp_connect_with_timeout(ip, p, CONNECT_TIMEOUT_MS);
             switch (st) {
-                case nmap_rc_enum::TCP_OPEN:  this->report.append("Port ").append(std::to_string(p)).append("/tcp OPEN\r\n"); break;
-                case nmap_rc_enum::TCP_CLOSED:  this->report.append("Port ").append(std::to_string(p)).append("/tcp CLOSED\r\n"); break;
-                case nmap_rc_enum::TCP_FILTERED:  this->report.append("Port ").append(std::to_string(p)).append("/tcp FILTERED (timeout)\r\n"); break;
-                default: this->report.append("Port ").append(std::to_string(p)).append("/tcp ERROR\r\n"); break;
+                case nmap_rc_enum::TCP_OPEN:  
+                    this->report.append("Port ").append(std::to_string(p)).append("/tcp OPEN\r\n"); 
+                    closed_ports--;
+                    break;
+                case nmap_rc_enum::TCP_CLOSED:
+                    if (this->verbosity >= 1)
+                        this->report.append("Port ").append(std::to_string(p)).append("/tcp CLOSED\r\n");
+                    break;
+                case nmap_rc_enum::TCP_FILTERED:
+                    this->report.append("Port ").append(std::to_string(p)).append("/tcp FILTERED\r\n");
+                    closed_ports--;
+                    break;
+                default: 
+                    if (this->verbosity >= 1)
+                        this->report.append("Port ").append(std::to_string(p)).append("/tcp ERROR\r\n"); break;
             }
         }
         else if (this->layer4_protocol == Layer4Protocol::UDP) {
@@ -309,23 +321,34 @@ void NmapService::scanTarget(const std::string &host, const std::vector<uint16_t
             // TODO add custom payload per protocol
             switch (st) {
                 case nmap_rc_enum::UDP_OPEN:
-                    this->report.append("Port ").append(std::to_string(p)).append("/udp OPEN\r\n"); break;
+                    this->report.append("Port ").append(std::to_string(p)).append("/udp OPEN\r\n"); 
+                    closed_ports--;
+                    break;
                 case nmap_rc_enum::UDP_CLOSED:
-                    this->report.append("Port ").append(std::to_string(p)).append("/udp CLOSED\r\n"); break;
+                    if (this->verbosity >= 1)
+                        this->report.append("Port ").append(std::to_string(p)).append("/udp CLOSED\r\n");
+                    break;
                 case nmap_rc_enum::UDP_OPEN_FILTERED:
-                    this->report.append("Port ").append(std::to_string(p)).append("/udp OPEN|FILTERED\r\n"); break;
+                    this->report.append("Port ").append(std::to_string(p)).append("/udp OPEN|FILTERED\r\n");
+                    closed_ports--;
+                    break;
                 default:
-                    this->report.append("Port ").append(std::to_string(p)).append("/udp ERROR\r\n"); break;
+                    if (this->verbosity >= 1)
+                        this->report.append("Port ").append(std::to_string(p)).append("/udp ERROR\r\n");
+                    break;
             }
         }
         else {
             // Not an implemented layer 4 protocol
             return;
         }
-
         // Yield
         vTaskDelay(pdMS_TO_TICKS(SMALL_DELAY_MS));
     }
+    
+    if (closed_ports > 0)
+        this->report.append("Closed ports: ").append(std::to_string(closed_ports)).append("\r\n\n");
+
 }
 
 void NmapService::clean()
@@ -334,6 +357,8 @@ void NmapService::clean()
     this->target_ports.clear();
     this->report.clear();
     this->ready = false;
+    this->layer4_protocol = Layer4Protocol::TCP;
+    this->verbosity = 0;
 }
 
 void NmapService::scanTask(void *pvParams)
@@ -346,7 +371,7 @@ void NmapService::scanTask(void *pvParams)
     }
 
     service.ready = true;
-
+    service.verbosity = params->verbosity;
     delete params;
     vTaskDelete(nullptr);
 }

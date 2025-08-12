@@ -45,5 +45,6 @@ private:
     std::string report;
     Layer4Protocol layer4_protocol;
     ArgTransformer* arg_transformer;
+    int verbosity;
 };
 

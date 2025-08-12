@@ -528,7 +528,8 @@ void WifiController::handleNmap(const TerminalCommand &cmd)
     auto options = NmapService::parseNmapArgs(tokens);
 
     if (options.hasTrash){
-        terminalView.println("Nmap: Invalid options.");
+        // TODO handle this better
+        //terminalView.println("Nmap: Invalid options.");
     }
 
     if (options.hasPort) {
