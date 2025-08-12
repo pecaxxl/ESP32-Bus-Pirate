@@ -17,6 +17,59 @@ struct NmapTaskParams
     NmapService *service;
 };
 
+void NmapService::setDefaultPorts(bool tcp){
+    if (tcp) {
+        this->target_ports = TOP_100_TCP_PORTS;
+    } else {
+        this->target_ports = TOP_100_UDP_PORTS;
+    }
+}
+
+NmapOptions NmapService::parseNmapArgs(const std::vector<std::string>& tokens) {
+    NmapOptions nmap_options;
+    std::vector<char*> argv;
+
+    argv.reserve(tokens.size() + 1);
+    argv.push_back(const_cast<char*>("nmap"));
+    for (auto& token : tokens) 
+        argv.push_back(const_cast<char*>(token.c_str()));
+        
+    int argc = static_cast<int>(argv.size());
+
+    // Don't print errors to stderr
+    opterr = 0;
+    // Restart scanning at argv[1]
+    optind = 1;
+
+    int option;
+    while ((option = getopt(argc, argv.data(), "p:utv")) != -1) {
+        switch (option) {
+            case 'p':
+                nmap_options.hasPort = true;
+                nmap_options.ports = optarg ? optarg : "";
+                break;
+            case 'u':
+                nmap_options.udp = true;
+                nmap_options.tcp = false;
+                break;
+            case 't':
+                nmap_options.tcp = true;
+                nmap_options.udp = false;
+                break;
+            case 'v':
+                // If using double verbosity, it will add
+                ++nmap_options.verbosity;
+                break;
+            default:
+                // Unknown options
+                nmap_options.hasTrash = true;
+                break;
+        }
+    }
+
+    return nmap_options;
+}
+
 NmapService::NmapService() : ready(false) {}
 
 const bool NmapService::isReady() {
@@ -136,23 +189,23 @@ void NmapService::scanTarget(const std::string &host, const std::vector<uint16_t
 {
     in_addr ip{};
     if (!resolveIPv4(host, ip)) {
-        this->report.append("Failed to resolve host: ").append(host).append("\n");
+        this->report.append("Failed to resolve host: ").append(host).append("\r\n");
         return;
     }
 
     char ipStr[INET_ADDRSTRLEN]{};
     inet_ntop(AF_INET, &ip, ipStr, sizeof(ipStr));
-    this->report.append("Scanning host: ").append(host).append(" (").append(ipStr).append(")\n");
+    this->report.append("Scanning host: ").append(host).append(" (").append(ipStr).append(")\r\n");
 
     for (uint16_t p : ports) {
-        this->report.append("Scanning port ").append(std::to_string(p)).append("...\n");
+        this->report.append("Scanning port ").append(std::to_string(p)).append("...\r\n");
 
         int st = tcp_connect_with_timeout(ip, p, CONNECT_TIMEOUT_MS);
         switch (st) {
-            case nmap_rc_enum::TCP_OPEN:  this->report.append("Port ").append(std::to_string(p)).append("/tcp OPEN\n"); break;
-            case nmap_rc_enum::TCP_CLOSED:  this->report.append("Port ").append(std::to_string(p)).append("/tcp CLOSED\n"); break;
-            case nmap_rc_enum::TCP_FILTERED:  this->report.append("Port ").append(std::to_string(p)).append("/tcp FILTERED (timeout)\n"); break;
-            default: this->report.append("Port ").append(std::to_string(p)).append("/tcp ERROR\n"); break;
+            case nmap_rc_enum::TCP_OPEN:  this->report.append("Port ").append(std::to_string(p)).append("/tcp OPEN\r\n"); break;
+            case nmap_rc_enum::TCP_CLOSED:  this->report.append("Port ").append(std::to_string(p)).append("/tcp CLOSED\r\n"); break;
+            case nmap_rc_enum::TCP_FILTERED:  this->report.append("Port ").append(std::to_string(p)).append("/tcp FILTERED (timeout)\r\n"); break;
+            default: this->report.append("Port ").append(std::to_string(p)).append("/tcp ERROR\r\n"); break;
         }
 
         // Yield

@@ -523,23 +523,31 @@ void WifiController::handleNmap(const TerminalCommand &cmd)
         return;
     }
 
-    // Not yet implemented - getopt
-    if (args[0] == "-p" && args.size() > 1) {
+    auto tokens = argTransformer.splitArgs(cmd.getArgs());
+    auto options = NmapService::parseNmapArgs(tokens);
+
+    if (options.hasTrash){
+        terminalView.println("Nmap: Invalid options.");
+    }
+
+    if (options.hasPort) {
         // Parse ports
-        if(!nmapService.parsePorts(args[1])) {
-            terminalView.println("Nmap: Invalid port.");
+        if (!nmapService.parsePorts(options.ports)) {
+            terminalView.println("Nmap: invalid -p value. Use 80,22,443 or 1000-2000.");
             return;
         }
     } else {
-        // Not yet implemented
         // Set the most popular ports
+        nmapService.setDefaultPorts(options.tcp);
+        terminalView.println("Nmap: Using default ports.");
     }
 
-    nmapService.startTask(0);
+    nmapService.startTask(options.verbosity);
     
     while(!nmapService.isReady()){
         delay(100);
     }
+
     terminalView.println(nmapService.getReport());
     nmapService.clean();
     
