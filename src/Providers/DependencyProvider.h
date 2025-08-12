@@ -61,6 +61,7 @@ and injecting shared instances of core components
 #include "Shells/SmartCardShell.h"
 #include "Shells/ThreeWireEepromShell.h"
 #include "Shells/IbuttonShell.h"
+#include "Shells/UartAtShell.h"
 #include "Config/TerminalTypeConfigurator.h"
 
 class DependencyProvider
@@ -140,6 +141,7 @@ public:
     SmartCardShell &getSmartCardShell();
     ThreeWireEepromShell &getThreeWireEepromShell();
     IbuttonShell &getIbuttonShell();
+    UartAtShell &getUartAtShell();
 
     // Selectors
     HorizontalSelector &getHorizontalSelector();
@@ -219,6 +221,7 @@ private:
     SmartCardShell smartCardShell;
     ThreeWireEepromShell threeWireEepromShell;
     IbuttonShell ibuttonShell;
+    UartAtShell uartAtShell;
     
     // Selectors
     HorizontalSelector horizontalSelector;
