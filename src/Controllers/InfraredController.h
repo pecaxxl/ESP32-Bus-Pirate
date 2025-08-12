@@ -37,6 +37,15 @@ private:
     UserInputManager& userInputManager;
     UniversalRemoteShell& universalRemoteShell;
     bool configured = false;
+    uint8_t MAX_IR_FRAMES = 64; // Maximum frames to record
+
+
+    // Frames
+    struct IRFrame {
+        std::vector<uint16_t> timings; // raw ir timings
+        uint32_t khz; // carrier frequency
+        uint32_t gapMs; // delay from previous frame in milliseconds
+    };
 
     // Configure IR settings
     void handleConfig();
@@ -55,6 +64,11 @@ private:
 
     // Universal remote shell
     void handleRemote();
+
+    // Handle replay of IR commands
+    void handleReplay(const TerminalCommand& command);
+    bool recordFrames(std::vector<IRFrame>& tape);
+    void playbackFrames(const std::vector<IRFrame>& tape, uint32_t replayCount);
 
     // Show help text
     void handleHelp();

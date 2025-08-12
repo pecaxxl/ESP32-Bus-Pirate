@@ -377,6 +377,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  setprotocol          - Set IR protocol type");
     terminalView.println("  devicebgone          - OFF devices blast");
     terminalView.println("  remote               - Universal remote commands");
+    terminalView.println("  replay               - Replay recorded IR frames");
     terminalView.println("  config               - Configure settings");
 
     terminalView.println("");

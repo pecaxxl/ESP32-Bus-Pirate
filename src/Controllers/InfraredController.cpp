@@ -28,6 +28,7 @@ void InfraredController::handleCommand(const TerminalCommand& command) {
     else if (command.getRoot() == "receive")      handleReceive();
     else if (command.getRoot() == "devicebgone")  handleDeviceBgone();
     else if (command.getRoot() == "remote")       handleRemote();
+    else if (command.getRoot() == "replay")       handleReplay(command);
     else if (command.getRoot() == "setprotocol")  handleSetProtocol();
     else handleHelp();
 }
@@ -138,6 +139,114 @@ void InfraredController::handleRemote() {
 }
 
 /*
+Replay
+*/
+void InfraredController::handleReplay(const TerminalCommand& command) {
+
+    // Optional replay count
+    uint32_t replayCount = 0; // 0 = infinite
+    const std::string sub = command.getSubcommand();
+    if (!sub.empty() && argTransformer.isValidNumber(sub)) {
+        replayCount = argTransformer.toUint32(sub);
+    }
+
+    // Record frames
+    std::vector<IRFrame> tape;
+    if (!recordFrames(tape)) {
+        return; // No frames captured
+    }
+
+    // Playback frames
+    playbackFrames(tape, replayCount);
+}
+
+bool InfraredController::recordFrames(std::vector<IRFrame>& tape) {
+    tape.clear();
+    tape.reserve(MAX_IR_FRAMES);
+
+    terminalView.println("INFRARED Replay: Recording raw IR frames (max 64)... Press [ENTER] to stop.\n");
+
+    // Start the capture
+    infraredService.startReceiver();
+    uint32_t lastMillis = millis();
+    while (true) {
+        // Stop if Enter pressed
+        char c = terminalInput.readChar();
+        if (c == '\r' || c == '\n') break;
+
+        // Max frames reached
+        if (tape.size() >= MAX_IR_FRAMES) {
+            terminalView.println("\nINFRARED Replay: Reached maximum of 64 frames, stopping recording...\n");
+            break;
+        }
+
+        // Attempt to capture
+        std::vector<uint16_t> timings;
+        uint32_t khz = 0;
+        if (infraredService.receiveRaw(timings, khz)) {
+            const uint32_t now = millis();
+            const uint32_t gap = tape.empty() ? 0u : (now - lastMillis);
+            lastMillis = now;
+
+            tape.push_back(IRFrame{ std::move(timings), khz, gap });
+            terminalView.println(
+                "  📥 Captured frame #" + std::to_string(tape.size()) +
+                " (gap " + std::to_string(gap) + " ms, carrier " + std::to_string(khz) + " kHz)"
+            );
+        }
+    }
+    infraredService.stopReceiver();
+
+    // Nothing
+    if (tape.empty()) {
+        terminalView.println("INFRARED Replay: No frames captured. Nothing to replay.");
+        return false;
+    }
+
+    return true;
+}
+
+void InfraredController::playbackFrames(const std::vector<IRFrame>& tape, uint32_t replayCount) {
+    if (replayCount == 0) {
+        terminalView.println("\nINFRARED Replay: Playing back with original delays. Press [ENTER] to stop.\n");
+    } else {
+        terminalView.println("\nINFRARED Replay: Playing back " + std::to_string(replayCount) +
+                             " time(s) with original delays. Press [ENTER] to stop.\n");
+    }
+
+    // Loop through the frames and send them
+    uint32_t playedLoops = 0;
+    while (true) {
+        if (replayCount > 0 && playedLoops >= replayCount) break;
+
+        for (size_t i = 0; i < tape.size(); ++i) {
+            const auto& f = tape[i];
+
+            // Check for Enter press and wait for gap
+            uint32_t start = millis();
+            while (millis() - start < f.gapMs) {
+                char c = terminalInput.readChar();
+                if (c == '\r' || c == '\n') {
+                    terminalView.println("\nINFRARED Replay: Stopped by user.");
+                    return;
+                }
+                delay(1);
+            }
+
+            // Log and send frame
+            terminalView.println(
+                "  📤 Sending frame #" + std::to_string(i) +
+                " (gap " + std::to_string(f.gapMs) + " ms, carrier " + std::to_string(f.khz) + " kHz)"
+            );
+            infraredService.sendRaw(f.timings, f.khz);
+        }
+        ++playedLoops;
+    }
+
+    terminalView.println("\nINFRARED Replay: Completed (" + std::to_string(playedLoops) + " loop(s)).");
+}
+
+/*
 Set protocol
 */
 void InfraredController::handleSetProtocol() {
@@ -227,6 +336,7 @@ void InfraredController::handleHelp() {
     terminalView.println("  setprotocol");
     terminalView.println("  devicebgone");
     terminalView.println("  remote");
+    terminalView.println("  replay");
     terminalView.println("  config");
 }
 
