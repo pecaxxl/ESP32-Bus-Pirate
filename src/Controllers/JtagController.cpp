@@ -38,25 +38,21 @@ void JtagController::handleScanSwd() {
     bool found = jtagService.scanSwdDevice(swdCandidates, swdio, swclk, idcode);
 
     if (found) {
-        terminalView.println("\nSWD device found!");
+        terminalView.println("\n SWD device found!");
         terminalView.println("  • SWDIO  : GPIO " + std::to_string(swdio));
         terminalView.println("  • SWCLK  : GPIO " + std::to_string(swclk));
         terminalView.println("  • IDCODE : 0x" + std::to_string(idcode));
-        terminalView.println("JTAG: SWD scan done.\n");
+        terminalView.println("  ✅ SWD scan done.\n");
     } else {
-        terminalView.println("JTAG: No SWD device found on available GPIOs.");
+        terminalView.println("\nJTAG: No SWD device found on available GPIOs.");
     }
 }
 
 /*
 Scan JTAG
 */
-void JtagController::handleScanJtag() {
-
-    // TODO: Experimental at this point, has not JTAG devices to scan
-    
+void JtagController::handleScanJtag() {    
     terminalView.println("JTAG: Scanning for JTAG devices...");
-    terminalView.println("[WARNING] This features has not been tested yet.");
 
     std::vector<uint8_t> jtagCandidates = state.getJtagScanPins();
     uint8_t tdi, tdo, tck, tms;
@@ -72,7 +68,7 @@ void JtagController::handleScanJtag() {
     );
 
     if (found) {
-        terminalView.println("\nJTAG device(s) found!");
+        terminalView.println("\n JTAG device(s) found!");
         terminalView.println("  • TDI   : GPIO " + std::to_string(tdi));
         terminalView.println("  • TDO   : GPIO " + std::to_string(tdo));
         terminalView.println("  • TCK   : GPIO " + std::to_string(tck));
@@ -84,12 +80,12 @@ void JtagController::handleScanJtag() {
         for (size_t i = 0; i < ids.size(); ++i) {
             char buf[11];
             snprintf(buf, sizeof(buf), "0x%08X", ids[i]);
-            terminalView.println("   • IDCODE[" + std::to_string(i) + "] : " + buf);
+            terminalView.println("  • IDCODE[" + std::to_string(i) + "] : " + buf);
         }
 
-        terminalView.println("JTAG: Scan complete.\n");
+        terminalView.println("  ✅ Scan complete.\n");
     } else {
-        terminalView.println("JTAG: No device found on available GPIOs.");
+        terminalView.println("\nJTAG: No device found on available GPIOs.");
     }
 }
 

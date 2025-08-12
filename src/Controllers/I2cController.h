@@ -13,8 +13,7 @@
 #include "Managers/UserInputManager.h"
 #include "Vendors/i2c_sniffer.h"
 #include "Shells/I2cEepromShell.h"
-
-struct I2cSniffState;
+#include "Data/I2cKnownAdresses.h"
 
 class I2cController {
 public:
@@ -36,8 +35,8 @@ private:
     I2cService& i2cService;
     ArgTransformer& argTransformer;
     UserInputManager& userInputManager;
-    GlobalState& state = GlobalState::getInstance();
     I2cEepromShell& eepromShell;
+    GlobalState& state = GlobalState::getInstance();
     bool configured = false;
     
     // Ping an I2C address
@@ -67,6 +66,9 @@ private:
     // Configure I2C parameters
     void handleConfig();
 
+    // Monitor I2C device registers
+    void handleMonitor(const TerminalCommand& cmd);
+
     // I2C EEPROM operations
     void handleEeprom(const TerminalCommand& cmd);
 
@@ -75,6 +77,9 @@ private:
 
     // Recover I2C bus if stuck
     void handleRecover();
+
+    // Identify I2C device based on address
+    void handleIdentify(const TerminalCommand& cmd);
 
     // Dump I2C registers content
     void handleDump(const TerminalCommand& cmd);

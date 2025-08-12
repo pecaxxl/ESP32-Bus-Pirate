@@ -172,7 +172,7 @@ std::string BinaryAnalyzeManager::formatAnalysis(const AnalysisResult& result) {
         " • Printable chars: %.2f%%\n\r"
         " • Null bytes:      %.2f%%\n\r"
         " • 0xFF bytes:      %.2f%%\n\r"
-        " • Data bytes:      %.2f%%\n\r",
+        " • Data bytes:      %.2f%%\r",
         result.totalBytes,
         result.blocks,
         result.avgEntropy,

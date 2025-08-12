@@ -23,7 +23,6 @@
 #include <Enums/TerminalTypeEnum.h>
 #include <States/GlobalState.h>
 
-
 void setup() {    
     #if DEVICE_M5STICK
         // Setup the M5stickCplus2

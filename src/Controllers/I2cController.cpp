@@ -1,9 +1,23 @@
 #include "I2cController.h"
 
-I2cController::I2cController(ITerminalView& terminalView, IInput& terminalInput, 
-                             I2cService& i2cService, ArgTransformer& argTransformer, 
-                             UserInputManager& userInputManager, I2cEepromShell& eepromShell)
-    : terminalView(terminalView), terminalInput(terminalInput), i2cService(i2cService), argTransformer(argTransformer), userInputManager(userInputManager), eepromShell(eepromShell) {}
+/*
+Constructor
+*/
+I2cController::I2cController(
+    ITerminalView& terminalView,
+    IInput& terminalInput,
+    I2cService& i2cService,
+    ArgTransformer& argTransformer,
+    UserInputManager& userInputManager,
+    I2cEepromShell& eepromShell
+)
+    : terminalView(terminalView),
+      terminalInput(terminalInput),
+      i2cService(i2cService),
+      argTransformer(argTransformer),
+      userInputManager(userInputManager),
+      eepromShell(eepromShell)
+{}
 
 /*
 Entry point to handle I2C command
@@ -12,6 +26,7 @@ void I2cController::handleCommand(const TerminalCommand& cmd) {
     if (cmd.getRoot() == "scan") handleScan();
     else if (cmd.getRoot() == "sniff") handleSniff();
     else if (cmd.getRoot() == "ping") handlePing(cmd);
+    else if (cmd.getRoot() == "identify") handleIdentify(cmd);
     else if (cmd.getRoot() == "write") handleWrite(cmd);
     else if (cmd.getRoot() == "read") handleRead(cmd);
     else if (cmd.getRoot() == "dump") handleDump(cmd);
@@ -20,6 +35,7 @@ void I2cController::handleCommand(const TerminalCommand& cmd) {
     else if (cmd.getRoot() == "flood") handleFlood(cmd);
     else if (cmd.getRoot() == "eeprom") handleEeprom(cmd);
     else if (cmd.getRoot() == "recover") handleRecover();
+    else if (cmd.getRoot() == "monitor") handleMonitor(cmd);
     else if (cmd.getRoot() == "config") handleConfig();
     else handleHelp();
 }
@@ -495,6 +511,40 @@ void I2cController::printHexDump(uint16_t start, uint16_t len,
 }
 
 /*
+Identify
+*/
+void I2cController::handleIdentify(const TerminalCommand& cmd) {
+    // Validate subcommand
+    if (!argTransformer.isValidNumber(cmd.getSubcommand())) {
+        terminalView.println("Usage: identify <addr>");
+        return;
+    }
+
+    // Parse I2C address
+    uint8_t address = argTransformer.parseHexOrDec(cmd.getSubcommand());
+    uint16_t start = 0x00;
+    uint16_t len = 256;
+
+    std::stringstream ss;
+    ss << "\n\r 📟 I2C 0x" + argTransformer.toHex(address) + " Identification Result\n";
+
+    // Search for known addresses
+    bool matchFound = false;
+    for (size_t i = 0; i < i2cknownAddressesCount; ++i) {
+        if (i2cKnownAddresses[i].address == address) {
+            matchFound = true;
+            ss << "\r  ➤ Could be: - [" << i2cKnownAddresses[i].type << "] " << i2cKnownAddresses[i].component << "\n";
+        }
+    }
+
+    if (!matchFound) {
+        ss << "\r  ➤ No match found for address 0x" << argTransformer.toHex(address) << "\n";
+    }
+
+    terminalView.println(ss.str());
+}
+
+/*
 Recover
 */
 void I2cController::handleRecover() {
@@ -620,6 +670,81 @@ void I2cController::handleFlood(const TerminalCommand& cmd) {
 }
 
 /*
+Monitor
+*/
+void I2cController::handleMonitor(const TerminalCommand& cmd) {
+    if (!argTransformer.isValidNumber(cmd.getSubcommand())) {
+        terminalView.println("Usage: monitor <addr> [delay_ms]");
+        return;
+    }
+
+    uint8_t addr = argTransformer.parseHexOrDec(cmd.getSubcommand());
+    uint16_t len = 256;
+    uint32_t delayMs = 500;
+
+    // Optional delay
+    auto args = argTransformer.splitArgs(cmd.getArgs());
+    if (!args.empty() && argTransformer.isValidNumber(args[0])) {
+        delayMs = argTransformer.parseHexOrDec32(args[0]);
+    }
+
+    // Check device presence
+    i2cService.beginTransmission(addr);
+    if (i2cService.endTransmission()) {
+        terminalView.println("I2C Monitor: No device found at 0x" + argTransformer.toHex(addr));
+        return;
+    }
+
+    terminalView.println("I2C Monitor: Monitoring register changes at 0x" + argTransformer.toHex(addr) + "... Press [ENTER] to stop.\n");
+
+    std::vector<uint8_t> prev(len, 0xFF);
+    std::vector<uint8_t> curr(len, 0xFF);
+    std::vector<bool> valid(len, false);
+
+    // First read to initialize prev
+    if (i2cService.isReadableDevice(addr, 0x00)) {
+        performRegisterRead(addr, 0x00, len, prev, valid);
+    } else {
+        performRawRead(addr, 0x00, len, prev, valid);
+    }
+
+    while (true) {
+        // Try register read
+        if (i2cService.isReadableDevice(addr, 0x00)) {
+            performRegisterRead(addr, 0x00, len, curr, valid);
+        } else {
+            performRawRead(addr, 0x00, len, curr, valid);
+        }
+
+        // Compare and show changes
+        for (uint16_t i = 0; i < len; ++i) {
+            if (valid[i] && curr[i] != prev[i]) {
+                std::stringstream ss;
+                ss << "0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << i
+                   << ": 0x" << std::setw(2) << (int)prev[i]
+                   << " -> 0x" << std::setw(2) << (int)curr[i];
+                terminalView.println(ss.str());
+                prev[i] = curr[i];
+            }
+        }
+
+        // Check for user input to stop
+        uint32_t elapsed = 0;
+        while (elapsed < delayMs) {
+            char key = terminalInput.readChar();
+            if (key == '\r' || key == '\n') {
+                terminalView.println("\nI2C Monitor: Stopped by user.");
+                return;
+            }
+            delay(10);
+            elapsed += 10;
+        }
+    }
+
+    terminalView.println("\nI2C Monitor: Stopped.");
+}
+
+/*
 EEPROM
 */
 void I2cController::handleEeprom(const TerminalCommand& cmd) {
@@ -652,6 +777,7 @@ void I2cController::handleHelp() {
     terminalView.println("Unknown I2C command. Usage:");
     terminalView.println("  scan");
     terminalView.println("  ping <addr>");
+    terminalView.println("  identify <addr>");
     terminalView.println("  sniff");
     terminalView.println("  slave <addr>");
     terminalView.println("  read <addr> <reg>");
@@ -660,6 +786,7 @@ void I2cController::handleHelp() {
     terminalView.println("  glitch <addr>");
     terminalView.println("  flood <addr>");
     terminalView.println("  recover");
+    terminalView.println("  monitor <addr> [delay_ms]");
     terminalView.println("  eeprom [addr]");
     terminalView.println("  config");
     terminalView.println("  raw instructions, e.g: [0x13 0x4B r:8]");

@@ -307,6 +307,7 @@ void UtilityController::handleHelp() {
     terminalView.println(" 5. I2C:");
     terminalView.println("  scan                 - Find devices");
     terminalView.println("  ping <addr>          - Check ACK");
+    terminalView.println("  identify <addr>      - Identify device");
     terminalView.println("  sniff                - View traffic");
     terminalView.println("  slave <addr>         - Emulate I2C device");
     terminalView.println("  read <addr> <reg>    - Read register");
@@ -314,6 +315,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  dump <addr> [len]    - Read all registers");
     terminalView.println("  glitch <addr>        - Run attack sequence");
     terminalView.println("  flood <addr>         - Saturate target I/O");
+    terminalView.println("  monitor <addr> [ms]  - Monitor register changes");
     terminalView.println("  eeprom [addr]        - I2C EEPROM operations");
     terminalView.println("  recover              - Attempt bus recovery");
     terminalView.println("  config               - Configure settings");
@@ -325,6 +327,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  sdcard               - SD operations");
     terminalView.println("  slave                - Emulate SPI slave");
     terminalView.println("  flash                - SPI Flash operations");
+    terminalView.println("  eeprom               - SPI EEPROM operations");
     terminalView.println("  config               - Configure settings");
     terminalView.println("  [0x9F r:3]           - Instruction syntax");
 
@@ -348,6 +351,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  pullup <pin>         - Set pin pullup");
     terminalView.println("  pwm <pin> freq <dut> - Set PWM on pin");
     terminalView.println("  toggle <pin> <ms>    - Toggle pin periodically");
+    terminalView.println("  measure <pin> [ms]   - Calculate frequency");
     terminalView.println("  analog <pin>         - Read analog value");
     terminalView.println("  reset <pin>          - Reset to default");
 

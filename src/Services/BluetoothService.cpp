@@ -24,8 +24,9 @@ public:
     }
 };
 
-void BluetoothService::begin(const std::string& deviceName) {
-    end();
+void BluetoothService::startServer(const std::string& deviceName) {
+    stopServer();
+
     delay(200);
     BLEDevice::init(deviceName);
     BLEServer* server = BLEDevice::createServer();
@@ -53,7 +54,7 @@ void BluetoothService::begin(const std::string& deviceName) {
     connected = true;
 }
 
-void BluetoothService::end() {
+void BluetoothService::stopServer() {
     if (hid) {
         delete hid;
         hid = nullptr;
@@ -70,6 +71,10 @@ void BluetoothService::end() {
 
     connected = false;
     mode = BluetoothMode::NONE;
+}
+
+void BluetoothService::releaseBtClassic() {
+    esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
 }
 
 void BluetoothService::onConnect() {
@@ -172,12 +177,12 @@ void BluetoothService::switchToMode(BluetoothMode newMode) {
     if (mode == newMode) return;
 
     if (mode == BluetoothMode::SERVER || mode == BluetoothMode::CLIENT) {
-        end();
+        stopServer();
     }
 
-    // Init pour le nouveau mode
+    // Init new mode
     if (newMode == BluetoothMode::CLIENT || newMode == BluetoothMode::SERVER) {
-        BLEDevice::init("");  // Peut être changé si tu veux des logs personnalisés
+        BLEDevice::init(""); 
     }
 
     mode = newMode;

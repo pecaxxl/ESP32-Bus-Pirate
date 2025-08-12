@@ -58,6 +58,7 @@ void JtagService::configureJtag(uint8_t tck, uint8_t tms, uint8_t tdi, uint8_t t
     _pinTRST = trst;
 
     gpio_set_direction((gpio_num_t)_pinTCK, GPIO_MODE_OUTPUT);
+    gpio_set_level((gpio_num_t)_pinTCK, 0);
     gpio_set_direction((gpio_num_t)_pinTMS, GPIO_MODE_OUTPUT);
     gpio_set_direction((gpio_num_t)_pinTDI, GPIO_MODE_OUTPUT);
     gpio_set_direction((gpio_num_t)_pinTDO, GPIO_MODE_INPUT);
@@ -141,23 +142,35 @@ int JtagService::detectDevices() {
     restoreIdle();
     enterShiftIR();
     tdiWrite(true);
-    for (int i = 0; i < MAX_DEVICES_LEN * MAX_IR_LEN; ++i) tckPulse();
+    for (int i = 0; i < MAX_IR_CHAIN_LEN; ++i) tckPulse();
     tmsWrite(true); tckPulse(); // Exit1-IR
     tmsWrite(true); tckPulse(); // Update-IR
     tmsWrite(true); tckPulse(); // Select-DR
     tmsWrite(false); tckPulse(); // Capture-DR
     tmsWrite(false); tckPulse(); // Shift-DR
 
+    int x;
+    for(x = 0; x < MAX_DEVICES_LEN; x++)
+    {
+        tckPulse();
+    }
+
     tdiWrite(false);
-    int x = 0;
-    for (; x < MAX_DEVICES_LEN - 1; ++x) {
-        if (!tdoRead()) break;
+    for(x = 0; x < (MAX_DEVICES_LEN - 1); x++) {
+        if(tdoRead() == false) {
+            break;
+        }
+    }
+
+    if (x > (MAX_DEVICES_LEN - 1))
+    {
+        x = 0;
     }
 
     tmsWrite(true); tckPulse();
     tmsWrite(true); tckPulse();
     tmsWrite(false); tckPulse(); // Run-Test/Idle
-    return (x < MAX_DEVICES_LEN - 1) ? x : 0;
+    return (x);
 }
 
 void JtagService::getDeviceIDs(int count, std::vector<uint32_t>& ids) {
@@ -196,6 +209,32 @@ bool JtagService::isValidDeviceID(uint32_t id) {
     return idcode > 1 && idcode <= 126 && bank <= 8;
 }
 
+void JtagService::jtagInitChannels(const std::vector<uint8_t>& pins, bool pulsePins) {
+    for (auto pin : pins) {
+        gpio_set_direction((gpio_num_t)pin, GPIO_MODE_INPUT);
+        if (pulsePins) {
+            gpio_pulldown_en((gpio_num_t)pin);
+        } else {
+            gpio_pullup_en((gpio_num_t)pin);
+        }
+    }
+}
+
+void JtagService::jtagResetChannels(const std::vector<uint8_t>& pins, int trstPin, bool pulsePins) {
+    for (auto pin : pins) {
+        if (trstPin >= 0 && pin == trstPin) {
+            gpio_set_direction((gpio_num_t)pin, GPIO_MODE_INPUT);
+            if (pulsePins) {
+                gpio_pulldown_en((gpio_num_t)pin);
+            } else {
+                gpio_pullup_en((gpio_num_t)pin);
+            }
+        } else {
+            gpio_set_direction((gpio_num_t)pin, GPIO_MODE_INPUT);
+        }
+    }
+}
+
 bool JtagService::scanJtagDevice(
     const std::vector<uint8_t>& pins,
     uint8_t& outTDI, uint8_t& outTDO,
@@ -205,57 +244,65 @@ bool JtagService::scanJtagDevice(
     bool pulsePins,
     void (*onProgress)(size_t, size_t)
 ) {
-    const size_t channelCount = pins.size();
-    const size_t maxPermutations = channelCount * (channelCount - 1) * (channelCount - 2) * (channelCount - 3);
-    size_t progressCount = 0;
-
+    int channelCount = pins.size();
+    uint32_t tempDeviceId;
+    bool volatile foundPinout = false;
     outDeviceIDs.clear();
-    bool found = false;
-    uint32_t tempID = 0;
+    size_t progressCount = 0;
+    size_t maxPermutations = channelCount * (channelCount - 1) * (channelCount - 2) * (channelCount - 3);
 
     for (auto tdi : pins) {
         for (auto tdo : pins) {
-            if (tdo == tdi) continue;
+            if (tdi == tdo) continue;
             for (auto tck : pins) {
                 if (tck == tdi || tck == tdo) continue;
                 for (auto tms : pins) {
-                    if (tms == tdi || tms == tdo || tms == tck) continue;
+                    if (tms == tck || tms == tdo || tms == tdi) continue;
 
                     if (onProgress) onProgress(++progressCount, maxPermutations);
 
-                    configureJtag(tck, tms, tdi, tdo);
-
+                    jtagInitChannels(pins, pulsePins);
                     if (pulsePins) {
-                        // Equivalent of pulsePins
                         for (auto ch : pins) {
                             gpio_set_direction((gpio_num_t)ch, GPIO_MODE_INPUT);
                             gpio_pullup_en((gpio_num_t)ch);
-                            gpio_pulldown_en((gpio_num_t)ch);
                         }
                     }
 
+                    configureJtag(tck, tms, tdi, tdo);
                     int deviceCount = detectDevices();
-                    uint32_t pattern = esp_random();
-                    uint32_t response = bypassTest(deviceCount, pattern);
 
-                    if (response == pattern) {
+                    if (deviceCount <= 0) {
+                        continue;
+                    }
+
+                    uint32_t dataIn = esp_random();
+                    uint32_t dataOut = bypassTest(deviceCount, dataIn);
+
+                    if (dataIn == dataOut) {
                         std::vector<uint32_t> ids;
                         getDeviceIDs(deviceCount, ids);
-                        if (ids.empty() || !isValidDeviceID(ids[0])) continue;
+                        tempDeviceId = ids.empty() ? 0 : ids[0];
 
-                        found = true;
-                        tempID = ids[0];
-                        outDeviceIDs = ids;
+                        if (ids.empty()) {
+                            Serial.println("       No device IDs read");
+                            continue;
+                        }
 
+                        if (!isValidDeviceID(tempDeviceId)) {
+                            continue;
+                        }
+
+                        foundPinout = true;
                         outTDI = tdi;
                         outTDO = tdo;
                         outTCK = tck;
                         outTMS = tms;
                         outTRST = -1;
+                        outDeviceIDs = ids;
 
-                        // Try to find TRST pin
                         for (auto trst : pins) {
-                            if (trst == tdi || trst == tdo || trst == tck || trst == tms) continue;
+                            if (trst == tms || trst == tck || trst == tdo || trst == tdi) continue;
 
                             if (onProgress) onProgress(++progressCount, maxPermutations);
 
@@ -267,25 +314,33 @@ bool JtagService::scanJtagDevice(
                             }
 
                             usleep(10);
+
                             std::vector<uint32_t> tmpIDs;
                             getDeviceIDs(1, tmpIDs);
 
-                            if (!tmpIDs.empty() && tmpIDs[0] != tempID) {
+                            if (!tmpIDs.empty() && tmpIDs[0] != tempDeviceId) {
                                 outTRST = trst;
                                 break;
                             }
                         }
 
+                        jtagResetChannels(pins, outTRST, pulsePins);
                         return true;
                     }
+
+                    jtagResetChannels(pins, outTRST, pulsePins);
                 }
             }
         }
     }
 
-    if (onProgress) onProgress(maxPermutations, maxPermutations);
+    if (!foundPinout && onProgress) {
+        onProgress(maxPermutations, maxPermutations);
+    }
+
     return false;
 }
+
 
 
 // --- SWD ---

@@ -27,7 +27,7 @@ void ThreeWireEepromShell::run() {
     std::vector<std::string> modelOptions = threeWireService.getSupportedModels();
     int modelIndex = userInputManager.readValidatedChoiceIndex("\nSelect EEPROM model", modelOptions, state.getThreeWireEepromModelIndex());
     int modelId = threeWireService.resolveModelId(modelOptions[modelIndex]);
-    terminalView.println("Selected model: " + modelOptions[modelIndex] + " (ID: " + std::to_string(modelId) + ")");
+    terminalView.println("\n✅ Selected model: " + modelOptions[modelIndex] + " (ID: " + std::to_string(modelId) + ")");
     state.setThreeWireEepromModelIndex(modelIndex);
 
     // Organization
@@ -47,11 +47,10 @@ void ThreeWireEepromShell::run() {
     auto doPin = state.getThreeWireDoPin();
     threeWireService.end();
     threeWireService.configure(cs, sk, di, doPin, modelId, org8);
-
-    terminalView.println("\n=== 3WIRE EEPROM Shell ===");
-
+    
     while (true) {
         // Select action
+        terminalView.println("\n=== 3WIRE EEPROM Shell ===");
         int index = userInputManager.readValidatedChoiceIndex("Select EEPROM action", actions, 0);
 
         // Quit

@@ -7,8 +7,6 @@
 #include "BLEHIDDevice.h"
 #include "HIDTypes.h"
 #include "Data/AsciiHid.h"
-// #include <esp_system.h>   // pour esp_read_mac
-// #include <esp_mac.h>      // pour ESP_MAC_BT
 
 enum class BluetoothMode {
     NONE,
@@ -42,8 +40,9 @@ public:
     };
 
     // begin / end server BT
-    void begin(const std::string& deviceName = "Bus-Pirate-Blueooth");
-    void end();
+    void startServer(const std::string& deviceName = "Bus-Pirate-Blueooth");
+    void stopServer();
+    void releaseBtClassic();
 
     // Init client
     void init(const std::string& deviceName = "Bus-Pirate-Bluetooth");
