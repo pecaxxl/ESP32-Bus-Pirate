@@ -290,6 +290,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  read                 - Read at current baud");
     terminalView.println("  write <text>         - Send at current baud");
     terminalView.println("  bridge               - Full-duplex mode");
+    terminalView.println("  at                   - AT commands operations");
     terminalView.println("  spam <text> <ms>     - Write text every ms");
     terminalView.println("  glitch               - Timing attack");
     terminalView.println("  xmodem <send> <path> - Send file via XMODEM");

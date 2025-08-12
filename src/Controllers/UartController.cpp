@@ -3,55 +3,44 @@
 /*
 Constructor
 */
-UartController::UartController(ITerminalView& terminalView, IInput& terminalInput, IInput& deviceInput, 
-                               UartService& uartService, SdService& sdService, HdUartService& hDUartService, ArgTransformer& argTransformer, UserInputManager& userInputManager)
-    : terminalView(terminalView), terminalInput(terminalInput), deviceInput(deviceInput), uartService(uartService), sdService(sdService), hdUartService(hdUartService), argTransformer(argTransformer), userInputManager(userInputManager) {}
+UartController::UartController(
+    ITerminalView& terminalView,
+    IInput& terminalInput,
+    IInput& deviceInput,
+    UartService& uartService,
+    SdService& sdService,
+    HdUartService& hdUartService,
+    ArgTransformer& argTransformer,
+    UserInputManager& userInputManager,
+    UartAtShell& uartAtShell
+)
+    : terminalView(terminalView),
+      terminalInput(terminalInput),
+      deviceInput(deviceInput),
+      uartService(uartService),
+      sdService(sdService),
+      hdUartService(hdUartService),
+      argTransformer(argTransformer),
+      userInputManager(userInputManager),
+      uartAtShell(uartAtShell) 
+{}
 
 
 /*
 Entry point for command
 */
 void UartController::handleCommand(const TerminalCommand& cmd) {
-    if (cmd.getRoot() == "scan") {
-        handleScan();
-    }
-
-    else if (cmd.getRoot() == "ping") {
-        handlePing();
-    }
-
-    
-    else if (cmd.getRoot() == "read") {
-        handleRead();
-    } 
-    
-    else if (cmd.getRoot() == "write") {
-        handleWrite(cmd);
-    } 
-    
-    else if (cmd.getRoot() == "bridge") {
-        handleBridge();
-    } 
-
-    else if (cmd.getRoot() == "spam") {
-        handleSpam(cmd);
-    }
-
-    else if (cmd.getRoot() == "glitch") {
-        handleGlitch();
-    } 
-
-    else if (cmd.getRoot() == "xmodem") {
-        handleXmodem(cmd);
-    }
-
-    else if (cmd.getRoot() == "config") {
-        handleConfig();
-    }
-    
-    else {
-        handleHelp();
-    }
+    if (cmd.getRoot() == "scan") handleScan();
+    else if (cmd.getRoot() == "ping") handlePing();
+    else if (cmd.getRoot() == "read") handleRead();
+    else if (cmd.getRoot() == "write") handleWrite(cmd);
+    else if (cmd.getRoot() == "bridge") handleBridge();
+    else if (cmd.getRoot() == "at") handleAtCommand(cmd);
+    else if (cmd.getRoot() == "spam") handleSpam(cmd);
+    else if (cmd.getRoot() == "glitch") handleGlitch();
+    else if (cmd.getRoot() == "xmodem") handleXmodem(cmd);
+    else if (cmd.getRoot() == "config") handleConfig();
+    else handleHelp();
 }
 
 /*
@@ -121,6 +110,13 @@ void UartController::handleRead() {
             terminalView.print(std::string(1, c));
         }
     }
+}
+
+/*
+AT Command shell
+*/
+void UartController::handleAtCommand(const TerminalCommand& cmd) {
+    uartAtShell.run();
 }
 
 /*
@@ -546,6 +542,7 @@ void UartController::handleHelp() {
     terminalView.println("  read");
     terminalView.println("  write <text>");
     terminalView.println("  bridge");
+    terminalView.println("  at");
     terminalView.println("  spam <text> <ms>");
     terminalView.println("  glitch");
     terminalView.println("  xmodem recv <dest path>");
