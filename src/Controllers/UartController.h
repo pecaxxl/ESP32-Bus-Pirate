@@ -13,6 +13,7 @@
 #include "States/GlobalState.h"
 #include "Transformers/ArgTransformer.h"
 #include "Managers/UserInputManager.h"
+#include "Shells/UartAtShell.h"
 
 class UartController {
 public:
@@ -24,7 +25,8 @@ public:
                    SdService& sdService,
                    HdUartService& hdUartService, 
                    ArgTransformer& argTransformer,
-                   UserInputManager& userInputManager);
+                   UserInputManager& userInputManager,
+                   UartAtShell& uartAtShell);
     
     // Entry point for UART command
     void handleCommand(const TerminalCommand& cmd);
@@ -35,7 +37,7 @@ public:
     // Ensure UART is configured before use
     void ensureConfigured();
     
-    private:
+private:
     // Start bidirectional UART bridge
     void handleBridge();
     
@@ -47,6 +49,9 @@ public:
     
     // Write data to UART
     void handleWrite(TerminalCommand cmd);
+
+    // Handle AT commands
+    void handleAtCommand(const TerminalCommand& cmd);
 
     // Configure UART settings
     void handleConfig();
@@ -98,6 +103,7 @@ public:
     HdUartService& hdUartService;
     ArgTransformer& argTransformer;
     UserInputManager& userInputManager;
+    UartAtShell& uartAtShell;
     GlobalState& state = GlobalState::getInstance();
     bool configured = false;
     bool scanCancelled = false;
