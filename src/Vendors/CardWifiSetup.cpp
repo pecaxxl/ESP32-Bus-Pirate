@@ -70,9 +70,10 @@ int scanWifiNetworks() {
 
 static void drawWifiList(int numNetworks, int topIndex, int selectedIndex, int x, int y0, int visibleRows, int rowHeight)
 {
+    bool showBar = (numNetworks > visibleRows);
     int screenWidth = M5Cardputer.Display.width();
     int listHeight = visibleRows * rowHeight;
-    int vbarWidth = 8;
+    int vbarWidth = showBar ? 8 : 0;
     int vbarX = screenWidth - vbarWidth;
     int listWidth = screenWidth - vbarWidth - 2;
 
@@ -96,6 +97,9 @@ static void drawWifiList(int numNetworks, int topIndex, int selectedIndex, int x
 
         M5Cardputer.Display.drawString(line, x, y);
     }
+
+    if (!showBar)
+        return;
 
     // Overwrite scrollbar on top of the text
     M5Cardputer.Display.fillRect(vbarX, y0 - 2, vbarWidth, listHeight + 4, TFT_BLACK);
