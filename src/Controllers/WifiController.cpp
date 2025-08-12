@@ -3,8 +3,8 @@
 /*
 Constructor
 */
-WifiController::WifiController(ITerminalView &terminalView, IInput &terminalInput, IInput &deviceInput, WifiService &wifiService, SshService &sshService, NetcatService &netcatService, NvsService &nvsService, ArgTransformer &argTransformer)
-    : terminalView(terminalView), terminalInput(terminalInput), deviceInput(deviceInput), wifiService(wifiService), sshService(sshService), netcatService(netcatService), nvsService(nvsService), argTransformer(argTransformer) {}
+WifiController::WifiController(ITerminalView &terminalView, IInput &terminalInput, IInput &deviceInput, WifiService &wifiService, SshService &sshService, NetcatService &netcatService, NmapService &nmapService, NvsService &nvsService, ArgTransformer &argTransformer)
+    : terminalView(terminalView), terminalInput(terminalInput), deviceInput(deviceInput), wifiService(wifiService), sshService(sshService), netcatService(netcatService), nmapService(nmapService), nvsService(nvsService), argTransformer(argTransformer) {}
 
 /*
 Entry point for command
@@ -24,6 +24,7 @@ void WifiController::handleCommand(const TerminalCommand &cmd)
     else if (root == "webui") handleWebUi(cmd);
     else if (root == "ssh") handleSsh(cmd);
     else if (root == "nc") handleNetcat(cmd);
+    else if (root == "nmap") handleNmap(cmd);
     else if (root == "reset") handleReset();
     else if (root == "deauth") handleDeauth(cmd);
     else handleHelp();
@@ -501,6 +502,63 @@ void WifiController::handleNetcat(const TerminalCommand &cmd)
 }
 
 /*
+Nmap
+*/
+void WifiController::handleNmap(const TerminalCommand &cmd)
+{
+    // Check connection
+    if (!wifiService.isConnected())
+    {
+        terminalView.println("Nmap: You must be connected to Wi-Fi. Use 'connect' first.");
+        return;
+    }
+
+    auto args = argTransformer.splitArgs(cmd.getArgs());
+
+    // Parse args
+    // Parse hosts first
+    auto hosts_arg = cmd.getSubcommand();
+    if(!nmapService.parseHosts(hosts_arg)) {
+        terminalView.println("Nmap: Invalid host.");
+        return;
+    }
+
+    nmapService.setArgTransformer(argTransformer);
+    auto tokens = argTransformer.splitArgs(cmd.getArgs());
+    auto options = NmapService::parseNmapArgs(tokens);
+
+    if (options.hasTrash){
+        // TODO handle this better
+        //terminalView.println("Nmap: Invalid options.");
+    }
+
+    if (options.hasPort) {
+        // Parse ports
+        if (!nmapService.parsePorts(options.ports)) {
+            terminalView.println("Nmap: invalid -p value. Use 80,22,443 or 1000-2000.");
+            return;
+        }
+        nmapService.setLayer4(options.tcp);
+    } else {
+        // Set the most popular ports
+        nmapService.setDefaultPorts(options.tcp);
+        terminalView.println("Nmap: Using default ports.");
+    }
+
+    nmapService.startTask(options.verbosity);
+    
+    while(!nmapService.isReady()){
+        delay(100);
+    }
+
+    terminalView.println(nmapService.getReport());
+    nmapService.clean();
+    
+    terminalView.println("\r\n\nNmap: Scan finished.");
+}
+
+
+/*
 Config
 */
 void WifiController::handleConfig()
@@ -528,6 +586,7 @@ void WifiController::handleHelp()
     terminalView.println("  ap <ssid> <password>");
     terminalView.println("  ssh <host> <username> <password> [port]");
     terminalView.println("  nc <host> <port>");
+    terminalView.println("  nmap <host> <port>");
     terminalView.println("  webui");
     terminalView.println("  reset");
     terminalView.println("  deauth <ssid>");

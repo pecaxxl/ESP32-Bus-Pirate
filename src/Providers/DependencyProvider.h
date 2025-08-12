@@ -97,6 +97,7 @@ public:
     I2sService &getI2sService();
     SshService &getSshService();
     NetcatService &getNetcatService();
+    NmapService &getNmapService();
     JtagService &getJtagService();
     CanService &getCanService();
   
@@ -176,6 +177,7 @@ private:
     I2sService i2sService;
     SshService sshService;
     NetcatService netcatService;
+    NmapService nmapService;
     JtagService jtagService;
     CanService canService;
 
