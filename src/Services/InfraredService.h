@@ -4,7 +4,6 @@
 #include <Models/InfraredCommand.h>
 #include <Vendors/MakeHex.h>
 #include "Enums/InfraredProtocolEnum.h"
-#include "Data/DeviceBgoneCommands.h"
 
 class InfraredService {
 public:
