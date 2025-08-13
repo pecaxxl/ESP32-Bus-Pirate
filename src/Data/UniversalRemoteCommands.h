@@ -9,10 +9,9 @@ struct InfraredCommandStruct{
     int subdevice;
     int function;
 
-    // ctor utilisable en expression constante
+    // constexpr for compile time initialization
     constexpr InfraredCommandStruct(InfraredProtocolEnum p, int d, int s, int f)
         : proto(p), device(d), subdevice(s), function(f) {}
-    // si tu fais des calculs (encode NEC, etc.), assure-toi qu’ils sont aussi constexpr
 };
 
 inline constexpr InfraredCommandStruct universalOnOff[]  = {

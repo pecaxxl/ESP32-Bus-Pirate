@@ -31,7 +31,8 @@ private:
         " 🧰 NVS stats",
         " 📒 NVS entries",
         " 🌐 Network",
-        " 🚪 Exit"
+        " 🔄 Reboot",
+        "🚪 Exit"
     };
 
     const char* resetReasonToStr(int r) {
@@ -99,6 +100,7 @@ private:
     void cmdFS();
     void cmdNVS(bool listEntries);
     void cmdNet();
+    void cmdReboot(bool hard = false);
 
     ITerminalView&     terminalView;
     IInput&            terminalInput;

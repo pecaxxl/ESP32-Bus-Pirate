@@ -40,18 +40,17 @@ public:
     // Network 
     std::string getBaseMac() const;
 
-    // Filesystems LittleFS & SPIFFS
+    // Filesystems
     bool   littlefsBegin(bool autoFormat) const;
     void   littlefsEnd() const;
     size_t littlefsTotalBytes() const;
     size_t littlefsUsedBytes() const;
-    bool   spiffsBegin(bool autoFormat) const;
-    void   spiffsEnd() const;
-    size_t spiffsTotalBytes() const;
-    size_t spiffsUsedBytes() const;
 
     // Formatted output
     std::string getPartitions() const;
     std::string getNvsStats() const;
     std::string getNvsEntries() const;
+
+    // Boot
+    void reboot(bool hard = false) const;
 };

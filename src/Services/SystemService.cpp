@@ -361,3 +361,11 @@ std::string SystemService::getNvsEntries() const {
 
     return out;
 }
+
+void SystemService::reboot(bool hard) const {
+    if (hard) {
+        ESP.restart();    // Arduino-style reset
+    } else {
+        esp_restart();    // IDF reset
+    }
+}

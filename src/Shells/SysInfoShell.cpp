@@ -31,7 +31,8 @@ void SysInfoShell::run() {
             case 5: cmdNVS(false); break;
             case 6: cmdNVS(true); break;
             case 7: cmdNet(); break;
-            case 8: // Exit
+            case 8: cmdReboot(); break;
+            case 9: // Exit
             default:
                 loop = false;
                 break;
@@ -180,4 +181,12 @@ void SysInfoShell::cmdNet() {
     terminalView.println("Mode         : " + std::string(wifiModeToStr(wifiService.getWifiModeRaw())));
     terminalView.println("Status       : " + std::string(wlStatusToStr(status)));
     terminalView.println("Prov enabled : " + std::string(wifiService.isProvisioningEnabled() ? "Yes" : "No"));
+}
+
+void SysInfoShell::cmdReboot(bool hard) {
+    auto confirmation = userInputManager.readYesNo("Reboot the device? (y/n)", false);
+    if (confirmation) {
+        terminalView.println("\nRebooting, your session will be lost...");
+        systemService.reboot(hard);
+    }
 }
