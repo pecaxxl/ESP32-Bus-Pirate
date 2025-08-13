@@ -105,14 +105,24 @@ void SysInfoShell::cmdMemory() {
     terminalView.println("\n=== Memory ===");
 
     // Heap
-    terminalView.println("Heap total        : " + std::to_string(systemService.getHeapTotal()     / 1024) + " KB");
-    terminalView.println("Heap free         : " + std::to_string(systemService.getHeapFree()      / 1024) + " KB");
+    const size_t heapTotal = systemService.getHeapTotal();
+    const size_t heapFree  = systemService.getHeapFree();
+    const int    heapPct   = heapTotal ? static_cast<int>(((heapTotal - heapFree) * 100.0f / heapTotal) + 0.5f) : 0;
+
+    terminalView.println("Heap total        : " + std::to_string(heapTotal / 1024) + " KB");
+    terminalView.println("Heap free         : " + std::to_string(heapFree / 1024) + " KB");
+    terminalView.println("Heap used         : " + std::to_string((heapTotal - heapFree) / 1024) + " KB (" + std::to_string(heapPct) + "%)");
     terminalView.println("Min free heap     : " + std::to_string(systemService.getHeapMinFree()  / 1024) + " KB");
     terminalView.println("Max alloc heap    : " + std::to_string(systemService.getHeapMaxAlloc() / 1024) + " KB");
 
     // PSRAM
-    terminalView.println("PSRAM total       : " + std::to_string(systemService.getPsramTotal()     / 1024) + " KB");
-    terminalView.println("PSRAM free        : " + std::to_string(systemService.getPsramFree()      / 1024) + " KB");
+    const size_t psramTotal = systemService.getPsramTotal();
+    const size_t psramFree  = systemService.getPsramFree();
+    const int    psramPct   = psramTotal ? static_cast<int>(((psramTotal - psramFree) * 100.0f / psramTotal) + 0.5f) : 0;
+
+    terminalView.println("PSRAM total       : " + std::to_string(psramTotal / 1024) + " KB");
+    terminalView.println("PSRAM free        : " + std::to_string(psramFree / 1024) + " KB");
+    terminalView.println("PSRAM used        : " + std::to_string((psramTotal - psramFree) / 1024) + " KB (" + std::to_string(psramPct) + "%)");
     terminalView.println("Min free PSRAM    : " + std::to_string(systemService.getPsramMinFree()  / 1024) + " KB");
     terminalView.println("Max alloc PSRAM   : " + std::to_string(systemService.getPsramMaxAlloc() / 1024) + " KB");
 }
