@@ -6,6 +6,7 @@
 #include "Interfaces/IInput.h"
 #include "Transformers/ArgTransformer.h"
 #include "Managers/UserInputManager.h"
+#include "Data/UniversalRemoteCommands.h"
 
 class UniversalRemoteShell {
 public:
@@ -19,5 +20,5 @@ private:
     ArgTransformer& argTransformer;
     UserInputManager& userInputManager;
 
-    void sendCommandGroup(const std::vector<InfraredCommand>& group);
+    void sendCommandGroup(const InfraredCommandStruct* group, size_t size);
 };

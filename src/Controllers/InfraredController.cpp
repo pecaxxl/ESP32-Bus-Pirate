@@ -107,8 +107,16 @@ DeviceBgone
 void InfraredController::handleDeviceBgone() {
     terminalView.println("Sending Device-B-Gone commands... Press [ENTER] to stop");
 
-    for (const auto& cmd : deviceBgoneCommands) {
+    for (const auto& cmdStruct : universalOnOff) {
 
+        // Convert to InfraredCommand model
+        auto cmd = InfraredCommand(
+            cmdStruct.proto,
+            cmdStruct.device,
+            cmdStruct.subdevice,
+            cmdStruct.function
+        );
+        
         char c = terminalInput.readChar();
         if (c == '\r' || c == '\n') {
             terminalView.println("Infrared Device-B-Gone: Interrupted by user.");

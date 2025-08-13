@@ -1,6 +1,4 @@
 #include "UniversalRemoteShell.h"
-#include "Data/UniversalRemoteCommands.h"
-#include "Data/DeviceBgoneCommands.h"
 
 UniversalRemoteShell::UniversalRemoteShell(
     ITerminalView& view,
@@ -45,23 +43,26 @@ void UniversalRemoteShell::run() {
             break;
         }
 
-        // Send commands
         terminalView.println("Sending all codes for: " + actions[index] + "... Press [ENTER] to stop.\n");
         switch (index) {
-            case 0: sendCommandGroup(deviceBgoneCommands); break;
-            case 1: sendCommandGroup(universalMute); break;
-            case 2: sendCommandGroup(universalPlay); break;
-            case 3: sendCommandGroup(universalPause); break;
-            case 4: sendCommandGroup(universalVolUp); break;
-            case 5: sendCommandGroup(universalVolDown); break;
-            case 6: sendCommandGroup(universalChannelUp); break;
-            case 7: sendCommandGroup(universalChannelDown); break;
+        case 0: sendCommandGroup(universalOnOff,        sizeof(universalOnOff)        / sizeof(universalOnOff[0]));        break;
+        case 1: sendCommandGroup(universalMute,         sizeof(universalMute)         / sizeof(universalMute[0]));         break;
+        case 2: sendCommandGroup(universalPlay,         sizeof(universalPlay)         / sizeof(universalPlay[0]));         break;
+        case 3: sendCommandGroup(universalPause,        sizeof(universalPause)        / sizeof(universalPause[0]));        break;
+        case 4: sendCommandGroup(universalVolUp,        sizeof(universalVolUp)        / sizeof(universalVolUp[0]));        break;
+        case 5: sendCommandGroup(universalVolDown,      sizeof(universalVolDown)      / sizeof(universalVolDown[0]));      break;
+        case 6: sendCommandGroup(universalChannelUp,    sizeof(universalChannelUp)    / sizeof(universalChannelUp[0]));    break;
+        case 7: sendCommandGroup(universalChannelDown,  sizeof(universalChannelDown)  / sizeof(universalChannelDown[0]));  break;
         }
+
+
     }
 }
 
-void UniversalRemoteShell::sendCommandGroup(const std::vector<InfraredCommand>& group) {
-    for (const auto& cmd : group) {
+void UniversalRemoteShell::sendCommandGroup(const InfraredCommandStruct* group, size_t size) {
+    for (size_t i = 0; i < size; ++i) {
+
+        InfraredCommand cmd(group[i].proto, group[i].device, group[i].subdevice, group[i].function);
         infraredService.sendInfraredCommand(cmd);
         delay(100);
 
