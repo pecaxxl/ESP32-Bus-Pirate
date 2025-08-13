@@ -21,8 +21,11 @@ public:
 private:
     bool selectMode(AtMode& outMode);
     void actionLoop(AtMode& outMode);
-    bool selectAction(const std::vector<AtActionItem>& actions, const AtActionItem*& outAction);
-    bool buildCommandFromArgs(const AtActionItem& action, std::string& outCmd);
+    bool selectAction(AtActionSlice actions, const AtActionItem*& outAction);
+    bool buildCommandFromArgs(const char* commandTemplate,
+                              const AtActionArg* args,
+                              std::size_t argCount,
+                              std::string& outCmd);
     std::string readUserLine(const std::string& prompt);
     bool isInChoices(const std::string& v, const char* choices) const;
     bool validateAndFormat(const AtActionArg& a, const std::string& raw, std::string& out) const;

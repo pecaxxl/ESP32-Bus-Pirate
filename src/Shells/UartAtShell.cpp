@@ -50,7 +50,7 @@ void UartAtShell::actionLoop(AtMode& mode) {
 
         // Ask for args if needed
         std::string cmd;
-        if (!buildCommandFromArgs(*chosen, cmd)) {
+        if (!buildCommandFromArgs(chosen->command, chosen->args, chosen->args_count, cmd)) {
             terminalView.println("⚠️  Command canceled.\n");
             continue;
         }
@@ -78,57 +78,55 @@ void UartAtShell::actionLoop(AtMode& mode) {
 
 bool UartAtShell::selectMode(AtMode& outMode) {
     std::vector<std::string> items;
-    items.reserve(kModes.size() + 1);
+    items.reserve(kAtModesCount + 1); // + "Exit"
 
-    // Each mode
-    uint8_t i = 0;
-    for (const auto& m : kModes) {
-        auto label = joinLabel(m.emoji, m.name);
-        if (i < 9) label = " " + label;
-        items.push_back(label);
-        i++;
+    // Chaque mode
+    for (std::size_t i = 0; i < kAtModesCount; ++i) {
+        std::string label = joinLabel(kAtModes[i].emoji, kAtModes[i].name);
+        if (i < 9) label = " " + label; // alignement visuel 1..9
+        items.push_back(std::move(label));
     }
 
-    // Add exit option
-    auto exit = "🚪  Exit Shell";
-    items.push_back(exit);
+    // Option Exit (toujours en dernier)
+    static constexpr const char* kExitLabel = "🚪  Exit Shell";
+    items.emplace_back(kExitLabel);
 
+    // Sélection
     int index = userInputManager.readValidatedChoiceIndex("Select AT mode", items, 0);
-    if (index < 0 || index >= (int)items.size() || items[index] == exit) {
-        return false;
-    }
+    if (index < 0) return false;
 
-    outMode = kModes[(size_t)index].mode;
+    const std::size_t uindex = static_cast<std::size_t>(index);
+
+    // Choix "Exit" ou hors bornes
+    if (uindex >= kAtModesCount) return false;
+
+    outMode = kAtModes[uindex].mode;
     return true;
 }
 
-bool UartAtShell::selectAction(const std::vector<AtActionItem>& actions, const AtActionItem*& outAction) {
+bool UartAtShell::selectAction(AtActionSlice actions, const AtActionItem*& outAction) {
     std::vector<std::string> items;
-    items.reserve(actions.size() + 2);
+    items.reserve(actions.size + 1); // + Back
 
-    // Each action
-    uint8_t i = 0;
-    for (const auto& a : actions) {
-        // Display label
+    std::size_t i = 0;
+    for (; i < actions.size; ++i) {
+        const auto& a = actions.data[i];
         auto label = joinLabel(a.emoji, a.label, a.command);
-        if (i < 9) label = " " + label; 
-        items.push_back(label);
-        i++;
+        if (i < 9) label = " " + label;
+        items.push_back(std::move(label));
     }
 
-    // Add back option with correct spacing
+    // Option "Back"
     items.push_back(i > 9 ? "↩️   Back" : " ↩️   Back");
 
-    // Select action
     int index = userInputManager.readValidatedChoiceIndex("Select command", items, 0);
     if (index < 0) return false;
 
-    // Back option choice
-    if ((size_t)index == actions.size()) {
-        return false;
+    if (static_cast<std::size_t>(index) == actions.size) {
+        return false; // Back
     }
 
-    outAction = &actions[(size_t)index];
+    outAction = &actions.data[static_cast<std::size_t>(index)];
     return true;
 }
 
@@ -297,27 +295,30 @@ void UartAtShell::applyArgToCommand(std::string& cmd, size_t idx, const std::str
     }
 }
 
-bool UartAtShell::buildCommandFromArgs(const AtActionItem& action, std::string& outCmd) {
-    if (action.args.empty()) {
-        outCmd = action.command;
+bool UartAtShell::buildCommandFromArgs(const char* commandTemplate,
+                                       const AtActionArg* args,
+                                       std::size_t argCount,
+                                       std::string& outCmd) {
+    if (args == nullptr || argCount == 0) {
+        outCmd = commandTemplate;
         return true;
     }
 
-    std::string cmd = action.command;
+    std::string cmd = commandTemplate;
 
-    for (size_t i = 0; i < action.args.size(); ++i) {
-        const auto& a = action.args[i];
+    for (std::size_t i = 0; i < argCount; ++i) {
+        const AtActionArg& a = args[i];
         std::string accepted;
         bool hasValue = false;
 
         if (!acquireArgValue(a, i, accepted, hasValue)) {
-            // for futur cancellation logic if needed
+            // Si tu veux pouvoir annuler : return false;
         }
 
         applyArgToCommand(cmd, i, accepted, hasValue);
     }
 
-    outCmd = cmd;
+    outCmd = std::move(cmd);
     return true;
 }
 
