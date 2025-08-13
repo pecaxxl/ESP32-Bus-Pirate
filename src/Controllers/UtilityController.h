@@ -14,12 +14,20 @@
 #include "Services/PinService.h"
 #include "Managers/UserInputManager.h"
 #include "Transformers/ArgTransformer.h"
+#include "Shells/SysInfoShell.h"
 
 class UtilityController {
 public:
     // Constructor
-    UtilityController(ITerminalView& terminalView, IDeviceView& deviceView, IInput& terminalInput, 
-                      PinService& pinService, UserInputManager& userInputManager, ArgTransformer& ArgTransformer);
+    UtilityController(
+        ITerminalView& terminalView, 
+        IDeviceView& deviceView, 
+        IInput& terminalInput, 
+        PinService& pinService, 
+        UserInputManager& userInputManager, 
+        ArgTransformer& argTransformer,
+        SysInfoShell& sysInfoShell
+    );
 
     // Entry point for global utility commands
     void handleCommand(const TerminalCommand& cmd);
@@ -46,11 +54,15 @@ private:
     // Disable internal pull-up resistors
     void handleDisablePullups();
 
+    // System information
+    void handleSystem();
+
     ITerminalView& terminalView;
     IDeviceView& deviceView;
     IInput& terminalInput;
     PinService& pinService;
     UserInputManager& userInputManager;
     ArgTransformer& argTransformer;
+    SysInfoShell& sysInfoShell;
     GlobalState& state = GlobalState::getInstance();
 };

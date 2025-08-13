@@ -3,29 +3,33 @@
 /*
 Constructor
 */
-UtilityController::UtilityController(ITerminalView& terminalView, IDeviceView& deviceView, IInput& terminalInput, PinService& pinService, UserInputManager& userInputManager, ArgTransformer& ArgTransformer)
-    : terminalView(terminalView), deviceView(deviceView), terminalInput(terminalInput), pinService(pinService), userInputManager(userInputManager), argTransformer(argTransformer) {}
+UtilityController::UtilityController(
+    ITerminalView& terminalView,
+    IDeviceView& deviceView,
+    IInput& terminalInput,
+    PinService& pinService,
+    UserInputManager& userInputManager,
+    ArgTransformer& argTransformer,
+    SysInfoShell& sysInfoShell
+)
+    : terminalView(terminalView),
+      deviceView(deviceView),
+      terminalInput(terminalInput),
+      pinService(pinService),
+      userInputManager(userInputManager),
+      argTransformer(argTransformer),
+      sysInfoShell(sysInfoShell)
+{}
 
 /*
 Entry point for command
 */
 void UtilityController::handleCommand(const TerminalCommand& cmd) {
-    if (cmd.getRoot() == "help" || cmd.getRoot() == "h" || cmd.getRoot() == "?") {
-        handleHelp();
-    }
-
-    else if (cmd.getRoot() == "P") {
-        handleEnablePullups();
-    }
-
-    else if (cmd.getRoot() == "p") {
-        handleDisablePullups();
-    }
-
-    else if (cmd.getRoot() == "logic") {
-        handleLogicAnalyzer(cmd);
-    } 
-
+    if (cmd.getRoot() == "help" || cmd.getRoot() == "h" || cmd.getRoot() == "?") handleHelp();
+    else if (cmd.getRoot() == "P")                                               handleEnablePullups();
+    else if (cmd.getRoot() == "p")                                               handleDisablePullups();
+    else if (cmd.getRoot() == "logic")                                           handleLogicAnalyzer(cmd);
+    else if (cmd.getRoot() == "system")                                          handleSystem();
     else {
         terminalView.println("Unknown command. Try 'help'.");
     }
@@ -252,6 +256,13 @@ void UtilityController::handleLogicAnalyzer(const TerminalCommand& cmd) {
 }
 
 /*
+System Information
+*/
+void UtilityController::handleSystem() {
+    sysInfoShell.run();
+}
+
+/*
 Help
 */
 void UtilityController::handleHelp() {
@@ -261,6 +272,7 @@ void UtilityController::handleHelp() {
 
     terminalView.println(" General:");
     terminalView.println("  help                 - Show this help");
+    terminalView.println("  system               - Show system infos");
     terminalView.println("  mode <name>          - Set active mode");
     terminalView.println("  logic <pin>          - Logic analyzer");
     terminalView.println("  P                    - Enable pull-up");
@@ -452,7 +464,8 @@ void UtilityController::handleHelp() {
 
 bool UtilityController::isGlobalCommand(const TerminalCommand& cmd) {
     std::string root = cmd.getRoot();
-    return (root == "help" || root == "h" || root == "?" ||
-            root == "mode" || root == "m" || root == "l" ||
-            root == "logic" || root == "P" || root == "p");
+    return (root == "help"  || root == "h" || root == "?" ||
+            root == "mode"  || root == "m" || root == "l" ||
+            root == "logic" || root == "P" || root == "p") || 
+            root == "system";
 }
