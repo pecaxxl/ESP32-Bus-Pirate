@@ -28,6 +28,7 @@ and injecting shared instances of core components
 #include "Services/SshService.h"
 #include "Services/JtagService.h"
 #include "Services/CanService.h"
+#include "Services/SystemService.h"
 #include "Services/ThreeWireService.h"
 #include "Controllers/UartController.h"
 #include "Controllers/I2cController.h"
@@ -62,6 +63,7 @@ and injecting shared instances of core components
 #include "Shells/ThreeWireEepromShell.h"
 #include "Shells/IbuttonShell.h"
 #include "Shells/UartAtShell.h"
+#include "Shells/SysInfoShell.h"
 #include "Config/TerminalTypeConfigurator.h"
 
 class DependencyProvider
@@ -101,6 +103,7 @@ public:
     NmapService &getNmapService();
     JtagService &getJtagService();
     CanService &getCanService();
+    SystemService &getSystemService();
   
     // Controllers
     UartController &getUartController();
@@ -142,6 +145,7 @@ public:
     ThreeWireEepromShell &getThreeWireEepromShell();
     IbuttonShell &getIbuttonShell();
     UartAtShell &getUartAtShell();
+    SysInfoShell &getSysInfoShell();
 
     // Selectors
     HorizontalSelector &getHorizontalSelector();
@@ -182,6 +186,7 @@ private:
     NmapService nmapService;
     JtagService jtagService;
     CanService canService;
+    SystemService systemService;
 
     // Controllers
     UartController uartController;
@@ -222,6 +227,7 @@ private:
     ThreeWireEepromShell threeWireEepromShell;
     IbuttonShell ibuttonShell;
     UartAtShell uartAtShell;
+    SysInfoShell sysInfoShell;
     
     // Selectors
     HorizontalSelector horizontalSelector;

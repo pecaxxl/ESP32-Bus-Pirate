@@ -9,6 +9,8 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       deviceInput(deviceInput),
       usbService(usbService),
       usbController(usbController),
+
+      // Services
       sdService(),
       nvsService(),
       ledService(),
@@ -26,13 +28,20 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       sshService(),
       jtagService(),
       canService(),
+      systemService(),
+
+      // Transformers
       commandTransformer(),
       instructionTransformer(),
       argTransformer(),
       webRequestTransformer(),
+
+      // Managers
       commandHistoryManager(),
       binaryAnalyzeManager(terminalView, terminalInput),
       userInputManager(terminalView, terminalInput, argTransformer),
+
+      // Shells
       sdCardShell(sdService, terminalView, terminalInput, argTransformer),
       spiFlashShell(spiService, terminalView, terminalInput, argTransformer, userInputManager, binaryAnalyzeManager),
       spiEepromShell(spiService, terminalView, terminalInput, argTransformer, userInputManager),
@@ -42,13 +51,20 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       i2cEepromShell(terminalView, terminalInput, i2cService, argTransformer, userInputManager, binaryAnalyzeManager),
       uartAtShell(terminalView, terminalInput, userInputManager, argTransformer, uartService),
       threeWireEepromShell(terminalView, terminalInput, userInputManager, threeWireService, argTransformer),
+      sysInfoShell(terminalView, terminalInput, userInputManager, argTransformer, systemService, wifiService),
+
+      // Selectors
       horizontalSelector(deviceView, deviceInput),
+
+      // Configurators
       terminalTypeConfigurator(horizontalSelector),
+
+      // Controllers
       uartController(terminalView, terminalInput, deviceInput, uartService, sdService, hdUartService, argTransformer, userInputManager, uartAtShell),
       i2cController(terminalView, terminalInput, i2cService, argTransformer, userInputManager, i2cEepromShell),
       oneWireController(terminalView, terminalInput, oneWireService, argTransformer, userInputManager, ibuttonShell),
       infraredController(terminalView, terminalInput, infraredService, argTransformer, userInputManager, universalRemoteShell),
-      utilityController(terminalView, deviceView, terminalInput, pinService, userInputManager, argTransformer),
+      utilityController(terminalView, deviceView, terminalInput, pinService, userInputManager, argTransformer, sysInfoShell),
       hdUartController(terminalView, terminalInput, deviceInput, hdUartService, uartService, argTransformer, userInputManager),
       spiController(terminalView, terminalInput, spiService, sdService, argTransformer, userInputManager, binaryAnalyzeManager, sdCardShell, spiFlashShell, spiEepromShell),
       jtagController(terminalView, terminalInput, jtagService, userInputManager),
