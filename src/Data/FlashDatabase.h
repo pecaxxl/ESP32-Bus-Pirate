@@ -11,7 +11,7 @@ struct FlashChipInfo {
     uint32_t capacityBytes;
 };
 
-static const FlashChipInfo flashDatabase[] = {
+static constexpr FlashChipInfo flashDatabase[] = {
     // Winbond
     {0xEF, 0x40, 0x14, "Winbond",  "W25X80",    1UL << 20},
     {0xEF, 0x40, 0x15, "Winbond",  "W25X16",    2UL << 20},

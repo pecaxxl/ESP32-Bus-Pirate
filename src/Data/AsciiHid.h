@@ -7,7 +7,7 @@ struct AsciiHid {
 };
 
 // Table ASCII (0x00 à 0x7F) to HID
-static const AsciiHid asciiHid[128] = {
+static constexpr AsciiHid asciiHid[128] = {
     {0, false}, {0, false}, {0, false}, {0, false},  // 0x00 – 0x03
     {0, false}, {0, false}, {0, false}, {0, false},  // 0x04 – 0x07
     {0x2a, false}, {0x2b, false}, {0x28, false}, {0, false},  // BS, TAB, LF

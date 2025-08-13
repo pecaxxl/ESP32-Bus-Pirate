@@ -3,7 +3,7 @@
 #include <cstdint>
 
 // 12khz
-inline const int16_t PcmSoundtestComplete[] = {
+inline constexpr int16_t PcmSoundtestComplete[] = {
   0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0,

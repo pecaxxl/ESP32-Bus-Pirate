@@ -23,7 +23,7 @@
 
 #include <Models/InfraredProtocol.h>
 
-const InfraredProtocol protocolDefinitions[] = {
+inline constexpr InfraredProtocol protocolDefinitions[] = {
     { "DAC4",
         "Frequency=38000\n"
         "Zero=500,-1000\n"

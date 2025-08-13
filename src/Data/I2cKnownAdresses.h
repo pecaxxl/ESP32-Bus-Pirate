@@ -8,7 +8,7 @@ struct I2cKnownAddress {
     const char* type;
 };
 
-inline const I2cKnownAddress i2cKnownAddresses[] = {
+inline constexpr I2cKnownAddress i2cKnownAddresses[] = {
 
 // Power & Battery Management
 {0x0B, "LC709203F", "Fuel Gauge"},
