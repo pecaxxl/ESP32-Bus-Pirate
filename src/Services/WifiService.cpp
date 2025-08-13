@@ -34,7 +34,6 @@ bool WifiService::isConnected() const {
 }
 
 std::string WifiService::getLocalIP() const {
-    if (!isConnected()) return "";
     return WiFi.localIP().toString().c_str();
 }
 
@@ -43,6 +42,59 @@ std::string WifiService::getCurrentIP() const {
         return WiFi.softAPIP().toString().c_str();
     }
     return WiFi.localIP().toString().c_str();
+}
+
+std::string WifiService::getSubnetMask() const {
+    return std::string(WiFi.subnetMask().toString().c_str());
+}
+
+std::string WifiService::getGatewayIp() const {
+    return std::string(WiFi.gatewayIP().toString().c_str());
+}
+
+std::string WifiService::getDns1() const {
+    return std::string(WiFi.dnsIP(0).toString().c_str());
+}
+
+std::string WifiService::getDns2() const {
+    return std::string(WiFi.dnsIP(1).toString().c_str());
+}
+
+std::string WifiService::getHostname() const {
+    const char* h = WiFi.getHostname();
+    return std::string(h ? h : "");
+}
+
+std::string WifiService::getApIp() const {
+    return std::string(WiFi.softAPIP().toString().c_str());
+}
+
+int WifiService::getRssi() const {
+    return WiFi.RSSI();
+}
+
+int WifiService::getChannel() const {
+    return WiFi.channel();
+}
+
+int WifiService::getWifiModeRaw() const {
+    return static_cast<int>(WiFi.getMode());
+}
+
+int WifiService::getWifiStatusRaw() const {
+    return static_cast<int>(WiFi.status());
+}
+
+bool WifiService::isProvisioningEnabled() const {
+    return WiFi.isProvEnabled();
+}
+
+std::string WifiService::getSsid() const {
+    return std::string(WiFi.SSID().c_str()); 
+}
+
+std::string WifiService::getBssid() const {
+    return std::string(WiFi.BSSIDstr().c_str());
 }
 
 bool WifiService::startAccessPoint(const std::string& ssid, const std::string& password, int channel, int maxConn) {
@@ -96,16 +148,10 @@ void WifiService::setModeApOnly() {
     WiFi.mode(WIFI_AP);
 }
 
-std::string WifiService::getApIp() const {
-    String ip = WiFi.softAPIP().toString();
-    return std::string(ip.c_str());
-}
-
 std::string WifiService::getLocalIp() const {
     String ip = WiFi.localIP().toString();
     return std::string(ip.c_str());
 }
-
 
 std::vector<WiFiNetwork> WifiService::scanDetailedNetworks() {
     std::vector<WiFiNetwork> networks;

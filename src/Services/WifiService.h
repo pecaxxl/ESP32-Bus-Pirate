@@ -48,12 +48,24 @@ public:
     // Utils
     std::string getLocalIP() const;
     std::string getCurrentIP() const;
+    std::string getSubnetMask() const;
+    std::string getGatewayIp() const;
+    std::string getDns1() const;
+    std::string getDns2() const;
+    std::string getHostname() const;
     void setModeApSta();
     void setModeApOnly();
     std::string getMacAddressSta() const;
     std::string getMacAddressAp() const;
     std::string getApIp() const;
     std::string getLocalIp() const;
+    int getRssi() const;
+    int getChannel() const;
+    std::string getSsid() const;
+    std::string getBssid() const;
+    int getWifiModeRaw() const;   // wifi_mode_t
+    int getWifiStatusRaw() const; // wl_status_t
+    bool isProvisioningEnabled() const;
     void reset();
     
     // Access point
