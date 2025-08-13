@@ -9,6 +9,9 @@
 
 class GlobalState {
 private:
+    // Version
+    const std::string version = "0.5";
+
     //Pin in use
     std::vector<uint8_t> protectedPins;
 
@@ -126,6 +129,9 @@ public:
         static GlobalState instance;
         return instance;
     }
+
+    // Version
+    const std::string& getVersion() const { return version; }
 
     // Builtin
     uint8_t getLedPin() const { return ledPin; }
