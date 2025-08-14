@@ -114,6 +114,14 @@ private:
     uint8_t canSoPin = 3;
     uint32_t canKbps = 120;
 
+    // Ethernet Default Configuration
+    uint8_t ethernetCsPin = 5;
+    uint8_t ethernetRstPin = 4;
+    uint8_t ethernetSckPin = 18;
+    uint8_t ethernetMisoPin = 19;
+    uint8_t ethernetMosiPin = 23;
+    uint32_t ethernetFrequency = 26000000UL; // 26 MHz
+
     // JTAG Default Pin
     std::vector<uint8_t> jtagScanPins = { 1, 3, 5, 7, 9 };
 
@@ -300,6 +308,21 @@ public:
     void setCanSoPin(uint8_t pin) { canSoPin = pin; }
     void setCanKbps(uint32_t kbps) { canKbps = kbps; } 
 
+    // Ethernet
+    uint8_t getEthernetCsPin() const { return ethernetCsPin; }
+    uint8_t getEthernetRstPin() const { return ethernetRstPin; }
+    uint8_t getEthernetSckPin() const { return ethernetSckPin; }
+    uint8_t getEthernetMisoPin() const { return ethernetMisoPin; }
+    uint8_t getEthernetMosiPin() const { return ethernetMosiPin; }
+    uint32_t getEthernetFrequency() const { return ethernetFrequency; }
+
+    void setEthernetCsPin(uint8_t pin) { ethernetCsPin = pin; }
+    void setEthernetRstPin(uint8_t pin) { ethernetRstPin = pin; }
+    void setEthernetSckPin(uint8_t pin) { ethernetSckPin = pin; }
+    void setEthernetMisoPin(uint8_t pin) { ethernetMisoPin = pin; }
+    void setEthernetMosiPin(uint8_t pin) { ethernetMosiPin = pin; }
+    void setEthernetFrequency(uint32_t freq) { ethernetFrequency = freq; }
+
     // SD File Limits
     size_t getFileCountLimit() const { return fileCountLimit; }
     size_t getFileCacheLimit() const { return fileCacheLimit; }
@@ -432,6 +455,18 @@ public:
         #endif
         #ifdef CAN_KBPS
             canKbps = CAN_KBPS;
+        #endif
+        #ifdef ETHERNET_CS_PIN
+            ethernetCsPin = ETHERNET_CS_PIN;
+        #endif
+        #ifdef ETHERNET_CLK_PIN
+            ethernetSckPin = ETHERNET_CLK_PIN;
+        #endif
+        #ifdef ETHERNET_MISO_PIN
+            ethernetMisoPin = ETHERNET_MISO_PIN;
+        #endif
+        #ifdef ETHERNET_MOSI_PIN
+            ethernetMosiPin = ETHERNET_MOSI_PIN;
         #endif
 
         #ifdef PROTECTED_PINS
