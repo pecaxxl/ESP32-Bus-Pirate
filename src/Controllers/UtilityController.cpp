@@ -418,16 +418,16 @@ void UtilityController::handleHelp() {
     terminalView.println("");
     terminalView.println(" 14. WIFI:");
     terminalView.println("  scan                 - List Wi-Fi networks");
+    terminalView.println("  connect              - Connect to a network");
     terminalView.println("  ping <host>          - Ping a remote host");
     terminalView.println("  sniff                - Monitor Wi-Fi packets");
-    terminalView.println("  connect <ssid> <pw>  - Connect to a network");
     terminalView.println("  spoof ap <mac>       - Spoof AP MAC");
     terminalView.println("  spoof sta <mac>      - Spoof Station MAC");
     terminalView.println("  status               - Show Wi-Fi status");
     terminalView.println("  disconnect           - Disconnect from Wi-Fi");
     terminalView.println("  ap <ssid> <password> - Set access point");
     terminalView.println("  ssh <h> <u> <p> [p]  - Open SSH session");
-    terminalView.println("  nc <h> <p>           - Open netcat session");
+    terminalView.println("  nc <host> <port>     - Open netcat session");
     terminalView.println("  webui                - Show the web UI IP");
     terminalView.println("  deauth <ssid>        - Deauthenticate hosts on AP");
     terminalView.println("  reset                - Reset interface");

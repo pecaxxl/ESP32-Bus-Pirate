@@ -56,33 +56,40 @@ Connect
 */
 void WifiController::handleConnect(const TerminalCommand &cmd)
 {
+    std::string ssid;
+    std::string password;
     auto args = argTransformer.splitArgs(cmd.getSubcommand());
 
-    if (cmd.getSubcommand().empty())
-    {
-        terminalView.println("Usage: connect <ssid> <password>");
-        return;
+    // No args provided, we need to scan and select networks
+    if (cmd.getSubcommand().empty()) {
+        terminalView.println("Wifi: Scanning for available networks...");
+        auto networks = wifiService.scanNetworks();
+        int selectedIndex = userInputManager.readValidatedChoiceIndex("\nSelect Wi-Fi network", networks, 0);
+        ssid = networks[selectedIndex];
+        terminalView.println("Selected SSID: " + ssid);
+        terminalView.print("Password: ");
+        password = userInputManager.getLine();
+
+    // Args provided
+    } else  {
+        // Concatenate subcommand and args
+        std::string full = cmd.getSubcommand() + " " + cmd.getArgs();
+    
+        // Find the last space to separate SSID and password
+        size_t pos = full.find_last_of(' ');
+        if (pos == std::string::npos || pos == full.size() - 1) {
+            terminalView.println("Usage: connect <ssid> <password>");
+            return;
+        }
+        ssid = full.substr(0, pos);
+        password = full.substr(pos + 1);
     }
-
-    std::string full = cmd.getSubcommand() + " " + cmd.getArgs();
-
-    // Find the last space to separate SSID and password
-    size_t pos = full.find_last_of(' ');
-    if (pos == std::string::npos || pos == full.size() - 1)
-    {
-        terminalView.println("Usage: connect <ssid> <password>");
-        return;
-    }
-
-    std::string ssid = full.substr(0, pos);
-    std::string password = full.substr(pos + 1);
 
     terminalView.println("WiFi: Connecting to " + ssid + "...");
 
     wifiService.setModeApSta();
     wifiService.connect(ssid, password);
-    if (wifiService.isConnected())
-    {
+    if (wifiService.isConnected()) {
         terminalView.println("");
         terminalView.println("WiFi: Connected to Wi-Fi!");
         terminalView.println("      Reset the device and choose WiFi Web,");
@@ -104,10 +111,10 @@ void WifiController::handleConnect(const TerminalCommand &cmd)
         nvsService.saveString(state.getNvsSsidField(), ssid);
         nvsService.saveString(state.getNvsPasswordField(), password);
         nvsService.close();
-    }
-    else
-    {
+    } else {
         terminalView.println("WiFi: Connection failed.");
+        wifiService.reset();
+        delay(100);
     }
 }
 
@@ -608,7 +615,7 @@ void WifiController::handleHelp()
     terminalView.println("  scan");
     terminalView.println("  ping <host>");
     terminalView.println("  sniff");
-    terminalView.println("  connect <ssid> <password>");
+    terminalView.println("  connect");
     terminalView.println("  spoof sta <mac>");
     terminalView.println("  spoof ap <mac>");
     terminalView.println("  status");

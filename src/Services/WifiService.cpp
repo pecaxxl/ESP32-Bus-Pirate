@@ -117,23 +117,6 @@ int WifiService::ping(const std::string& host) {
     return success ? (end - start) : -1;
 }
 
-std::vector<std::string> WifiService::scanNetworks() {
-    std::vector<std::string> results;
-
-    int n = WiFi.scanNetworks(/*async=*/false, /*hidden=*/true);
-
-    for (int i = 0; i < n; ++i) {
-        std::stringstream ss;
-        ss << "  SSID: " << WiFi.SSID(i).c_str()
-           << " | RSSI: " << WiFi.RSSI(i)
-           << " dBm | Sec: "
-           << (WiFi.encryptionType(i) == WIFI_AUTH_OPEN ? "Open" : "Secured");
-        results.push_back(ss.str());
-    }
-
-    return results;
-}
-
 void WifiService::reset() {
     disconnect();
     WiFi.mode(WIFI_STA);
@@ -151,6 +134,18 @@ void WifiService::setModeApOnly() {
 std::string WifiService::getLocalIp() const {
     String ip = WiFi.localIP().toString();
     return std::string(ip.c_str());
+}
+
+std::vector<std::string> WifiService::scanNetworks() {
+    std::vector<std::string> results;
+
+    int n = WiFi.scanNetworks(/*async=*/false, /*hidden=*/true);
+
+    for (int i = 0; i < n; ++i) {
+        results.push_back(WiFi.SSID(i).c_str());
+    }
+
+    return results;
 }
 
 std::vector<WiFiNetwork> WifiService::scanDetailedNetworks() {
