@@ -325,3 +325,30 @@ std::string ArgTransformer::toAsciiLine(uint32_t startAddr, const std::vector<ui
 
     return line.str();
 }
+
+bool ArgTransformer::parseMac(const std::string& s, std::array<uint8_t,6>& out) {
+    // Accept "AA:BB:CC:DD:EE:FF" or "AABBCCDDEEFF"
+    std::string hex;
+    hex.reserve(12);
+    for (char c : s) {
+        if (c == ':' || c == '-') continue;
+        if (!isxdigit((unsigned char)c)) return false;
+        hex.push_back(c);
+    }
+    if (hex.size() != 12) return false;
+
+    auto hexVal = [](char c)->uint8_t {
+        if (c >= '0' && c <= '9') return (uint8_t)(c - '0');
+        if (c >= 'a' && c <= 'f') return (uint8_t)(10 + c - 'a');
+        if (c >= 'A' && c <= 'F') return (uint8_t)(10 + c - 'A');
+        return 0xFF;
+    };
+
+    for (int i=0; i<6; ++i) {
+        uint8_t hi = hexVal(hex[2*i]);
+        uint8_t lo = hexVal(hex[2*i+1]);
+        if (hi == 0xFF || lo == 0xFF) return false;
+        out[i] = (uint8_t)((hi<<4) | lo);
+    }
+    return true;
+}
