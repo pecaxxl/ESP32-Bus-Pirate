@@ -3,8 +3,29 @@
 /*
 Constructor
 */
-WifiController::WifiController(ITerminalView &terminalView, IInput &terminalInput, IInput &deviceInput, WifiService &wifiService, SshService &sshService, NetcatService &netcatService, NmapService &nmapService, NvsService &nvsService, ArgTransformer &argTransformer)
-    : terminalView(terminalView), terminalInput(terminalInput), deviceInput(deviceInput), wifiService(wifiService), sshService(sshService), netcatService(netcatService), nmapService(nmapService), nvsService(nvsService), argTransformer(argTransformer) {}
+WifiController::WifiController(
+    ITerminalView &terminalView,
+    IInput &terminalInput,
+    IInput &deviceInput,
+    WifiService &wifiService,
+    SshService &sshService,
+    NetcatService &netcatService,
+    NmapService &nmapService,
+    NvsService &nvsService,
+    ArgTransformer &argTransformer,
+    UserInputManager &userInputManager
+)
+    : terminalView(terminalView),
+      terminalInput(terminalInput),
+      deviceInput(deviceInput),
+      wifiService(wifiService),
+      sshService(sshService),
+      netcatService(netcatService),
+      nmapService(nmapService),
+      nvsService(nvsService),
+      argTransformer(argTransformer),
+      userInputManager(userInputManager)
+{}
 
 /*
 Entry point for command
@@ -43,8 +64,18 @@ void WifiController::handleConnect(const TerminalCommand &cmd)
         return;
     }
 
-    std::string ssid = cmd.getSubcommand();
-    std::string password = cmd.getArgs();
+    std::string full = cmd.getSubcommand() + " " + cmd.getArgs();
+
+    // Find the last space to separate SSID and password
+    size_t pos = full.find_last_of(' ');
+    if (pos == std::string::npos || pos == full.size() - 1)
+    {
+        terminalView.println("Usage: connect <ssid> <password>");
+        return;
+    }
+
+    std::string ssid = full.substr(0, pos);
+    std::string password = full.substr(pos + 1);
 
     terminalView.println("WiFi: Connecting to " + ssid + "...");
 
@@ -556,7 +587,6 @@ void WifiController::handleNmap(const TerminalCommand &cmd)
     
     terminalView.println("\r\n\nNmap: Scan finished.");
 }
-
 
 /*
 Config

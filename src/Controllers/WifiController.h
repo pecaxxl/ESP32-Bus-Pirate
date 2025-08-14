@@ -8,6 +8,7 @@
 #include <Services/NetcatService.h>
 #include <Services/NmapService.h>
 #include <Transformers/ArgTransformer.h>
+#include <Managers/UserInputManager.h>
 #include <Models/TerminalCommand.h>
 #include <States/GlobalState.h>
 #include <Preferences.h>
@@ -24,7 +25,8 @@ public:
         NetcatService& netcatService,
         NmapService& nmapService,
         NvsService& nvsService, 
-        ArgTransformer& argTransformer
+        ArgTransformer& argTransformer,
+        UserInputManager& userInputManager
     );
 
     //  Entry point for Wi-Fi command
@@ -43,6 +45,7 @@ private:
     NetcatService& netcatService;
     NmapService& nmapService;
     ArgTransformer& argTransformer;
+    UserInputManager& userInputManager;
     GlobalState& state = GlobalState::getInstance();
     bool configured = false;
     Preferences preferences;
