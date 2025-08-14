@@ -29,6 +29,7 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       jtagService(),
       canService(),
       systemService(),
+      ethernetService(),
 
       // Transformers
       commandTransformer(),
@@ -74,8 +75,9 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       ledController(terminalView, terminalInput, ledService, argTransformer, userInputManager),
       bluetoothController(terminalView, terminalInput, bluetoothService, argTransformer),
       i2sController(terminalView, terminalInput, i2sService, argTransformer, userInputManager),
-      wifiController(terminalView, terminalInput, deviceInput, wifiService, sshService, netcatService, nmapService, nvsService, argTransformer),
-      canController(terminalView, terminalInput, userInputManager, canService, argTransformer)
+      wifiController(terminalView, terminalInput, deviceInput, wifiService, sshService, netcatService, nmapService, nvsService, argTransformer, userInputManager),
+      canController(terminalView, terminalInput, userInputManager, canService, argTransformer),
+      ethernetController(terminalView, terminalInput, deviceInput, ethernetService, argTransformer, userInputManager)
 {
 }
 
@@ -107,6 +109,8 @@ NetcatService &DependencyProvider::getNetcatService() { return netcatService; }
 NmapService &DependencyProvider::getNmapService() { return nmapService; }
 JtagService &DependencyProvider::getJtagService() { return jtagService; }
 CanService &DependencyProvider::getCanService() { return canService; }
+SystemService &DependencyProvider::getSystemService() { return systemService; }
+EthernetService &DependencyProvider::getEthernetService() { return ethernetService; }
 
 // Controllers
 UartController &DependencyProvider::getUartController() { return uartController; }
@@ -126,6 +130,7 @@ WifiController &DependencyProvider::getWifiController() { return wifiController;
 BluetoothController &DependencyProvider::getBluetoothController() { return bluetoothController; }
 I2sController &DependencyProvider::getI2sController() { return i2sController; }
 CanController &DependencyProvider::getCanController() { return canController; }
+EthernetController &DependencyProvider::getEthernetController() { return ethernetController; }
 
 // Transformers
 TerminalCommandTransformer &DependencyProvider::getCommandTransformer() { return commandTransformer; }

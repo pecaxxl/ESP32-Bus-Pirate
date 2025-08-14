@@ -144,7 +144,9 @@ void ActionDispatcher::dispatchCommand(const TerminalCommand& cmd) {
         case ModeEnum::CAN_:
             provider.getCanController().handleCommand(cmd);
             break;
-
+        // case ModeEnum::ETHERNET:
+        //     provider.getEthernetController().handleCommand(cmd);
+        //     break;
     }
 
    // Config was handled in specific mode, we need to rerender the pinout view
@@ -441,6 +443,15 @@ void ActionDispatcher::setCurrentMode(ModeEnum newMode) {
                 "SO GPIO " + std::to_string(state.getCanSoPin())
             });
             break;
+        // case ModeEnum::ETHERNET:
+        //     provider.getEthernetController().ensureConfigured();
+        //     config.setMappings({
+        //         "CS GPIO " + std::to_string(state.getEthernetCsPin()),
+        //         "SCK GPIO " + std::to_string(state.getEthernetSckPin()),
+        //         "SI GPIO " + std::to_string(state.getEthernetMosiPin()),
+        //         "SO GPIO " + std::to_string(state.getEthernetMisoPin())
+        //     });
+        //     break;
     }
 
     // Show the new mode pinout
