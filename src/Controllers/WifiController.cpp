@@ -8,6 +8,7 @@ WifiController::WifiController(
     IInput &terminalInput,
     IInput &deviceInput,
     WifiService &wifiService,
+    WifiOpenScannerService &wifiScannerService,
     SshService &sshService,
     NetcatService &netcatService,
     NmapService &nmapService,
@@ -19,6 +20,7 @@ WifiController::WifiController(
       terminalInput(terminalInput),
       deviceInput(deviceInput),
       wifiService(wifiService),
+      wifiScannerService(wifiScannerService),
       sshService(sshService),
       netcatService(netcatService),
       nmapService(nmapService),
@@ -40,6 +42,7 @@ void WifiController::handleCommand(const TerminalCommand &cmd)
     else if (root == "ap") handleAp(cmd);
     else if (root == "spoof") handleSpoof(cmd);
     else if (root == "scan") handleScan(cmd);
+    else if (root == "probe") handleProbe();
     else if (root == "ping") handlePing(cmd);
     else if (root == "sniff") handleSniff(cmd);
     else if (root == "webui") handleWebUi(cmd);
@@ -229,6 +232,60 @@ void WifiController::handleScan(const TerminalCommand &)
     {
         terminalView.println("WiFi: No networks found.");
     }
+}
+
+/*
+Probe
+*/
+void WifiController::handleProbe() 
+{
+    terminalView.println("WIFI: Starting probe for internet access on open networks...");
+    terminalView.println("\n[WARNING] This will try to connect to surrounding open networks.\n");
+
+    // Confirm before starting
+    auto confirmation = userInputManager.readYesNo("Start Wi-Fi probe to find internet access?", false);
+    if (!confirmation) {
+        terminalView.println("WIFI: Probe cancelled.\n");
+        return;
+    }
+
+    // Stop any existing probe
+    if (wifiScannerService.isOpenProbeRunning()) {
+        wifiScannerService.stopOpenProbe();
+    }
+    wifiScannerService.clearProbeLog();
+
+    // Start the open probe service
+    if (!wifiScannerService.startOpenProbe()) {
+        terminalView.println("WIFI: Failed to start probe.\n");
+        return;
+    }
+
+    terminalView.println("WIFI: Probe for internet access... Press [ENTER] to stop.\n");
+
+    // Start the open probe task
+    while (wifiScannerService.isOpenProbeRunning()) {
+        // Display logs
+        auto batch = wifiScannerService.fetchProbeLog();
+        for (auto& ln : batch) {
+            terminalView.println(ln.c_str());
+        }
+
+        // Enter Press to stop
+        int ch = terminalInput.readChar();
+        if (ch == '\n' || ch == '\r') {
+            wifiScannerService.stopOpenProbe();
+            break;
+        }
+
+        delay(10);
+    }
+
+    // Flush final logs
+    for (auto& ln : wifiScannerService.fetchProbeLog()) {
+        terminalView.println(ln.c_str());
+    }
+    terminalView.println("WIFI: Open-Wifi probe ended.\n");
 }
 
 /*
@@ -603,6 +660,7 @@ void WifiController::handleConfig()
     terminalView.println("[WARNING] If you're connected via Web CLI,");
     terminalView.println("          executing Wi-Fi commands may cause ");
     terminalView.println("          the terminal session to disconnect.");
+    terminalView.println("          Don't use: sniff, probe, connect, scan, spoof...");
     terminalView.println("          Use USB serial or restart if connection is lost.\n");
 }
 
@@ -613,9 +671,10 @@ void WifiController::handleHelp()
 {
     terminalView.println("WiFi commands:");
     terminalView.println("  scan");
+    terminalView.println("  connect");
     terminalView.println("  ping <host>");
     terminalView.println("  sniff");
-    terminalView.println("  connect");
+    terminalView.println("  probe");
     terminalView.println("  spoof sta <mac>");
     terminalView.println("  spoof ap <mac>");
     terminalView.println("  status");
@@ -642,7 +701,7 @@ void WifiController::ensureConfigured()
 }
 
 /*
-Deathenticate stations attack
+Deauthenticate stations attack
 */
 void WifiController::handleDeauth(const TerminalCommand &cmd)
 {

@@ -7,6 +7,7 @@
 #include <Services/SshService.h>
 #include <Services/NetcatService.h>
 #include <Services/NmapService.h>
+#include <Services/WifiOpenScannerService.h>
 #include <Transformers/ArgTransformer.h>
 #include <Managers/UserInputManager.h>
 #include <Models/TerminalCommand.h>
@@ -21,10 +22,11 @@ public:
         IInput& terminalInput, 
         IInput& deviceInput,
         WifiService& wifiService, 
+        WifiOpenScannerService& wifiScannerService, 
         SshService& sshService,
         NetcatService& netcatService,
         NmapService& nmapService,
-        NvsService& nvsService, 
+        NvsService& nvsService,
         ArgTransformer& argTransformer,
         UserInputManager& userInputManager
     );
@@ -40,6 +42,7 @@ private:
     IInput& terminalInput;
     IInput& deviceInput;
     WifiService& wifiService;
+    WifiOpenScannerService& wifiScannerService;
     NvsService& nvsService;
     SshService& sshService;
     NetcatService& netcatService;
@@ -67,6 +70,9 @@ private:
 
     // Ping a target over Wi-Fi
     void handlePing(const TerminalCommand& cmd);
+
+    // Start probing open networks for net access
+    void handleProbe();
 
     // Start packet sniffing
     void handleSniff(const TerminalCommand& cmd);

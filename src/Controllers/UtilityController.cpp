@@ -421,6 +421,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  connect              - Connect to a network");
     terminalView.println("  ping <host>          - Ping a remote host");
     terminalView.println("  sniff                - Monitor Wi-Fi packets");
+    terminalView.println("  probe                - Search for net access");
     terminalView.println("  spoof ap <mac>       - Spoof AP MAC");
     terminalView.println("  spoof sta <mac>      - Spoof Station MAC");
     terminalView.println("  status               - Show Wi-Fi status");
