@@ -65,7 +65,7 @@ public:
     uint8_t  eepromAddressBytes();
     bool     eepromIsConnected();
     bool     eepromIsBusy();
-    void     eepromErase(uint8_t fill = 0x00);
+    void     eepromErase(uint8_t fill = 0xFF);
     bool     eepromDetectMemorySize();
     uint8_t  eepromDetectAddressBytes();
     uint16_t eepromDetectPageSize();
