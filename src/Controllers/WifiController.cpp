@@ -135,18 +135,38 @@ Status
 */
 void WifiController::handleStatus(const TerminalCommand &cmd)
 {
-    if (wifiService.isConnected())
-    {
-        terminalView.println("WiFi: Connected");
-        terminalView.println("  IP:  " + wifiService.getLocalIP());
-    }
-    else
-    {
-        terminalView.println("WiFi: Not connected.");
+    auto ssid     = wifiService.getSsid();     if (ssid.empty()) ssid = "N/A";
+    auto bssid    = wifiService.getBssid();    if (bssid.empty()) bssid = "N/A";
+    auto hostname = wifiService.getHostname(); if (hostname.empty()) hostname = "N/A";
+
+    terminalView.println("\n=== Wi-Fi Status ===");
+    terminalView.println("Mode         : " + std::string(wifiService.getWifiModeRaw() == WIFI_MODE_AP ? "Access Point" : "Station"));
+    terminalView.println("AP MAC       : " + wifiService.getMacAddressAp());
+    terminalView.println("STA MAC      : " + wifiService.getMacAddressSta());
+    terminalView.println("IP           : " + wifiService.getLocalIp());
+    terminalView.println("Subnet       : " + wifiService.getSubnetMask());
+    terminalView.println("Gateway      : " + wifiService.getGatewayIp());
+    terminalView.println("DNS1         : " + wifiService.getDns1());
+    terminalView.println("DNS2         : " + wifiService.getDns2());
+    terminalView.println("Hostname     : " + hostname);
+
+    terminalView.println("SSID         : " + ssid);
+    terminalView.println("BSSID        : " + bssid);
+    terminalView.println("Prov enabled : " + std::string(wifiService.isProvisioningEnabled() ? "Yes" : "No"));
+
+    const int status = wifiService.getWifiStatusRaw();
+    if (status == 3 /* WL_CONNECTED */) {
+        terminalView.println("RSSI         : " + std::to_string(wifiService.getRssi()) + " dBm");
+        terminalView.println("Channel      : " + std::to_string(wifiService.getChannel()));
+    } else {
+        terminalView.println("RSSI         : N/A");
+        terminalView.println("Channel      : N/A");
     }
 
-    terminalView.println("  STA MAC: " + wifiService.getMacAddressSta());
-    terminalView.println("   AP MAC: " + wifiService.getMacAddressAp());
+    terminalView.println("Mode         : " + std::string(wifiService.wifiModeToStr(wifiService.getWifiModeRaw())));
+    terminalView.println("Status       : " + std::string(wifiService.wlStatusToStr(status)));
+    terminalView.println("Prov enabled : " + std::string(wifiService.isProvisioningEnabled() ? "Yes" : "No"));
+    terminalView.println("====================\n");
 }
 
 /*
