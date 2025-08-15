@@ -45,7 +45,7 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       // Shells
       sdCardShell(sdService, terminalView, terminalInput, argTransformer),
       spiFlashShell(spiService, terminalView, terminalInput, argTransformer, userInputManager, binaryAnalyzeManager),
-      spiEepromShell(spiService, terminalView, terminalInput, argTransformer, userInputManager),
+      spiEepromShell(spiService, terminalView, terminalInput, argTransformer, userInputManager, binaryAnalyzeManager),
       smartCardShell(twoWireService, terminalView, terminalInput, argTransformer, userInputManager),
       universalRemoteShell(terminalView, terminalInput, infraredService, argTransformer, userInputManager),
       ibuttonShell(terminalView, terminalInput, userInputManager, argTransformer, oneWireService),
