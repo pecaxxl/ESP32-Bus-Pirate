@@ -24,15 +24,15 @@ public:
 
 private:
     const std::vector<std::string> actions = {
-        "🔍 Probe Flash",
-        "📊 Analyze Flash",
-        "🔎 Search string",
-        "📜 Extract strings",
-        "📖 Read bytes",
-        "✏️  Write bytes",
-        "🗃️  Dump Flash",
-        "💣 Erase Flash",
-        "🚪 Exit Shell"
+        " 🔍 Probe Flash",
+        " 📊 Analyze Flash",
+        " 🔎 Search string",
+        " 📜 Extract strings",
+        " 📖 Read bytes",
+        " ✏️  Write bytes",
+        " 🗃️  Dump Flash",
+        " 💣 Erase Flash",
+        " 🚪 Exit Shell"
     };
 
     SpiService& spiService;

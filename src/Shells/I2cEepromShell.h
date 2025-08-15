@@ -23,13 +23,13 @@ public:
 private:
     // Available actions
     const std::vector<std::string> actions = {
-        "🔍 Probe",
-        "📊 Analyze",
-        "📖 Read bytes",
-        "✏️  Write bytes",
-        "🗃️  Dump EEPROM",
-        "💣 Erase EEPROM",
-        "🚪 Exit Shell"
+        " 🔍 Probe",
+        " 📊 Analyze",
+        " 📖 Read bytes",
+        " ✏️  Write bytes",
+        " 🗃️  Dump EEPROM",
+        " 💣 Erase EEPROM",
+        " 🚪 Exit Shell"
     };
 
     // Available EEPROM models

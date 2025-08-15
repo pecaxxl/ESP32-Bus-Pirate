@@ -37,7 +37,7 @@ void I2cEepromShell::run(uint8_t addr) {
         // Select action
         terminalView.println("\n=== I2C EEPROM Shell ===");
         int index = userInputManager.readValidatedChoiceIndex("Select an EEPROM action", actions, 0);
-        if (index == -1 || actions[index] == "🚪 Exit Shell") {
+        if (index == -1 || actions[index] == " 🚪 Exit Shell") {
             terminalView.println("Exiting EEPROM shell...\n");
             break;
         }

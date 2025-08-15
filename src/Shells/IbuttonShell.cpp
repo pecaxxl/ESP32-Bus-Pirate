@@ -16,17 +16,17 @@ IbuttonShell::IbuttonShell(ITerminalView& terminalView,
 
 void IbuttonShell::run() {
     const std::vector<std::string> actions = {
-        "🔍 Read ID",
-        "✏️  Write ID",
-        "📋 Copy ID",
-        "🚪 Exit Shell"
+        " 🔍 Read ID",
+        " ✏️  Write ID",
+        " 📋 Copy ID",
+        " 🚪 Exit Shell"
     };
 
     while (true) {
         terminalView.println("\n=== iButton RW1990 Shell ===");
         int index = userInputManager.readValidatedChoiceIndex("Select an action", actions, 0);
 
-        if (index == -1 || actions[index] == "🚪 Exit Shell") {
+        if (index == -1 || actions[index] == " 🚪 Exit Shell") {
             terminalView.println("Exiting iButton Shell...\n");
             break;
         }

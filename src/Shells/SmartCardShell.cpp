@@ -17,22 +17,22 @@ SmartCardShell::SmartCardShell(
 
 void SmartCardShell::run() {
     const std::vector<std::string> actions = {
-        "🔍 Probe",
-        "🛡️  Security check",
-        "🔓 Unlock card",
-        "📝 PSC Set",
-        "📋 PSC Get",
-        "✏️  Write",
-        "🗃️  Dump",
-        "🚫 Protect",
-        "🚪 Exit Shell"
+        " 🔍 Probe",
+        " 🛡️  Security check",
+        " 🔓 Unlock card",
+        " 📝 PSC Set",
+        " 📋 PSC Get",
+        " ✏️  Write",
+        " 🗃️  Dump",
+        " 🚫 Protect",
+        " 🚪 Exit Shell"
     };
 
     while (true) {
         terminalView.println("\n=== SLE44XX SmartCard Shell ===");
         int index = userInputManager.readValidatedChoiceIndex("Select a SmartCard action", actions, 0);
 
-        if (index == -1 || actions[index] == "🚪 Exit Shell") {
+        if (index == -1 || actions[index] == " 🚪 Exit Shell") {
             terminalView.println("Exiting SmartCard Shell...\n");
             break;
         }

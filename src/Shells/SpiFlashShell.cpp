@@ -26,7 +26,7 @@ void SpiFlashShell::run() {
         int index = userInputManager.readValidatedChoiceIndex("Select a SPI Flash action", actions, 0);
 
         // Quit
-        if (index == -1 || actions[index] == "🚪 Exit Shell") {
+        if (index == -1 || actions[index] == " 🚪 Exit Shell") {
             terminalView.println("Exiting SPI Flash Shell...\n");
             break;
         }
