@@ -148,7 +148,7 @@ Reset
 void EthernetController::handleReset()
 {
     // ethernetService.disconnect();
-    terminalView.println("Ethernet: Interface reset. Disconnected. [NYI]");
+    terminalView.println("Ethernet: Interface reset. Disconnected. [NYI].");
 }
 
 /*

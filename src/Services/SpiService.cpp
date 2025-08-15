@@ -301,13 +301,19 @@ std::vector<std::vector<uint8_t>> SpiService::getSlaveData() {
 
 // #### EEPROM ######
 
-bool SpiService::initEeprom(uint8_t mosi, uint8_t miso, uint8_t sclk, uint8_t cs, uint16_t pageSize, uint32_t memSize,  uint16_t wp) {
+bool SpiService::initEeprom(
+    uint8_t mosi, 
+    uint8_t miso, uint8_t 
+    sclk, uint8_t cs, 
+    uint16_t pageSize, 
+    uint32_t memSize,  
+    uint16_t wp,
+    bool small) 
+{
     if (eepromInitialized) return true;
     SPI.end();
-    csPin = cs;
 
     // Init eeprom
-    eeprom = EEPROM_SPI_WE(csPin);
     if (!eeprom.init(sclk, miso, mosi, cs, wp)) return false;
 
     // Size
@@ -320,8 +326,17 @@ bool SpiService::initEeprom(uint8_t mosi, uint8_t miso, uint8_t sclk, uint8_t cs
                           EEPROM_PAGE_SIZE_256
     );
 
+    if (small) {
+        eeprom.setSmallEEPROM();
+    }
+
     eepromInitialized = true;
     return true;
+}
+
+bool SpiService::probeEeprom() {
+    if (!eepromInitialized) return false;
+    return eeprom.probe();
 }
 
 bool SpiService::writeEeprom(uint32_t address, uint8_t value) {

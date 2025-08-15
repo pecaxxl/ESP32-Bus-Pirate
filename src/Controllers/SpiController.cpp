@@ -62,8 +62,6 @@ void SpiController::handleFlash(const TerminalCommand& cmd) {
 EEPROM
 */
 void SpiController::handleEeprom(const TerminalCommand& cmd) {
-    terminalView.println("\n[WARNING] SPI EEPROM is not fully implemented. Don't use it for real operations.");
-    terminalInput.waitPress();
     spiEepromShell.run();
     ensureConfigured();
 }

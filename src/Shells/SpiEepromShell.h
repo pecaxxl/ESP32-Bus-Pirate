@@ -5,6 +5,7 @@
 #include "Interfaces/IInput.h"
 #include "Transformers/ArgTransformer.h"
 #include "Managers/UserInputManager.h"
+#include "Managers/BinaryAnalyzeManager.h"
 #include "States/GlobalState.h"
 
 class SpiEepromShell {
@@ -14,7 +15,8 @@ public:
         ITerminalView& view,
         IInput& input,
         ArgTransformer& argTransformer,
-        UserInputManager& userInputManager
+        UserInputManager& userInputManager,
+        BinaryAnalyzeManager& binaryAnalyzeManager
     );
 
     void run();
@@ -25,17 +27,20 @@ private:
     IInput& terminalInput;
     ArgTransformer& argTransformer;
     UserInputManager& userInputManager;
+    BinaryAnalyzeManager& binaryAnalyzeManager;
     GlobalState& state = GlobalState::getInstance();
     uint32_t eepromSize = 8192; // default
     uint16_t pageSize = 64; // default
+    std::string eepromModel;
 
     const std::vector<std::string> actions = {
-        "🔍 Probe EEPROM",
-        "📖 Read bytes",
-        "✏️  Write bytes",
-        "🗃️  Dump EEPROM",
-        "💣 Erase EEPROM",
-        "🚪 Exit Shell"
+        " 🔍 Probe EEPROM",
+        " 📊 Analyze EEPROM",
+        " 📖 Read bytes",
+        " ✏️  Write bytes",
+        " 🗃️  Dump EEPROM",
+        " 💣 Erase EEPROM",
+        " 🚪 Exit Shell"
     };
 
     std::vector<std::string> models = {
@@ -94,4 +99,5 @@ private:
     void cmdWrite();
     void cmdDump();
     void cmdErase();
+    void cmdAnalyze();
 };

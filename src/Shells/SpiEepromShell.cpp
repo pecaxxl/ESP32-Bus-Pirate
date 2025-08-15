@@ -5,13 +5,15 @@ SpiEepromShell::SpiEepromShell(
     ITerminalView& view,
     IInput& input,
     ArgTransformer& argTransformer,
-    UserInputManager& userInputManager
+    UserInputManager& userInputManager,
+    BinaryAnalyzeManager& binaryAnalyzeManager
 ) :
     spiService(spiService),
     terminalView(view),
     terminalInput(input),
     argTransformer(argTransformer),
-    userInputManager(userInputManager)
+    userInputManager(userInputManager),
+    binaryAnalyzeManager(binaryAnalyzeManager)
 {
 }
 
@@ -26,15 +28,22 @@ void SpiEepromShell::run() {
     // Get params
     eepromSize = memoryLengths[selectedModelIndex];
     pageSize = pageLengths[selectedModelIndex];
+    eepromModel = models[selectedModelIndex];
+    size_t p = eepromModel.find('|'); // Remove everything after the first '|'
+    eepromModel.resize(p);
+    bool isSmall = selectedModelIndex < 3; // Models 25X010, 25X020, 25X040 are small
+
     auto mosi = state.getSpiMOSIPin();
     auto miso = state.getSpiMISOPin();
     auto sclk = state.getSpiCLKPin();
     auto cs = state.getSpiCSPin();
+    auto wp = 999; // Default write protect pin
     
     // Initialize EEPROM
-    bool ok = spiService.initEeprom(mosi, miso, sclk, cs, pageSize, eepromSize);
+    bool ok = spiService.initEeprom(mosi, miso, sclk, cs, pageSize, eepromSize, wp, isSmall);
     if (!ok) {
-        terminalView.println("Failed to initialize EEPROM. Please check connections.");
+        terminalView.println("\nFailed to initialize EEPROM. Please check connections.");
+        terminalView.println("HOLD pin must be connected to VCC to detect EEPROM.\n");
         return;
     }
 
@@ -45,17 +54,18 @@ void SpiEepromShell::run() {
         int index = userInputManager.readValidatedChoiceIndex("Select EEPROM action", actions, 0);
 
         // Quit
-        if (index == -1 || actions[index] == "🚪 Exit Shell") {
+        if (index == -1 || actions[index] == " 🚪 Exit Shell") {
             terminalView.println("Exiting SPI EEPROM Shell...\n");
             break;
         }
         // Run selected action
         switch (index) {
             case 0: cmdProbe(); break;
-            case 1: cmdRead();  break;
-            case 2: cmdWrite(); break;
-            case 3: cmdDump();  break; 
-            case 4: cmdErase(); break; 
+            case 1: cmdAnalyze(); break;
+            case 2: cmdRead();  break;
+            case 3: cmdWrite(); break;
+            case 4: cmdDump();  break; 
+            case 5: cmdErase(); break; 
             default:
                 terminalView.println("Unknown action.");
                 break;
@@ -65,7 +75,18 @@ void SpiEepromShell::run() {
 }
 
 void SpiEepromShell::cmdProbe() {
-    terminalView.println("\n[NYI] 🔍 SPI EEPROM Probe...");
+    terminalView.println("\n[INFO] Probing SPI EEPROM...");
+
+    const bool ok = spiService.probeEeprom();
+
+    if (ok) {
+        terminalView.println("\n ✅ EEPROM detected.");
+        terminalView.println(" Model     :" + eepromModel);
+        terminalView.println(" Size      : " + std::to_string(eepromSize / 1024) + " Kbytes");
+        terminalView.println(" Page Size : " + std::to_string(pageSize) + " bytes");
+    } else {
+        terminalView.println("\n ❌ No EEPROM found.");
+    }
 }
 
 void SpiEepromShell::cmdRead() {
@@ -157,7 +178,7 @@ void SpiEepromShell::cmdDump() {
 }
 
 void SpiEepromShell::cmdErase() {
-    terminalView.println("\n💣 EEPROM Erase: Writing 0x00 to entire memory...");
+    terminalView.println("\n💣 EEPROM Erase: Writing 0xFF to entire memory...");
 
     if (!userInputManager.readYesNo("Confirm erase?", false)) {
         terminalView.println("Erase cancelled.");
@@ -166,18 +187,64 @@ void SpiEepromShell::cmdErase() {
 
     const uint32_t totalSize = eepromSize;
     const uint32_t blockSize = 64;
-    uint8_t zeros[blockSize] = {0};
-
+    uint8_t ff[blockSize];
+    std::fill_n(ff, blockSize, 0xFF);
+    
+    terminalView.print("Erasing");
     for (uint32_t addr = 0; addr < totalSize; addr += blockSize) {
-        bool ok = spiService.writeEepromBuffer(addr, zeros, blockSize);
+        bool ok = spiService.writeEepromBuffer(addr, ff, blockSize);
         if (!ok) {
             terminalView.println("\n ❌ Write failed at 0x" + argTransformer.toHex(addr, 6));
             return;
         }
 
         // Progression feedback
-        if (addr % 512 == 0) terminalView.print(".");
+        if (addr % 1024 == 0) terminalView.print(".");
     }
 
-    terminalView.println("\n ✅ EEPROM Erase Done.");
+    terminalView.println("\r\n\n ✅ EEPROM Erase Done.");
+}
+
+void SpiEepromShell::cmdAnalyze() {
+    terminalView.println("\nSPI EEPROM Analyze: from 0x00000000... Press [ENTER] to stop.");
+
+    if (!spiService.probeEeprom()) {
+        terminalView.println("\n ❌ No EEPROM found. Aborting.");
+        return;
+    }
+
+    // Analyze EEPROM in chunks
+    auto result = binaryAnalyzeManager.analyze(
+        0,
+        eepromSize,
+        [&](uint32_t addr, uint8_t* buf, uint32_t len) {
+            if (!spiService.readEepromBuffer(addr, buf, len)) {
+                memset(buf, 0xFF, len);
+            }
+        }
+    );
+
+    // Summary
+    auto summary = binaryAnalyzeManager.formatAnalysis(result);
+    terminalView.println(summary);
+
+    // Secrets
+    if (!result.foundSecrets.empty()) {
+        terminalView.println("\n  Detected sensitive patterns:");
+        for (const auto& entry : result.foundSecrets) {
+            terminalView.println("    " + entry);
+        }
+    }
+
+    // Files
+    if (!result.foundFiles.empty()) {
+        terminalView.println("\n  Detected file signatures:");
+        for (const auto& entry : result.foundFiles) {
+            terminalView.println("    " + entry);
+        }
+    } else {
+        terminalView.println("\n No known file signatures found.");
+    }
+
+    terminalView.println("\n ✅ SPI EEPROM Analyze: Done.");
 }
