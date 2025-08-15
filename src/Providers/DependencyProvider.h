@@ -24,6 +24,7 @@ and injecting shared instances of core components
 #include "Services/PinService.h"
 #include "Services/BluetoothService.h"
 #include "Services/WifiService.h"
+#include "Services/WifiOpenScannerService.h"
 #include "Services/I2sService.h"
 #include "Services/SshService.h"
 #include "Services/JtagService.h"
@@ -99,6 +100,7 @@ public:
     PinService &getPinService();
     BluetoothService &getBluetoothService();
     WifiService &getWifiService();
+    WifiOpenScannerService &getWifiScannerService();
     I2sService &getI2sService();
     SshService &getSshService();
     NetcatService &getNetcatService();
@@ -183,6 +185,7 @@ private:
     SpiService spiService;
     PinService pinService;
     WifiService wifiService;
+    WifiOpenScannerService wifiScannerService;
     BluetoothService bluetoothService;
     I2sService i2sService;
     SshService sshService;
