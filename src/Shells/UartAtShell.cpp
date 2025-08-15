@@ -15,10 +15,9 @@ UartAtShell::UartAtShell(ITerminalView& terminalView,
   uartService(uartService) {}
 
 void UartAtShell::run() {
-    
-    terminalView.println("\n=== UART AT Shell ===");
-
     while (true){
+        terminalView.println("\n=== UART AT Shell ===");
+        
         // Select the mode
         AtMode mode{};
         if (!selectMode(mode)) {

@@ -82,24 +82,24 @@ struct AtActionSlice {
 // ================== Modes ==================
 
 inline constexpr AtModeOption kAtModes[] = {
-    { E("🛠️ "), "Config",                 AtMode::Config },
-    { E("ℹ️ "), "Info",                   AtMode::Info },
+    { E("🔧"), "Config",                 AtMode::Config },
+    { E("📌"), "Info",                   AtMode::Info },
     { E("🔐"), "SIM & PIN",               AtMode::SimPin },
     { E("📶"), "Telephony Network",       AtMode::Network },
     { E("📞"), "Calls",                   AtMode::Calls },
-    { E("✉️ "), "SMS",                    AtMode::Sms },
+    { E("📩"), "SMS",                    AtMode::Sms },
     { E("📒"), "Phonebook",               AtMode::Phonebook },
     { E("💱"), "USSD",                    AtMode::Ussd },
     { E("🌐"), "Data (PDP)",              AtMode::Data },
     { E("⏰"), "Time & Clock",            AtMode::TimeClock },
     { E("🌍"), "Internet TCP/IP",         AtMode::TcpIp_Vendor },
-    { E("🕸️ "), "HTTP(S)",                AtMode::Http_Vendor },
+    { E("🔒"), "HTTP(S)",                AtMode::Http_Vendor },
     { E("🧭"), "GNSS/GPS",                AtMode::Gnss_Vendor },
     { E("📡"), "LoRa / LoRaWAN",          AtMode::Lora },
     { E("🔈"), "Audio",                   AtMode::Audio },
     { E("🔋"), "Power / PSM",             AtMode::Power },
     { E("🧰"), "Hardware I/O",            AtMode::Hardware },
-    { E("☁️ "), "MQTT",                   AtMode::Mqtt },
+    { E("🌪️"), "MQTT",                   AtMode::Mqtt },
     { E("📁"), "File Storage",            AtMode::Files },
 };
 inline constexpr size_t kAtModesCount = AT_COUNT_OF(kAtModes);
@@ -193,15 +193,15 @@ inline constexpr AtActionItem kAtConfigActions[] = {
     { E("🧼"), "Factory reset (ESP-AT)","AT+RESTORE", AtStandard::Hayes,  "AT+RESTORE",           true,  AT_NOARGS},
 
     // UART configuration (ESP-AT)
-    { E("🛠️ "), "UART config (deprecated)", "AT+UART=%1,%2,%3,%4,%5",
+    { E("🔧"), "UART config (deprecated)", "AT+UART=%1,%2,%3,%4,%5",
       AtStandard::Hayes, "AT+UART=115200,8,1,0,0", false,
       kArgs_UartCommon, AT_COUNT_OF(kArgs_UartCommon) },
 
-    { E("🛠️ "), "UART current (no save)", "AT+UART_CUR=%1,%2,%3,%4,%5",
+    { E("🔧"), "UART current (no save)", "AT+UART_CUR=%1,%2,%3,%4,%5",
       AtStandard::Hayes, "AT+UART_CUR=115200,8,1,0,0", false,
       kArgs_UartCommon, AT_COUNT_OF(kArgs_UartCommon) },
 
-    { E("🛠️ "), "UART default (save)", "AT+UART_DEF=%1,%2,%3,%4,%5",
+    { E("🔧"), "UART default (save)", "AT+UART_DEF=%1,%2,%3,%4,%5",
       AtStandard::Hayes, "AT+UART_DEF=115200,8,1,0,0", false,
       kArgs_UartCommon, AT_COUNT_OF(kArgs_UartCommon) },
 
@@ -214,7 +214,7 @@ inline constexpr AtActionItem kAtConfigActions[] = {
     { E("🔌"), "RF power by VDD",     "AT+RFVDD=%1", AtStandard::Hayes,   "AT+RFVDD=1",           false,
       kArgs_BoolEnable, AT_COUNT_OF(kArgs_BoolEnable) },
 
-    { E("♻️ "), "Soft reset (profile)","ATZ",        AtStandard::Hayes,   "ATZ",                  false, AT_NOARGS},
+    { E("⚡"), "Soft reset (profile)","ATZ",        AtStandard::Hayes,   "ATZ",                  false, AT_NOARGS},
     { E("🏭"), "Factory defaults",    "AT&F",        AtStandard::Hayes,   "AT&F",                 true,  AT_NOARGS},
     { E("💾"), "Save profile",        "AT&W",        AtStandard::Hayes,   "AT&W",                 false, AT_NOARGS},
 
@@ -227,7 +227,7 @@ inline constexpr AtActionItem kAtConfigActions[] = {
     { E("🔤"), "Char set",            "AT+CSCS=\"%1\"", AtStandard::ThreeGPP, "AT+CSCS=\"GSM\"",  false,
       kArgs_Cscs, AT_COUNT_OF(kArgs_Cscs) },
 
-    { E("↔️ "), "Flow control",       "AT+IFC=%1,%2", AtStandard::ThreeGPP, "AT+IFC=2,2",         false,
+    { E("🪛"), "Flow control",       "AT+IFC=%1,%2", AtStandard::ThreeGPP, "AT+IFC=2,2",         false,
       kArgs_Ifc, AT_COUNT_OF(kArgs_Ifc) },
 
     { E("🔍"), "View active config",  "AT&V",        AtStandard::Hayes,   "AT&V",                 false, AT_NOARGS},
@@ -238,13 +238,13 @@ inline constexpr AtActionItem kAtConfigActions[] = {
     { E("🤫"), "Suppress result codes","ATQ%1",      AtStandard::Hayes,   "ATQ0",                 false,
       kArgs_Quiet, AT_COUNT_OF(kArgs_Quiet) },
 
-    { E("🗣️ "), "Response format",    "ATV%1",       AtStandard::Hayes,   "ATV1",                 false,
+    { E("🗨️"), "Response format",    "ATV%1",       AtStandard::Hayes,   "ATV1",                 false,
       kArgs_Verbose, AT_COUNT_OF(kArgs_Verbose) },
 
     { E("📎"), "DCD usage",           "AT&C%1",      AtStandard::Hayes,   "AT&C1",                false,
       kArgs_DcdUsage, AT_COUNT_OF(kArgs_DcdUsage) },
 
-    { E("🎚️ "), "DTR behaviour",      "AT&D%1",      AtStandard::Hayes,   "AT&D2",                false,
+    { E("🗨️"), "DTR behaviour",      "AT&D%1",      AtStandard::Hayes,   "AT&D2",                false,
       kArgs_DtrBehaviour, AT_COUNT_OF(kArgs_DtrBehaviour) },
 
     { E("🧩"), "Char framing (ICF)",   "AT+ICF=%1,%2",AtStandard::ThreeGPP,"AT+ICF=3,1",          false,
@@ -255,16 +255,16 @@ inline constexpr size_t kAtConfigActionsCount =
 
 // INFO (universal)
 inline constexpr AtActionItem kAtInfoActions[] = {
-    { E("ℹ️ "), "Module info",           "ATI",     AtStandard::Hayes,    "ATI",     false, AT_NOARGS},
-    { E("🏷️ "), "Manufacturer",          "AT+GMI",  AtStandard::Hayes,    "AT+GMI",  false, AT_NOARGS},
+    { E("📌"), "Module info",           "ATI",     AtStandard::Hayes,    "ATI",     false, AT_NOARGS},
+    { E("📎"), "Manufacturer",          "AT+GMI",  AtStandard::Hayes,    "AT+GMI",  false, AT_NOARGS},
     { E("🔧"),  "Model",                 "AT+GMM",  AtStandard::Hayes,    "AT+GMM",  false, AT_NOARGS},
-    { E("🛠️ "), "Firmware version",      "AT+GMR",  AtStandard::Hayes,    "AT+GMR",  false, AT_NOARGS},
+    { E("🔧"), "Firmware version",      "AT+GMR",  AtStandard::Hayes,    "AT+GMR",  false, AT_NOARGS},
     { E("🆔"),  "IMEI (GSN)",            "AT+GSN",  AtStandard::Hayes,    "AT+GSN",  false, AT_NOARGS},
     { E("🆔"),  "IMEI",                  "AT+CGSN", AtStandard::ThreeGPP, "AT+CGSN", false, AT_NOARGS},
     { E("🧩"),  "Capabilities",          "AT+GCAP", AtStandard::Hayes,    "AT+GCAP", false, AT_NOARGS},
-    { E("🏷️ "), "Manufacturer (CGMI)",   "AT+CGMI", AtStandard::ThreeGPP, "AT+CGMI", false, AT_NOARGS},
+    { E("📎"), "Manufacturer (CGMI)",   "AT+CGMI", AtStandard::ThreeGPP, "AT+CGMI", false, AT_NOARGS},
     { E("🔧"),  "Model (CGMM)",          "AT+CGMM", AtStandard::ThreeGPP, "AT+CGMM", false, AT_NOARGS},
-    { E("🛠️ "), "Firmware (CGMR)",       "AT+CGMR", AtStandard::ThreeGPP, "AT+CGMR", false, AT_NOARGS},
+    { E("🔧"), "Firmware (CGMR)",       "AT+CGMR", AtStandard::ThreeGPP, "AT+CGMR", false, AT_NOARGS},
 };
 inline constexpr size_t kAtInfoActionsCount =
     sizeof(kAtInfoActions) / sizeof(kAtInfoActions[0]);
@@ -293,7 +293,7 @@ inline constexpr AtActionItem kAtSimPinActions[] = {
     { E("🔓"), "Enter PIN/PUK",     "AT+CPIN=\"%1\"",                AtStandard::ThreeGPP, "AT+CPIN=\"1234\"",             true,  kArgs_CPIN_Enter, AT_COUNT_OF(kArgs_CPIN_Enter) },
     { E("🔐"), "Enable SIM lock",   "AT+CLCK=\"SC\",1,\"%1\"",       AtStandard::ThreeGPP, "AT+CLCK=\"SC\",1,\"1234\"",    true,  kArgs_CLCK_Pin,   AT_COUNT_OF(kArgs_CLCK_Pin)   },
     { E("🔓"), "Disable SIM lock",  "AT+CLCK=\"SC\",0,\"%1\"",       AtStandard::ThreeGPP, "AT+CLCK=\"SC\",0,\"1234\"",    true,  kArgs_CLCK_Pin,   AT_COUNT_OF(kArgs_CLCK_Pin)   },
-    { E("♻️ "), "Change PIN",       "AT+CPWD=\"SC\",\"%1\",\"%2\"",  AtStandard::ThreeGPP, "AT+CPWD=\"SC\",\"1234\",\"0000\"", true, kArgs_CPWD,      AT_COUNT_OF(kArgs_CPWD)       },
+    { E("⚡"), "Change PIN",       "AT+CPWD=\"SC\",\"%1\",\"%2\"",  AtStandard::ThreeGPP, "AT+CPWD=\"SC\",\"1234\",\"0000\"", true, kArgs_CPWD,      AT_COUNT_OF(kArgs_CPWD)       },
 };
 inline constexpr size_t kAtSimPinActionsCount = AT_COUNT_OF(kAtSimPinActions);
 
@@ -331,9 +331,9 @@ inline constexpr AtActionArg kArgs_CMNB_Pref[] = {
 
 inline constexpr AtActionItem kAtNetworkActions[] = {
     { E("📡"), "Signal quality",          "AT+CSQ",                       AtStandard::ThreeGPP, "AT+CSQ",                       false, AT_NOARGS },
-    { E("🗺️ "), "GSM reg status",          "AT+CREG?",                     AtStandard::ThreeGPP, "AT+CREG?",                     false, AT_NOARGS },
-    { E("🗺️ "), "Packet reg status",       "AT+CGREG?",                    AtStandard::ThreeGPP, "AT+CGREG?",                    false, AT_NOARGS },
-    { E("🗺️ "), "LTE reg status",          "AT+CEREG?",                    AtStandard::ThreeGPP, "AT+CEREG?",                    false, AT_NOARGS },
+    { E("📎"), "GSM reg status",          "AT+CREG?",                     AtStandard::ThreeGPP, "AT+CREG?",                     false, AT_NOARGS },
+    { E("🪛"), "Packet reg status",       "AT+CGREG?",                    AtStandard::ThreeGPP, "AT+CGREG?",                    false, AT_NOARGS },
+    { E("📌"), "LTE reg status",          "AT+CEREG?",                    AtStandard::ThreeGPP, "AT+CEREG?",                    false, AT_NOARGS },
     { E("🏢"),  "Current operator",        "AT+COPS?",                     AtStandard::ThreeGPP, "AT+COPS?",                     false, AT_NOARGS },
     { E("🧭"),  "List operators",          "AT+COPS=?",                    AtStandard::ThreeGPP, "AT+COPS=?",                    false, AT_NOARGS },
     { E("📶"),  "Extended signal quality", "AT+CESQ",                      AtStandard::ThreeGPP, "AT+CESQ",                      false, AT_NOARGS },
@@ -341,10 +341,10 @@ inline constexpr AtActionItem kAtNetworkActions[] = {
     { E("🧯"),  "Extended error report",   "AT+CEER",                      AtStandard::ThreeGPP, "AT+CEER",                      false, AT_NOARGS },
 
     { E("📶"),  "Set operator",            "AT+COPS=1,2,\"%1\"",           AtStandard::ThreeGPP, "AT+COPS=1,2,\"20801\"",        false, kArgs_COPS_MccMnc,     AT_COUNT_OF(kArgs_COPS_MccMnc) },
-    { E("🗺️ "), "Network mode",            "AT+CNMP=%1",                   AtStandard::ThreeGPP, "AT+CNMP=2",                    false, kArgs_CNMP_3gpp_Mode,  AT_COUNT_OF(kArgs_CNMP_3gpp_Mode) },
-    { E("🗺️ "), "Network scan mode",       "AT+QCFG=\"nwscanmode\",%1",    AtStandard::Quectel,  "AT+QCFG=\"nwscanmode\",3",     false, kArgs_QCFG_Nwscanmode, AT_COUNT_OF(kArgs_QCFG_Nwscanmode) },
+    { E("🌐"), "Network mode",            "AT+CNMP=%1",                   AtStandard::ThreeGPP, "AT+CNMP=2",                    false, kArgs_CNMP_3gpp_Mode,  AT_COUNT_OF(kArgs_CNMP_3gpp_Mode) },
+    { E("🌐"), "Network scan mode",       "AT+QCFG=\"nwscanmode\",%1",    AtStandard::Quectel,  "AT+QCFG=\"nwscanmode\",3",     false, kArgs_QCFG_Nwscanmode, AT_COUNT_OF(kArgs_QCFG_Nwscanmode) },
     { E("📌"),  "Manual operator (PLMN)",  "AT+COPS=1,2,\"%1\"",           AtStandard::ThreeGPP, "AT+ COPS=1,2,\"20801\"",       false, kArgs_COPS_MccMnc,     AT_COUNT_OF(kArgs_COPS_MccMnc) },
-    { E("🛰️ "), "Function level",          "AT+CFUN=%1",                   AtStandard::ThreeGPP, "AT+CFUN=1",                    false, kArgs_CFUN,            AT_COUNT_OF(kArgs_CFUN) },
+    { E("💫"), "Function level",          "AT+CFUN=%1",                   AtStandard::ThreeGPP, "AT+CFUN=1",                    false, kArgs_CFUN,            AT_COUNT_OF(kArgs_CFUN) },
 
     // Vendor (popular)
     { E("📶"),  "RAT mode (SIMCom)",       "AT+CNMP=%1",                   AtStandard::SIMCom,   "AT+CNMP=2",                    false, kArgs_CNMP_Simcom_Mode, AT_COUNT_OF(kArgs_CNMP_Simcom_Mode) },
@@ -392,10 +392,10 @@ inline constexpr AtActionItem kAtCallsActions[] = {
     { E("🆔"), "Caller ID presentation","AT+CLIP=%1", AtStandard::ThreeGPP, "AT+CLIP=1", false, kArgs_CLIP, AT_COUNT_OF(kArgs_CLIP) },
     { E("🙈"), "Caller ID restriction","AT+CLIR=%1",  AtStandard::ThreeGPP, "AT+CLIR=1", false, kArgs_CLIR, AT_COUNT_OF(kArgs_CLIR) },
     { E("🔊"), "DTMF tone",   "AT+VTS=\"%1\"", AtStandard::ThreeGPP, "AT+VTS=\"123#\"", false, kArgs_VTS_Digits, AT_COUNT_OF(kArgs_VTS_Digits) },
-    { E("⏱️ "), "DTMF duration","AT+VTD=%1", AtStandard::ThreeGPP, "AT+VTD=4",         false, kArgs_VTD_Units, AT_COUNT_OF(kArgs_VTD_Units) },
-    { E("👁️ "), "Connected line ID (COLP)","AT+COLP=%1", AtStandard::ThreeGPP, "AT+COLP=1", false, kArgs_COLP_Enable, AT_COUNT_OF(kArgs_COLP_Enable) },
-    { E("👁️ "), "Connected line ID (COLP)","AT+COLP=%1", AtStandard::ThreeGPP, "AT+COLP=1", false, kArgs_COLP_Enable, AT_COUNT_OF(kArgs_COLP_Enable) }, // (doublon volontaire, comme l’original)
-    { E("🏷️ "), "Default dial TOA","AT+CSTA=%1", AtStandard::ThreeGPP, "AT+CSTA=145", false, kArgs_CSTA_Type, AT_COUNT_OF(kArgs_CSTA_Type) },
+    { E("🕐"), "DTMF duration","AT+VTD=%1", AtStandard::ThreeGPP, "AT+VTD=4",         false, kArgs_VTD_Units, AT_COUNT_OF(kArgs_VTD_Units) },
+    { E("🖲️"), "Connected line ID (COLP)","AT+COLP=%1", AtStandard::ThreeGPP, "AT+COLP=1", false, kArgs_COLP_Enable, AT_COUNT_OF(kArgs_COLP_Enable) },
+    { E("🖲️"), "Connected line ID (COLP)","AT+COLP=%1", AtStandard::ThreeGPP, "AT+COLP=1", false, kArgs_COLP_Enable, AT_COUNT_OF(kArgs_COLP_Enable) }, // (doublon volontaire, comme l’original)
+    { E("📎"), "Default dial TOA","AT+CSTA=%1", AtStandard::ThreeGPP, "AT+CSTA=145", false, kArgs_CSTA_Type, AT_COUNT_OF(kArgs_CSTA_Type) },
     { E("📱"), "Phone activity status","AT+CPAS", AtStandard::ThreeGPP, "AT+CPAS",     false, AT_NOARGS },
 };
 
@@ -468,9 +468,9 @@ inline constexpr AtActionItem kAtSmsActions[] = {
     { E("📤"), "Send SMS (text)",       "AT+CMGS=\"%1\"",               AtStandard::ThreeGPP, "AT+CMGS=\"+33123456789\"",     false, kArgs_CMGS_Phone,           AT_COUNT_OF(kArgs_CMGS_Phone) },
     { E("📥"), "Read SMS",              "AT+CMGR=%1",                   AtStandard::ThreeGPP, "AT+CMGR=1",                    false, kArgs_CMGR_Index,           AT_COUNT_OF(kArgs_CMGR_Index) },
     { E("📜"), "List SMS",              "AT+CMGL=\"%1\"",               AtStandard::ThreeGPP, "AT+CMGL=\"ALL\"",              false, kArgs_CMGL_Filter,          AT_COUNT_OF(kArgs_CMGL_Filter) },
-    { E("🗑️ "), "Delete SMS",           "AT+CMGD=%1",                   AtStandard::ThreeGPP, "AT+CMGD=1",                    true,  kArgs_CMGD_Index,           AT_COUNT_OF(kArgs_CMGD_Index) },
+    { E("✂️"), "Delete SMS",           "AT+CMGD=%1",                   AtStandard::ThreeGPP, "AT+CMGD=1",                    true,  kArgs_CMGD_Index,           AT_COUNT_OF(kArgs_CMGD_Index) },
     { E("🔔"), "New SMS indications",   "AT+CNMI=%1,%2,%3,%4,%5",       AtStandard::ThreeGPP, "AT+CNMI=2,1,0,0,0",            false, kArgs_CNMI,                 AT_COUNT_OF(kArgs_CNMI) },
-    { E("⚙️ "), "SMS params (CSMP)",     "AT+CSMP=%1,%2,%3,%4",          AtStandard::ThreeGPP, "AT+CSMP=17,167,0,0",           false, kArgs_CSMP,                 AT_COUNT_OF(kArgs_CSMP) },
+    { E("🔧"), "SMS params (CSMP)",     "AT+CSMP=%1,%2,%3,%4",          AtStandard::ThreeGPP, "AT+CSMP=17,167,0,0",           false, kArgs_CSMP,                 AT_COUNT_OF(kArgs_CSMP) },
     { E("💾"), "Write SMS to mem",      "AT+CMGW=\"%1\"",               AtStandard::ThreeGPP, "AT+CMGW=\"+33123456789\"",     false, kArgs_CMGW_Dest,            AT_COUNT_OF(kArgs_CMGW_Dest) },
     { E("📤"), "Send SMS from mem",     "AT+CMSS=%1,\"%2\"",            AtStandard::ThreeGPP, "AT+CMSS=1,\"+33123456789\"",   false, kArgs_CMSS_IndexOverride,   AT_COUNT_OF(kArgs_CMSS_IndexOverride) },
     { E("✅"), "Ack incoming SMS",      "AT+CNMA",                      AtStandard::ThreeGPP, "AT+CNMA",                      false, AT_NOARGS },
@@ -517,7 +517,7 @@ inline constexpr AtActionItem kAtPhonebookActions[] = {
     { E("🔎"), "Find by name",     "AT+CPBF=\"%1\"",       AtStandard::ThreeGPP, "AT+CPBF=\"ALICE\"",
       false, kArgs_CPBF_Query,       AT_COUNT_OF(kArgs_CPBF_Query) },
 
-    { E("✏️ "), "Write/Update entry","AT+CPBW=%1,\"%2\",%3,\"%4\"", AtStandard::ThreeGPP,
+    { E("🪛"), "Write/Update entry","AT+CPBW=%1,\"%2\",%3,\"%4\"", AtStandard::ThreeGPP,
       "AT+CPBW=1,\"+33123456789\",145,\"ALICE\"",
       true,  kArgs_CPBW_WriteUpdate, AT_COUNT_OF(kArgs_CPBW_WriteUpdate) },
 };
@@ -578,10 +578,10 @@ inline constexpr AtActionItem kAtDataActions[] = {
     { E("📑"), "Define PDP context", "AT+CGDCONT=%1,\"IP\",\"%2\"", AtStandard::ThreeGPP,
       "AT+CGDCONT=1,\"IP\",\"internet\"", false, kArgs_CGDCONT, AT_COUNT_OF(kArgs_CGDCONT) },
 
-    { E("▶️ "), "Activate PDP",     "AT+CGACT=1,%1",           AtStandard::ThreeGPP,
+    { E("⚡"), "Activate PDP",     "AT+CGACT=1,%1",           AtStandard::ThreeGPP,
       "AT+CGACT=1,1", false, kArgs_CID_1_16, AT_COUNT_OF(kArgs_CID_1_16) },
 
-    { E("⏹️ "), "Deactivate PDP",   "AT+CGACT=0,%1",           AtStandard::ThreeGPP,
+    { E("⚡"), "Deactivate PDP",   "AT+CGACT=0,%1",           AtStandard::ThreeGPP,
       "AT+CGACT=0,1", false, kArgs_CID_1_16, AT_COUNT_OF(kArgs_CID_1_16) },
 
     { E("🌍"), "Show IP address",   "AT+CGPADDR=%1",           AtStandard::ThreeGPP,
@@ -613,11 +613,11 @@ inline constexpr AtActionItem kAtTimeClockActions[] = {
       "AT+CCLK=\"25/08/11,12:00:00+08\"", true,
       kArgs_CCLK_Set, AT_COUNT_OF(kArgs_CCLK_Set) },
 
-    { E("🛰️ "), "Auto TZ update (NITZ)", "AT+CTZU=%1",             AtStandard::ThreeGPP,
+    { E("💫"), "Auto TZ update (NITZ)", "AT+CTZU=%1",             AtStandard::ThreeGPP,
       "AT+CTZU=1", false,
       kArgs_EnableBool, AT_COUNT_OF(kArgs_EnableBool) },
 
-    { E("🛰️ "), "TZ URC reporting",     "AT+CTZR=%1",             AtStandard::ThreeGPP,
+    { E("💫"), "TZ URC reporting",     "AT+CTZR=%1",             AtStandard::ThreeGPP,
       "AT+CTZR=1", false,
       kArgs_EnableBool, AT_COUNT_OF(kArgs_EnableBool) },
 };
@@ -776,10 +776,10 @@ inline constexpr AtActionItem kAtTcpIpActions[] = {
     { E("👥"), "List STA on softAP",      "AT+CWLIF",                 AtStandard::Hayes,
       "AT+CWLIF", false, AT_NOARGS },
 
-    { E("⚙️ "), "DHCP (CUR)",             "AT+CWDHCP_CUR=%1,%2",      AtStandard::Hayes,
+    { E("🔧"), "DHCP (CUR)",             "AT+CWDHCP_CUR=%1,%2",      AtStandard::Hayes,
       "AT+CWDHCP_CUR=1,1", false, kArgs_DHCP_Mode_Enable, AT_COUNT_OF(kArgs_DHCP_Mode_Enable) },
 
-    { E("⚙️ "), "DHCP (DEF)",             "AT+CWDHCP_DEF=%1,%2",      AtStandard::Hayes,
+    { E("🔧"), "DHCP (DEF)",             "AT+CWDHCP_DEF=%1,%2",      AtStandard::Hayes,
       "AT+CWDHCP_DEF=1,1", false, kArgs_DHCP_Mode_Enable, AT_COUNT_OF(kArgs_DHCP_Mode_Enable) },
 
     { E("🔁"), "Auto-connect on boot",    "AT+CWAUTOCONN=%1",         AtStandard::Hayes,
@@ -822,16 +822,16 @@ inline constexpr AtActionItem kAtTcpIpActions[] = {
     { E("🧠"), "SmartConfig stop",        "AT+CWSTOPSMART",           AtStandard::Hayes,
       "AT+CWSTOPSMART", false, AT_NOARGS },
 
-    { E("ℹ️ "), "Conn status",            "AT+CIPSTATUS",             AtStandard::Hayes,
+    { E("📌"), "Conn status",            "AT+CIPSTATUS",             AtStandard::Hayes,
       "AT+CIPSTATUS", false, AT_NOARGS },
 
-    { E("✉️ "), "Send (CIPSENDEX)",       "AT+CIPSENDEX=%1",          AtStandard::Hayes,
+    { E("📩"), "Send (CIPSENDEX)",       "AT+CIPSENDEX=%1",          AtStandard::Hayes,
       "AT+CIPSENDEX=12", false, kArgs_Length_2048, AT_COUNT_OF(kArgs_Length_2048) },
 
     { E("📦"),  "Send to buffer",         "AT+CIPSENDBUF=%1",         AtStandard::Hayes,
       "AT+CIPSENDBUF=64", false, kArgs_Length_4096, AT_COUNT_OF(kArgs_Length_4096) },
 
-    { E("♻️ "), "Reset seg IDs",          "AT+CIPBUFRESET",           AtStandard::Hayes,
+    { E("⚡"), "Reset seg IDs",          "AT+CIPBUFRESET",           AtStandard::Hayes,
       "AT+CIPBUFRESET", false, AT_NOARGS },
 
     { E("📊"),  "Buffer status",          "AT+CIPBUFSTATUS",          AtStandard::Hayes,
@@ -843,7 +843,7 @@ inline constexpr AtActionItem kAtTcpIpActions[] = {
     { E("🔀"),  "Multi-conn (CIPMUX)",    "AT+CIPMUX=%1",             AtStandard::Hayes,
       "AT+CIPMUX=1", false, kArgs_EnableBool, AT_COUNT_OF(kArgs_EnableBool) },
 
-    { E("🖥️ "), "Server mode",            "AT+CIPSERVER=%1,%2",       AtStandard::Hayes,
+    { E("🏠"), "Server mode",            "AT+CIPSERVER=%1,%2",       AtStandard::Hayes,
       "AT+CIPSERVER=1,8080", false, kArgs_ServerMode_Port, AT_COUNT_OF(kArgs_ServerMode_Port) },
 
     { E("🔁"),  "Transparent mode",       "AT+CIPMODE=%1",            AtStandard::Hayes,
@@ -852,10 +852,10 @@ inline constexpr AtActionItem kAtTcpIpActions[] = {
     { E("💾"),  "Save trans link",        "AT+SAVETRANSLINK=%1,\"%2\",%3", AtStandard::Hayes,
       "AT+SAVETRANSLINK=1,\"example.com\",80", false, kArgs_SaveTransLink, AT_COUNT_OF(kArgs_SaveTransLink) },
 
-    { E("⏱️ "), "Server timeout",         "AT+CIPSTO=%1",             AtStandard::Hayes,
+    { E("🕐"), "Server timeout",         "AT+CIPSTO=%1",             AtStandard::Hayes,
       "AT+CIPSTO=300", false, kArgs_TimeoutSec, AT_COUNT_OF(kArgs_TimeoutSec) },
 
-    { E("⬆️ "), "Firmware update (net)",  "AT+CIUPDATE",              AtStandard::Hayes,
+    { E("📩"), "Firmware update (net)",  "AT+CIUPDATE",              AtStandard::Hayes,
       "AT+CIUPDATE", true, AT_NOARGS },
 
     { E("🏓"),  "Ping host",              "AT+PING=\"%1\"",           AtStandard::Hayes,
@@ -865,7 +865,7 @@ inline constexpr AtActionItem kAtTcpIpActions[] = {
     { E("🔁"),  "Open TCP",               "AT+CIPSTART=\"TCP\",\"%1\",%2", AtStandard::SIMCom,
       "AT+CIPSTART=\"TCP\",\"example.com\",80", false, kArgs_HostPort, AT_COUNT_OF(kArgs_HostPort) },
 
-    { E("✉️ "), "Send (enter data)",      "AT+CIPSEND",               AtStandard::SIMCom,
+    { E("📩"), "Send (enter data)",      "AT+CIPSEND",               AtStandard::SIMCom,
       "AT+CIPSEND", false, AT_NOARGS },
 
     { E("🧹"),  "Close",                  "AT+CIPCLOSE",              AtStandard::SIMCom,
@@ -875,16 +875,16 @@ inline constexpr AtActionItem kAtTcpIpActions[] = {
       "AT+CIPSHUT", false, AT_NOARGS },
 
     // Quectel QI*
-    { E("⚙️ "), "Define PDP (QI)",        "AT+QICSGP=%1,1,\"%2\",\"\",\"\",1", AtStandard::Quectel,
+    { E("🔧"), "Define PDP (QI)",        "AT+QICSGP=%1,1,\"%2\",\"\",\"\",1", AtStandard::Quectel,
       "AT+QICSGP=1,1,\"internet\",\"\",\"\",1", false, kArgs_CID_APN, AT_COUNT_OF(kArgs_CID_APN) },
 
-    { E("▶️ "), "Activate PDP (QI)",      "AT+QIACT=%1",              AtStandard::Quectel,
+    { E("⚡"), "Activate PDP (QI)",      "AT+QIACT=%1",              AtStandard::Quectel,
       "AT+QIACT=1", false, kArgs_CID_Only, AT_COUNT_OF(kArgs_CID_Only) },
 
-    { E("🔁"),  "Open socket",            "AT+QIOPEN=%1,%2,\"TCP\",\"%3\",%4,0,1", AtStandard::Quectel,
+    { E("⚡"),  "Open socket",            "AT+QIOPEN=%1,%2,\"TCP\",\"%3\",%4,0,1", AtStandard::Quectel,
       "AT+QIOPEN=1,0,\"TCP\",\"example.com\",80,0,1", false, kArgs_QIOPEN, AT_COUNT_OF(kArgs_QIOPEN) },
 
-    { E("✉️ "), "Send len",               "AT+QISEND=%1,%2",          AtStandard::Quectel,
+    { E("📩"), "Send len",               "AT+QISEND=%1,%2",          AtStandard::Quectel,
       "AT+QISEND=0,12", false, kArgs_QISEND, AT_COUNT_OF(kArgs_QISEND) },
 
     { E("📥"),  "Read len",               "AT+QIRD=%1,%2",            AtStandard::Quectel,
@@ -925,11 +925,11 @@ inline constexpr AtActionItem kAtHttpActions[] = {
   { E("🚀"), "HTTP init",           "AT+HTTPINIT",                     AtStandard::SIMCom,
     "AT+HTTPINIT", false, AT_NOARGS },
 
-  { E("⚙️ "), "HTTP param URL",     "AT+HTTPPARA=\"URL\",\"%1\"",      AtStandard::SIMCom,
+  { E("🔧"), "HTTP param URL",     "AT+HTTPPARA=\"URL\",\"%1\"",      AtStandard::SIMCom,
     "AT+HTTPPARA=\"URL\",\"http://example.com/\"", false,
     kArgs_HTTPPARA_URL, AT_COUNT_OF(kArgs_HTTPPARA_URL) },
 
-  { E("▶️ "), "HTTP action",        "AT+HTTPACTION=%1",                AtStandard::SIMCom,
+  { E("📌"), "HTTP action",        "AT+HTTPACTION=%1",                AtStandard::SIMCom,
     "AT+HTTPACTION=0", false,
     kArgs_HTTPACTION, AT_COUNT_OF(kArgs_HTTPACTION) },
 
@@ -943,7 +943,7 @@ inline constexpr AtActionItem kAtHttpActions[] = {
     "AT+QHTTPGET=\"http://example.com\",60", false,
     kArgs_QHTTPGET, AT_COUNT_OF(kArgs_QHTTPGET) },
 
-  { E("✉️ "), "HTTP POST",          "AT+QHTTPPOST=\"%1\",%2,%3,%4",    AtStandard::Quectel,
+  { E("📩"), "HTTP POST",          "AT+QHTTPPOST=\"%1\",%2,%3,%4",    AtStandard::Quectel,
     "AT+QHTTPPOST=\"http://example.com\",9,128,60", false,
     kArgs_QHTTPPOST, AT_COUNT_OF(kArgs_QHTTPPOST) },
 
@@ -993,7 +993,7 @@ inline constexpr AtActionItem kAtGnssActions[] = {
   { E("🧭"), "GPS on/off",    "AT+QGPS=%1",             AtStandard::Quectel,
     "AT+QGPS=1",   false, kArgs_QGPS,       AT_COUNT_OF(kArgs_QGPS) },
 
-  { E("⚙️ "), "GPS config",   "AT+QGPSCFG=\"%1\",%2",   AtStandard::Quectel,
+  { E("🔧"), "GPS config",   "AT+QGPSCFG=\"%1\",%2",   AtStandard::Quectel,
     "AT+QGPSCFG=\"gnssconfig\",3", false, kArgs_QGPSCFG, AT_COUNT_OF(kArgs_QGPSCFG) },
 
   { E("📍"), "GPS location",  "AT+QGPSLOC=%1",          AtStandard::Quectel,
@@ -1066,18 +1066,18 @@ inline constexpr AtActionArg kArgs_SEND[] = {
 };
 
 inline constexpr AtActionItem kAtLoraActions[] = {
-    { E("ℹ️ "), "Module version",     "AT+VER",               AtStandard::Hayes,
+    { E("📌"), "Module version",     "AT+VER",               AtStandard::Hayes,
       "AT+VER", false, AT_NOARGS },
 
     { E("🌍"),  "Set region",         "AT+REGION=\"%1\"",     AtStandard::Hayes,
       "AT+REGION=\"EU868\"", false,
       kArgs_REGION,  AT_COUNT_OF(kArgs_REGION) },
 
-    { E("🅰️ "), "Set DevEUI (OTAA)", "AT+DEVEUI=%1",         AtStandard::Hayes,
+    { E("🪛"), "Set DevEUI (OTAA)", "AT+DEVEUI=%1",         AtStandard::Hayes,
       "AT+DEVEUI=0011223344556677", false,
       kArgs_DEVEUI,  AT_COUNT_OF(kArgs_DEVEUI) },
 
-    { E("🅱️ "), "Set AppEUI (OTAA)", "AT+APPEUI=%1",         AtStandard::Hayes,
+    { E("🪛"), "Set AppEUI (OTAA)", "AT+APPEUI=%1",         AtStandard::Hayes,
       "AT+APPEUI=0102030405060708", false,
       kArgs_APPEUI,  AT_COUNT_OF(kArgs_APPEUI) },
 
@@ -1085,15 +1085,15 @@ inline constexpr AtActionItem kAtLoraActions[] = {
       "AT+APPKEY=00112233445566778899AABBCCDDEEFF", false,
       kArgs_APPKEY,  AT_COUNT_OF(kArgs_APPKEY) },
 
-    { E("🏷️ "), "Set DevAddr (ABP)", "AT+DEVADDR=%1",        AtStandard::Hayes,
+    { E("📎"), "Set DevAddr (ABP)", "AT+DEVADDR=%1",        AtStandard::Hayes,
       "AT+DEVADDR=26011BDA", false,
       kArgs_DEVADDR, AT_COUNT_OF(kArgs_DEVADDR) },
 
-    { E("🗝️ "), "Set NwkSKey (ABP)", "AT+NWKSKEY=%1",        AtStandard::Hayes,
+    { E("🔑"), "Set NwkSKey (ABP)", "AT+NWKSKEY=%1",        AtStandard::Hayes,
       "AT+NWKSKEY=00112233445566778899AABBCCDDEEFF", false,
       kArgs_NWKSKEY, AT_COUNT_OF(kArgs_NWKSKEY) },
 
-    { E("🗝️ "), "Set AppSKey (ABP)", "AT+APPSKEY=%1",        AtStandard::Hayes,
+    { E("🔑"), "Set AppSKey (ABP)", "AT+APPSKEY=%1",        AtStandard::Hayes,
       "AT+APPSKEY=00112233445566778899AABBCCDDEEFF", false,
       kArgs_APPSKEY, AT_COUNT_OF(kArgs_APPSKEY) },
 
@@ -1108,11 +1108,11 @@ inline constexpr AtActionItem kAtLoraActions[] = {
       "AT+DR=5", false,
       kArgs_DR, AT_COUNT_OF(kArgs_DR) },
 
-    { E("🏷️ "), "Device class",       "AT+CLASS=%1",          AtStandard::Hayes,
+    { E("📎"), "Device class",       "AT+CLASS=%1",          AtStandard::Hayes,
       "AT+CLASS=A", false,
       kArgs_CLASS, AT_COUNT_OF(kArgs_CLASS) },
 
-    { E("✉️ "), "Send (unconfirmed)","AT+SEND=%1,%2",         AtStandard::Hayes,
+    { E("📩"), "Send (unconfirmed)","AT+SEND=%1,%2",         AtStandard::Hayes,
       "AT+SEND=1,01 AA 02", false,
       kArgs_SEND, AT_COUNT_OF(kArgs_SEND) },
 
@@ -1190,7 +1190,7 @@ inline constexpr AtActionItem kAtPowerActions[] = {
       "AT+CPSMS=1", false,
       kArgs_EnableBool, AT_COUNT_OF(kArgs_EnableBool) },
 
-    { E("⏱️ "), "PSM timers",             "AT+CPSMS=1,,,\"%1\",\"%2\"",   AtStandard::ThreeGPP,
+    { E("🕒"), "PSM timers",             "AT+CPSMS=1,,,\"%1\",\"%2\"",   AtStandard::ThreeGPP,
       "AT+CPSMS=1,,,\"00100001\",\"00000101\"", false,
       kArgs_CPSMS_Timers, AT_COUNT_OF(kArgs_CPSMS_Timers) },
 
@@ -1328,20 +1328,20 @@ inline constexpr AtActionItem kAtFsActions[] = {
     { E("📂"), "List files (Quectel)",     "AT+QFLST",                 AtStandard::Quectel,
       "AT+QFLST", false, AT_NOARGS },
 
-    { E("⬆️ "), "Upload UART (Quectel)",   "AT+QFUPL=\"%1\",%2",       AtStandard::Quectel,
+    { E("🔧"), "Upload UART (Quectel)",   "AT+QFUPL=\"%1\",%2",       AtStandard::Quectel,
       "AT+QFUPL=\"/dat/cert.pem\",1024",   false,
       kArgs_QFUPL,   AT_COUNT_OF(kArgs_QFUPL) },
 
-    { E("⬇️ "), "Download UART (Quectel)", "AT+QFDWL=\"%1\"",          AtStandard::Quectel,
+    { E("🔧"), "Download UART (Quectel)", "AT+QFDWL=\"%1\"",          AtStandard::Quectel,
       "AT+QFDWL=\"/dat/file.bin\"",        false,
       kArgs_QFDWL,   AT_COUNT_OF(kArgs_QFDWL) },
 
-    { E("🗑️ "), "Delete file (Quectel)",   "AT+QFDEL=\"%1\"",          AtStandard::Quectel,
+    { E("💣"), "Delete file (Quectel)",   "AT+QFDEL=\"%1\"",          AtStandard::Quectel,
       "AT+QFDEL=\"/dat/file.bin\"",        false,
       kArgs_QFDEL,   AT_COUNT_OF(kArgs_QFDEL) },
 
     // SIMCom CFS*
-    { E("✍️ "), "Write file (SIMCom)",     "AT+CFSWFILE=\"%1\",%2,%3,%4", AtStandard::SIMCom,
+    { E("📌"), "Write file (SIMCom)",     "AT+CFSWFILE=\"%1\",%2,%3,%4", AtStandard::SIMCom,
       "AT+CFSWFILE=\"/c/cert.pem\",0,512,10", false,
       kArgs_CFSWFILE, AT_COUNT_OF(kArgs_CFSWFILE) },
 
