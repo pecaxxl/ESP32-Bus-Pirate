@@ -31,7 +31,7 @@ void M5DeviceView::logo() {
     M5.Lcd.setTextSize(1.6);
     M5.Lcd.setCursor(43, 80);
     M5.Lcd.setTextColor(TEXT_COLOR);
-    M5.Lcd.printf("Version " + std::string(state.getVersion()) + " - Geo");
+    M5.Lcd.printf("Version %s - Geo", state.getVersion().c_str());
 
     delay(3000);
 }
