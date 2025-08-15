@@ -8,7 +8,10 @@ void SerialTerminalView::initialize() {
 }
 
 void SerialTerminalView::welcome(TerminalTypeEnum& terminalType, std::string& terminalInfos) {
-    Serial.println("");
+
+    GlobalState& state = GlobalState::getInstance();
+    std::string version = state.getVersion();
+
     Serial.println("");
     Serial.println("  ____                    _           _       ");
     Serial.println(" | __ ) _   _ ___   _ __ (_)_ __ __ _| |_ ___ ");
@@ -16,7 +19,7 @@ void SerialTerminalView::welcome(TerminalTypeEnum& terminalType, std::string& te
     Serial.println(" | |_) | |_| \\__ \\ | |_) | | | | (_| | ||  __/");
     Serial.println(" |____/ \\__,_|___/ | .__/|_|_|  \\__,_|\\__\\___|");
     Serial.println("                   |_|                        ");
-    Serial.println("     Version 0.5           Ready to board");
+    Serial.printf("    Version %s           Ready to board\n", version.c_str());
     Serial.println("");
     Serial.println(" Type 'mode' to start or 'help' for commands");
     Serial.println("");

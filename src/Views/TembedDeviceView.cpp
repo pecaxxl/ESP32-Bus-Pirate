@@ -49,7 +49,9 @@ void TembedDeviceView::logo() {
 
     // Sub
     tft.setTextColor(TFT_WHITE, DARK_GREY_RECT);
-    drawCenterText("Version 0.5 - Geo", 100, 1.9);
+    GlobalState& state = GlobalState::getInstance();
+    auto version = "Version " + std::string(state.getVersion()) + " - Geo";
+    drawCenterText(version.c_str(), 100, 1.9);
 
     delay(3000);
 }

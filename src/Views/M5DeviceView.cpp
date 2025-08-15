@@ -18,6 +18,8 @@ void M5DeviceView::welcome(TerminalTypeEnum& terminalType, std::string& terminal
 void M5DeviceView::logo() {
     clear();
 
+    GlobalState& state = GlobalState::getInstance();
+
     M5.Lcd.fillRoundRect(8, 40, 220, 60, DEFAULT_ROUND_RECT, RECT_COLOR_DARK);
     M5.Lcd.drawRoundRect(8, 40, 220, 60, DEFAULT_ROUND_RECT, PRIMARY_COLOR);
 
@@ -29,7 +31,7 @@ void M5DeviceView::logo() {
     M5.Lcd.setTextSize(1.6);
     M5.Lcd.setCursor(43, 80);
     M5.Lcd.setTextColor(TEXT_COLOR);
-    M5.Lcd.printf("Version 0.5 - Geo");
+    M5.Lcd.printf("Version " + std::string(state.getVersion()) + " - Geo");
 
     delay(3000);
 }
