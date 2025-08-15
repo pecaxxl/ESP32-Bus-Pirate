@@ -105,9 +105,35 @@ public:
     static std::vector<std::string> sniffLog;
     static portMUX_TYPE sniffMux;
 
+    // --- Client sniffer ---
     static portMUX_TYPE staMux;
     static std::vector<std::array<uint8_t, 6>> staList;
     static uint8_t apBSSID[6];
     static void clientSnifferCallback(void* buf, wifi_promiscuous_pkt_type_t type);
 
+    // Wifi mode to string
+    static inline const char* wifiModeToStr(int m) {
+        switch (static_cast<wifi_mode_t>(m)) {
+            case WIFI_MODE_NULL:   return "NULL";
+            case WIFI_MODE_STA:    return "STA";
+            case WIFI_MODE_AP:     return "AP";
+            case WIFI_MODE_APSTA:  return "AP+STA";
+            default:               return "?";
+        }
+    }
+
+    // Wifi status to string
+    static inline const char* wlStatusToStr(int s) {
+        switch (s) {
+            case WL_IDLE_STATUS:         return "IDLE";
+            case WL_NO_SSID_AVAIL:       return "NO_SSID";
+            case WL_SCAN_COMPLETED:      return "SCAN_DONE";
+            case WL_CONNECTED:           return "CONNECTED";
+            case WL_CONNECT_FAILED:      return "CONNECT_FAILED";
+            case WL_CONNECTION_LOST:     return "CONNECTION_LOST";
+            case WL_DISCONNECTED:        return "DISCONNECTED";
+            case WL_NO_SHIELD:           return "NO_SHIELD";
+            default:                     return "?";
+        }
+    }
 };

@@ -188,8 +188,8 @@ void SysInfoShell::cmdNet() {
         terminalView.println("Channel      : N/A");
     }
 
-    terminalView.println("Mode         : " + std::string(wifiModeToStr(wifiService.getWifiModeRaw())));
-    terminalView.println("Status       : " + std::string(wlStatusToStr(status)));
+    terminalView.println("Mode         : " + std::string(wifiService.wifiModeToStr(wifiService.getWifiModeRaw())));
+    terminalView.println("Status       : " + std::string(wifiService.wlStatusToStr(status)));
     terminalView.println("Prov enabled : " + std::string(wifiService.isProvisioningEnabled() ? "Yes" : "No"));
 }
 

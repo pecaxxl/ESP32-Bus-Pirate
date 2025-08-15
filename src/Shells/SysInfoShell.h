@@ -63,35 +63,6 @@ private:
         }
     }
 
-    const char* wifiModeToStr(int m) {
-        switch (m) {
-            case 0: return "NULL";
-            case 1: return "STA";
-            case 2: return "AP";
-            case 3: return "AP+STA";
-            default:return "?";
-        }
-    }
-
-    const char* wlStatusToStr(int s) {
-        switch (s) {
-            case 0:   return "IDLE";
-            case 1:   return "NO_SSID";
-            case 2:   return "SCAN_DONE";
-            case 3:   return "CONNECTED";
-            case 4:   return "CONNECT_FAILED";
-            case 5:   return "CONNECTION_LOST";
-            case 6:   return "DISCONNECTED";
-            case 7:   return "AP_LISTENING";
-            case 8:   return "AP_CONNECTED";
-            case 9:   return "AP_FAILED";
-            case 10:  return "PROVISIONING";
-            case 11:  return "PROVISIONING_FAILED";
-            case 255: return "NO_SHIELD";
-            default:  return "?";
-        }
-    }
-
     // Actions
     void cmdSummary();
     void cmdHardwareInfo();
