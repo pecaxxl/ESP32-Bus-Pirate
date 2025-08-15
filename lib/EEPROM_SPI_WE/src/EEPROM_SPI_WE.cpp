@@ -46,6 +46,17 @@ bool EEPROM_SPI_WE::init(uint8_t sckPin, uint8_t misoPin, uint8_t mosiPin, uint8
     }
 }
 
+bool EEPROM_SPI_WE::probe() {
+    eepromWriteStatusReg(EEP_WREN);
+    
+    if (eepromReadStatusReg() & 0x02) {
+        eepromWriteStatusReg(EEP_WRDI);
+        return true;
+    } else {
+        return false;
+    }
+}
+
 void EEPROM_SPI_WE::setPageSize(eeprom_pageSize eps){
     pageSize = 16 << eps;
 }

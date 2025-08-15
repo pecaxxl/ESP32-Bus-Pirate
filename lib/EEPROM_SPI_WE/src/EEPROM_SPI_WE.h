@@ -66,8 +66,9 @@ class EEPROM_SPI_WE
         
         EEPROM_SPI_WE(uint16_t cs, uint16_t wp = 999, uint32_t sc = 8000000) : _spi{&SPI}, csPin{cs}, wpPin{wp}, spiClock{sc} {}
         EEPROM_SPI_WE(SPIClass *s, uint16_t cs, uint16_t wp = 999, uint32_t sc = 8000000) : _spi{s}, csPin{cs}, wpPin{wp}, spiClock{sc} {}
-        EEPROM_SPI_WE() : _spi{&SPI}, csPin{255}, wpPin{999}, spiClock{8000000} {}
+        EEPROM_SPI_WE() : _spi{&SPI}, csPin{5}, wpPin{999}, spiClock{8000000} {}
         bool init(uint8_t sckPin, uint8_t misoPin, uint8_t mosiPin, uint8_t cs, uint8_t wp);
+        bool probe();
         uint32_t getMemorySize(); //neu
         void setPageSize(eeprom_pageSize eps);
         void setMemorySize(eeprom_size_t size); // neu
