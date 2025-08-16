@@ -71,7 +71,7 @@ NmapOptions NmapService::parseNmapArgs(const std::vector<std::string>& tokens) {
     return nmap_options;
 }
 
-NmapService::NmapService() : ready(false), arg_transformer(nullptr), verbosity(0) {}
+NmapService::NmapService() : ready(false), arg_transformer(nullptr), verbosity(0), layer4_protocol(Layer4Protocol::TCP) {}
 
 void NmapService::setArgTransformer(ArgTransformer& arg_transformer){
     this->arg_transformer = &arg_transformer;
