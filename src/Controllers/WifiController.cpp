@@ -638,6 +638,12 @@ void WifiController::handleNmap(const TerminalCommand &cmd)
         return;
     }
 
+    // Check the first char of args is '-'
+    if (!args.empty() && (args[0].empty() || args[0][0] != '-')) {
+        terminalView.println("Nmap: Options must start with '-' (ex: -p 22)");
+        return;
+    }
+
     nmapService.setArgTransformer(argTransformer);
     auto tokens = argTransformer.splitArgs(cmd.getArgs());
     auto options = NmapService::parseNmapArgs(tokens);
@@ -657,7 +663,7 @@ void WifiController::handleNmap(const TerminalCommand &cmd)
     } else {
         // Set the most popular ports
         nmapService.setDefaultPorts(options.tcp);
-        terminalView.println("Nmap: Using default ports.");
+        terminalView.println("Nmap: Using top 100 common ports (may take a few seconds)");
     }
 
     nmapService.startTask(options.verbosity);
@@ -702,7 +708,7 @@ void WifiController::handleHelp()
     terminalView.println("  ap <ssid> <password>");
     terminalView.println("  ssh <host> <username> <password> [port]");
     terminalView.println("  nc <host> <port>");
-    terminalView.println("  nmap <host> <port>");
+    terminalView.println("  nmap <host> [port]");
     terminalView.println("  webui");
     terminalView.println("  reset");
     terminalView.println("  deauth <ssid>");

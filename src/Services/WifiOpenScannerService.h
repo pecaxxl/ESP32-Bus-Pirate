@@ -38,7 +38,8 @@ private:
     // Helpers
     static bool isOpenAuth(int enc); // WIFI_AUTH_OPEN
     std::string getSsid(int idx) const;
-    
+    const char* encToStr(int enc) const;
+
     // Log buffer thread safe
     static portMUX_TYPE probeMux;
     static std::vector<std::string> probeLog;
