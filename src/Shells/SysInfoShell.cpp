@@ -39,7 +39,7 @@ void SysInfoShell::run() {
         }
     }
 
-    terminalView.println("\nExiting System Shell...");
+    terminalView.println("Exiting System Shell...\n");
 }
 
 void SysInfoShell::cmdSummary() {
