@@ -429,6 +429,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  ap <ssid> <password> - Set access point");
     terminalView.println("  ssh <h> <u> <p> [p]  - Open SSH session");
     terminalView.println("  nc <host> <port>     - Open netcat session");
+    terminalView.println("  nmap <h> [-p ports]  - Scan host ports");
     terminalView.println("  webui                - Show the web UI IP");
     terminalView.println("  deauth <ssid>        - Deauthenticate hosts on AP");
     terminalView.println("  reset                - Reset interface");
