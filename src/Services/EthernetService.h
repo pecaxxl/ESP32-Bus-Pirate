@@ -1,50 +1,70 @@
 #pragma once
 
-#include <Arduino.h>
-#include <SPI.h>
-#include <Ethernet.h>
-#include <ESP32Ping.h>
-
 #include <array>
 #include <string>
-#include <memory>
+#include <cstring>
+
+#include "esp_event.h"
+#include "esp_eth.h"
+#include "esp_netif.h"
+#include "esp_eth_netif_glue.h"
+#include "driver/spi_master.h"
+#include "lwip/ip4_addr.h"
+#include <Arduino.h>
+#include <ESP32Ping.h>
 
 class EthernetService {
 public:
     EthernetService();
 
-    void configure(int8_t pinCS,
-                   int8_t pinRST = -1,
-                   int8_t pinSCK = 18,
-                   int8_t pinMISO = 19,
-                   int8_t pinMOSI = 23,
-                   uint32_t spiHz = 26000000UL);
+    // Init the W5500 ethernet stack
+    void ensureStacksInited();
 
-    bool beginDHCP(const std::array<uint8_t,6>& mac, unsigned long timeoutMs = 10000);
-    bool isConnected() const;
-    void maintain();
+    // Configure the W5500
+    bool configure(int8_t pinCS, int8_t pinRST, int8_t pinSCK, int8_t pinMISO, int8_t pinMOSI, uint8_t pinIRQ, uint32_t spiHz, const std::array<uint8_t,6>& chosenMac);
 
-    std::string getLocalIP()   const;
-    std::string getSubnetMask()const;
-    std::string getGatewayIp() const;
-    std::string getDns()       const;
-    std::string getMac()       const;
-
-    int hardwareStatusRaw() const;     // Ethernet.hardwareStatus()
-    int linkStatusRaw()      const;     // Ethernet.linkStatus()
-    bool linkUp()            const;
-
-private:
+    // Reset the W5500
     void hardReset();
 
-    // pins / conf SPI
-    int8_t   _pinCS   = 5;
-    int8_t   _pinRST  = -1;
-    int8_t   _pinSCK  = 18;
-    int8_t   _pinMISO = 19;
-    int8_t   _pinMOSI = 23;
-    uint32_t _spiHz   = 26000000UL;
+    // Start ETH + DHCP and wait for link then IP.
+    bool beginDHCP(unsigned long timeoutMs);
 
-    std::array<uint8_t,6> _mac {{0,0,0,0,0,0}};
-    bool _configured = false;
+    // Check if the W5500 is connected to a network
+    bool isConnected() const;
+
+    // Plug/unplug
+    int  linkStatusRaw() const;
+    bool linkUp() const;
+
+    // Helpers
+    std::string ip4ToString(const ip4_addr_t& a) const;
+    std::string getLocalIP() const;
+    std::string getSubnetMask() const;
+    std::string getGatewayIp() const;
+    std::string getDns() const;
+    std::string getMac() const;
+
+    // Handlers for the esp network stack
+    static void onEthEvent(void* arg, esp_event_base_t, int32_t id, void* data);
+    static void onIpEvent (void* arg, esp_event_base_t, int32_t id, void* data);
+
+private:
+    static bool s_stackInited;
+
+    spi_device_handle_t _spi;
+    esp_eth_handle_t    _eth;
+    esp_netif_t*        _netif;
+    esp_eth_netif_glue_handle_t _glue;
+
+    esp_event_handler_instance_t _ethHandler = nullptr;
+    esp_event_handler_instance_t _ipHandler  = nullptr;
+
+    std::array<uint8_t,6> _mac;
+    ip4_addr_t _ip{}, _gw{}, _mask{}, _dns0{};
+
+    int8_t _pinRST;
+    int8_t _pinIRQ;
+    bool   _configured;
+    volatile bool _linkUp;
+    volatile bool _gotIP;
 };
