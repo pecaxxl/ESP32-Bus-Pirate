@@ -11,7 +11,6 @@
 #include "driver/spi_master.h"
 #include "lwip/ip4_addr.h"
 #include <Arduino.h>
-#include <ESP32Ping.h>
 
 class EthernetService {
 public:
