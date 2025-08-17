@@ -76,9 +76,9 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       ledController(terminalView, terminalInput, ledService, argTransformer, userInputManager),
       bluetoothController(terminalView, terminalInput, bluetoothService, argTransformer),
       i2sController(terminalView, terminalInput, i2sService, argTransformer, userInputManager),
-      wifiController(terminalView, terminalInput, deviceInput, wifiService, wifiScannerService, sshService, netcatService, nmapService, nvsService, argTransformer, userInputManager),
+      wifiController(terminalView, terminalInput, deviceInput, wifiService, wifiScannerService, ethernetService, sshService, netcatService, nmapService, nvsService, argTransformer, userInputManager),
       canController(terminalView, terminalInput, userInputManager, canService, argTransformer),
-      ethernetController(terminalView, terminalInput, deviceInput, ethernetService, argTransformer, userInputManager)
+      ethernetController(terminalView, terminalInput, deviceInput, wifiService, wifiScannerService, ethernetService, sshService, netcatService, nmapService, nvsService, argTransformer, userInputManager)
 {
 }
 

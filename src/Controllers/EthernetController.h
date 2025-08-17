@@ -15,15 +15,11 @@
 #include "Models/TerminalCommand.h"
 #include "States/GlobalState.h"
 #include "Managers/UserInputManager.h"
+#include "Abstracts/ANetworkController.h"
 
-class EthernetController {
+class EthernetController  : public ANetworkController {
 public:
-    EthernetController(ITerminalView& terminalView,
-                       IInput& terminalInput,
-                       IInput& deviceInput,
-                       EthernetService& ethernetService,
-                       ArgTransformer& argTransformer,
-                       UserInputManager& userInputManager);
+    using ANetworkController::ANetworkController;
 
     // Entry point for Ethernet command
     void handleCommand(const TerminalCommand& cmd);
@@ -32,23 +28,22 @@ public:
     void ensureConfigured();
 
 private:
-    // Handlers
+    // Configure the W5500
     void handleConfig();
+
+    // Ethernet status
     void handleStatus();
+
+    // Connect using DHCP
     void handleConnect();
+
+    // Hard reset the W5500 (via RST)
     void handleReset();
+
+    // Available commands
     void handleHelp();
 
 private:
-    ITerminalView& terminalView;
-    IInput&        terminalInput;
-    IInput&        deviceInput;
-
-    EthernetService& ethernetService;
-    ArgTransformer&  argTransformer;
-    UserInputManager& userInputManager;
-    
     GlobalState& state = GlobalState::getInstance();
-
     bool configured = false;
 };
