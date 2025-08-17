@@ -134,11 +134,6 @@ void BluetoothController::handleSniff(const TerminalCommand& cmd) {
 Server
 */
 void BluetoothController::handleServer(const TerminalCommand& cmd) {
-    #ifdef DEVICE_M5STICK
-        terminalView.println("Bluetooth Server: HID Not supported on M5Stick.");
-        return;
-    #endif
-
     if (bluetoothService.getMode() == BluetoothMode::SERVER && bluetoothService.isConnected()) {
         terminalView.println("Bluetooth Server: Already Started");
         return;
