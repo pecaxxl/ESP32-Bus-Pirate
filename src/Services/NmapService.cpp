@@ -39,6 +39,7 @@ std::string NmapService::getHelpText() {
     "  -p <spec>       Ports: 80 | 22,80,443 | 8000-8010 | 0x50\r\n"
     "  -sT             TCP connect scan (default)\r\n"
     "  -sU             UDP scan\r\n"
+    "  -sn             Ping scan (disable port scan)\r\n"
     "  -v / -vv        Verbosity\r\n"
     "\r\n"
     "Examples:\r\n"
@@ -73,24 +74,23 @@ NmapOptions NmapService::parseNmapArgs(const std::vector<std::string>& tokens) {
     };
 
     int option;
-    while ((option = getopt_long(argc, argv.data(), "hp:s:utv", longopts, nullptr)) != -1) {
+    while ((option = getopt_long(argc, argv.data(), "hp:s:v", longopts, nullptr)) != -1) {
         switch (option) {
             case 'h': nmap_options.help = true; break;
             case 'p':
                 nmap_options.hasPort = true;
                 nmap_options.ports = optarg ? optarg : "";
                 break;
-            case 's': // -sT, -sU, or -sTU
-                nmap_options.tcp = false;
-                nmap_options.udp = false;
-                if (!optarg || !*optarg) { 
-                    nmap_options.hasTrash = true; 
-                    break; 
+            case 's': // -sT, -sU, -sn
+                if (!optarg || !*optarg) {
+                    nmap_options.hasTrash = true;
+                    break;
                 }
                 for (const char* p = optarg; *p; ++p) {
                     // Don't allow both TCP and UDP
-                    if (*p == 'T' || *p == 't') {nmap_options.tcp = true; break;}
-                    else if (*p == 'U' || *p == 'u') {nmap_options.udp = true; break; }
+                    if (*p == 'T') {nmap_options.tcp = true; nmap_options.udp = false; break;}
+                    else if (*p == 'U') {nmap_options.udp = true; nmap_options.tcp = false; break; }
+                    else if (*p == 'n') {nmap_options.pingOnly = true; break; }
                     else nmap_options.hasTrash = true; // unknown letter after -s
                 }
                 break;
@@ -326,7 +326,9 @@ void NmapService::scanTarget(const std::string &host, const std::vector<uint16_t
 
     char ipStr[INET_ADDRSTRLEN]{};
     inet_ntop(AF_INET, &ip, ipStr, sizeof(ipStr));
-    this->report.append("Scanning host: ").append(host).append(" (").append(ipStr).append(")\r\n");
+    this->report.append("Nmap scan report for ").append(host).append(" (").append(ipStr).append(")\r\n");
+    // TODO show if host is up + latency?
+    this->report.append("PORT\tSTATE\n"); // TODO SERVICE add
 
     int closed_ports = ports.size();
     for (uint16_t p : ports) {
@@ -336,20 +338,20 @@ void NmapService::scanTarget(const std::string &host, const std::vector<uint16_t
             int st = tcp_connect_with_timeout(ip, p, CONNECT_TIMEOUT_MS);
             switch (st) {
                 case nmap_rc_enum::TCP_OPEN:  
-                    this->report.append("Port ").append(std::to_string(p)).append("/tcp OPEN\r\n"); 
+                    this->report.append(std::to_string(p)).append("/tcp open\r\n"); 
                     closed_ports--;
                     break;
                 case nmap_rc_enum::TCP_CLOSED:
                     if (this->verbosity >= 1)
-                        this->report.append("Port ").append(std::to_string(p)).append("/tcp CLOSED\r\n");
+                        this->report.append(std::to_string(p)).append("/tcp closed\r\n");
                     break;
                 case nmap_rc_enum::TCP_FILTERED:
-                    this->report.append("Port ").append(std::to_string(p)).append("/tcp FILTERED\r\n");
+                    this->report.append(std::to_string(p)).append("/tcp filtered\r\n");
                     closed_ports--;
                     break;
                 default: 
                     if (this->verbosity >= 1)
-                        this->report.append("Port ").append(std::to_string(p)).append("/tcp ERROR\r\n"); break;
+                        this->report.append(std::to_string(p)).append("/tcp error\r\n"); break;
             }
         }
         else if (this->layer4_protocol == Layer4Protocol::UDP) {
@@ -358,20 +360,20 @@ void NmapService::scanTarget(const std::string &host, const std::vector<uint16_t
             // TODO add custom payload per protocol
             switch (st) {
                 case nmap_rc_enum::UDP_OPEN:
-                    this->report.append("Port ").append(std::to_string(p)).append("/udp OPEN\r\n"); 
+                    this->report.append(std::to_string(p)).append("/udp open\r\n"); 
                     closed_ports--;
                     break;
                 case nmap_rc_enum::UDP_CLOSED:
                     if (this->verbosity >= 1)
-                        this->report.append("Port ").append(std::to_string(p)).append("/udp CLOSED\r\n");
+                        this->report.append(std::to_string(p)).append("/udp closed\r\n");
                     break;
                 case nmap_rc_enum::UDP_OPEN_FILTERED:
-                    this->report.append("Port ").append(std::to_string(p)).append("/udp OPEN|FILTERED\r\n");
+                    this->report.append(std::to_string(p)).append("/udp open|filtered\r\n");
                     closed_ports--;
                     break;
                 default:
                     if (this->verbosity >= 1)
-                        this->report.append("Port ").append(std::to_string(p)).append("/udp ERROR\r\n");
+                        this->report.append(std::to_string(p)).append("/udp error\r\n");
                     break;
             }
         }
@@ -384,7 +386,7 @@ void NmapService::scanTarget(const std::string &host, const std::vector<uint16_t
     }
     
     if (closed_ports > 0)
-        this->report.append("Closed ports: ").append(std::to_string(closed_ports)).append("\r\n\n");
+        this->report.append("Not shown: ").append(std::to_string(closed_ports)).append(" ports\r\n\n");
 
 }
 

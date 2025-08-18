@@ -155,11 +155,11 @@ void ANetworkController::handleNmap(const TerminalCommand &cmd)
     auto hosts_arg = cmd.getSubcommand();
     
     // First helper invoke
-    if (hosts_arg.find('-h') || hosts_arg.find("--help")) {
+    if (hosts_arg.compare("-h") == 0 || hosts_arg.compare("--help") == 0  || hosts_arg.empty()){
         terminalView.println(nmapService.getHelpText());
         return;
     }
-    
+
     if(!nmapService.parseHosts(hosts_arg)) {
         terminalView.println("Nmap: Invalid host.");
         return;
@@ -187,13 +187,14 @@ void ANetworkController::handleNmap(const TerminalCommand &cmd)
     }
 
     if (options.hasPort) {
+        nmapService.setLayer4(options.tcp);
         // Parse ports
         if (!nmapService.parsePorts(options.ports)) {
             terminalView.println("Nmap: invalid -p value. Use 80,22,443 or 1000-2000.");
             return;
         }
-        nmapService.setLayer4(options.tcp);
     } else {
+        nmapService.setLayer4(options.tcp);
         // Set the most popular ports
         nmapService.setDefaultPorts(options.tcp);
         terminalView.println("Nmap: Using top 100 common ports (may take a few seconds)");
