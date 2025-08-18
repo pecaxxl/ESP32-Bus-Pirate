@@ -105,6 +105,7 @@ public:
     SshService &getSshService();
     NetcatService &getNetcatService();
     NmapService &getNmapService();
+    ICMPService &getICMPService();
     JtagService &getJtagService();
     CanService &getCanService();
     SystemService &getSystemService();
@@ -191,6 +192,7 @@ private:
     SshService sshService;
     NetcatService netcatService;
     NmapService nmapService;
+    ICMPService icmpService;
     JtagService jtagService;
     CanService canService;
     SystemService systemService;

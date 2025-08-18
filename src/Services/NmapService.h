@@ -3,14 +3,17 @@
 #include <string>
 #include <vector>
 #include "Transformers/ArgTransformer.h"
+#include "Services/ICMPService.h"
 
 struct NmapOptions {
-    bool tcp = true;         // -t sets TCP only (default)
-    bool udp = false;        // -u sets UDP only
-    int verbosity = 0;       // -v/-vv
-    bool hasPort = false;    // Did user pass `-p` ?
-    std::string ports;       // "80", "22,80-90"
-    bool hasTrash = false;   // Did user pass non-option tokens?
+    bool tcp = true;        // -t sets TCP only (default)
+    bool udp = false;       // -u sets UDP only
+    int verbosity = 0;      // -v/-vv
+    bool hasPort = false;   // Did user pass `-p` ?
+    std::string ports;      // "80", "22,80-90"
+    bool hasTrash = false;  // Did user pass non-option tokens?
+    bool help = false;      // -h or --help
+    bool pingOnly = false;  // -sn
 };
 
 enum class Layer4Protocol {
@@ -30,8 +33,12 @@ public:
 
     static NmapOptions parseNmapArgs(const std::vector<std::string>& tokens);
     void setDefaultPorts(bool tcp);
-    void setArgTransformer(ArgTransformer& arg_transformer);
-    void setLayer4(bool layer4_protocol);
+    void setArgTransformer(ArgTransformer& argTransformer);
+    void setICMPService(ICMPService* icmpService);
+    void setLayer4(bool layer4Protocol);
+    void setOptions(const NmapOptions& options);
+
+    std::string getHelpText();
 
 private:
     // Nmap Task, cause overflow if it runs in the main loop, so it must run in a dedicated FreeRTOS task with a larger stack
@@ -39,12 +46,15 @@ private:
     bool isIpv4(const std::string& address);
     void scanTarget(const std::string &host, const std::vector<uint16_t> &ports);
 
-    std::vector<std::string> target_hosts;
-    std::vector<uint16_t> target_ports;
+    ICMPService* icmpService;
+    std::vector<std::string> targetHosts;
+    std::vector<uint16_t> targetPorts;
     bool ready;
     std::string report;
-    Layer4Protocol layer4_protocol;
-    ArgTransformer* arg_transformer;
+    Layer4Protocol layer4Protocol;
+    ArgTransformer* argTransformer;
     int verbosity;
+
+    NmapOptions _options;
 };
 

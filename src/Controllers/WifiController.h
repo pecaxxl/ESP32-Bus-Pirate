@@ -7,6 +7,7 @@
 #include <Services/SshService.h>
 #include <Services/NetcatService.h>
 #include <Services/NmapService.h>
+#include <Services/ICMPService.h>
 #include <Services/WifiOpenScannerService.h>
 #include <Transformers/ArgTransformer.h>
 #include <Managers/UserInputManager.h>

@@ -1,6 +1,4 @@
 #include "ANetworkController.h"
-#include <ESP32Ping.h>
-
 
 ANetworkController::ANetworkController(
     ITerminalView& terminalView, 
@@ -12,6 +10,7 @@ ANetworkController::ANetworkController(
     SshService& sshService,
     NetcatService& netcatService,
     NmapService& nmapService,
+    ICMPService& icmpService,
     NvsService& nvsService, 
     ArgTransformer& argTransformer,
     UserInputManager& userInputManager
@@ -25,6 +24,7 @@ ANetworkController::ANetworkController(
   sshService(sshService),
   netcatService(netcatService),
   nmapService(nmapService),
+  icmpService(icmpService),
   nvsService(nvsService),
   argTransformer(argTransformer),
   userInputManager(userInputManager)
@@ -32,7 +32,7 @@ ANetworkController::ANetworkController(
 }
 
 /*
-Ping
+ICMP Ping
 */
 void ANetworkController::handlePing(const TerminalCommand &cmd)
 {
@@ -47,17 +47,17 @@ void ANetworkController::handlePing(const TerminalCommand &cmd)
         return;
     }
 
-    // Laisse la lib gérer IP vs DNS :
-    const unsigned long t0 = millis();
-    const bool ok = Ping.ping(host.c_str(), 1);
-    const unsigned long t1 = millis();
+    icmpService.startPingTask(host, 5, 1000, 200);
+    while (!icmpService.isReady()) 
+        vTaskDelay(pdMS_TO_TICKS(50));
 
-    if (ok) {
-        const int avg = Ping.averageTime();
-        terminalView.println("Ping: " + host + " ok (" + std::to_string(avg) + " ms).");
+    if (icmpService.lastPingUp()) {
+        terminalView.println("UP, median " + std::to_string(icmpService.lastMedianMs()) + " ms");
     } else {
-        terminalView.println("Ping: Failed to ping " + host + ".");
+        terminalView.println("DOWN");
     }
+
+    terminalView.print(icmpService.getReport());
 }
 
 /*
@@ -153,6 +153,13 @@ void ANetworkController::handleNmap(const TerminalCommand &cmd)
     // Parse args
     // Parse hosts first
     auto hosts_arg = cmd.getSubcommand();
+    
+    // First helper invoke
+    if (hosts_arg.compare("-h") == 0 || hosts_arg.compare("--help") == 0  || hosts_arg.empty()){
+        terminalView.println(nmapService.getHelpText());
+        return;
+    }
+
     if(!nmapService.parseHosts(hosts_arg)) {
         terminalView.println("Nmap: Invalid host.");
         return;
@@ -167,6 +174,13 @@ void ANetworkController::handleNmap(const TerminalCommand &cmd)
     nmapService.setArgTransformer(argTransformer);
     auto tokens = argTransformer.splitArgs(cmd.getArgs());
     auto options = NmapService::parseNmapArgs(tokens);
+    this->nmapService.setOptions(options);
+    
+    // Second helper
+    if (options.help) {
+        terminalView.println(nmapService.getHelpText());
+        return;
+    }
 
     if (options.hasTrash){
         // TODO handle this better
@@ -174,18 +188,21 @@ void ANetworkController::handleNmap(const TerminalCommand &cmd)
     }
 
     if (options.hasPort) {
+        nmapService.setLayer4(options.tcp);
         // Parse ports
         if (!nmapService.parsePorts(options.ports)) {
             terminalView.println("Nmap: invalid -p value. Use 80,22,443 or 1000-2000.");
             return;
         }
-        nmapService.setLayer4(options.tcp);
     } else {
+        nmapService.setLayer4(options.tcp);
         // Set the most popular ports
         nmapService.setDefaultPorts(options.tcp);
         terminalView.println("Nmap: Using top 100 common ports (may take a few seconds)");
     }
 
+    // Re-use it for ICMP pings
+    nmapService.setICMPService(&icmpService);
     nmapService.startTask(options.verbosity);
     
     while(!nmapService.isReady()){

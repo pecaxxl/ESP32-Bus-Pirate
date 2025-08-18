@@ -10,24 +10,50 @@
 #include <Data/NmapUtils.h>
 #include <unordered_set>
 
+extern "C" {
+#include <getopt.h>   // provides getopt_long
+}
+
 struct NmapTaskParams
 {
-    std::vector<std::string> target_hosts;
-    std::vector<uint16_t> target_ports;
+    std::vector<std::string> targetHosts;
+    std::vector<uint16_t> targetPorts;
     int verbosity;
     NmapService *service;
 };
 
 void NmapService::setDefaultPorts(bool tcp){
     if (tcp) {
-        this->target_ports = TOP_100_TCP_PORTS;
+        this->targetPorts = TOP_100_TCP_PORTS;
     } else {
-        this->target_ports = TOP_100_UDP_PORTS;
+        this->targetPorts = TOP_100_UDP_PORTS;
     }
 }
 
+void NmapService::setOptions(const NmapOptions& options){
+    this->_options = options;
+}
+
+std::string NmapService::getHelpText() {
+    return
+    "Usage: nmap <host> [options]\r\n"
+    "\r\n"
+    "Options:\r\n"
+    "  -h              Show this help\r\n"
+    "  -p <spec>       Ports: 80 | 22,80,443 | 8000-8010 | 0x50\r\n"
+    "  -sT             TCP connect scan (default)\r\n"
+    "  -sU             UDP scan\r\n"
+    "  -sn             Ping scan (disable port scan)\r\n"
+    "  -v / -vv        Verbosity\r\n"
+    "\r\n"
+    "Examples:\r\n"
+    "  nmap 192.168.1.10 -p 22,80-90 -sT -vv\r\n"
+    "  nmap example.com -sU -p 53,123\r\n"
+    "  nmap 10.0.0.5 -p 8080\r\n";
+}
+
 NmapOptions NmapService::parseNmapArgs(const std::vector<std::string>& tokens) {
-    NmapOptions nmap_options;
+    NmapOptions nmapOptions;
     std::vector<char*> argv;
 
     argv.reserve(tokens.size() + 1);
@@ -42,39 +68,54 @@ NmapOptions NmapService::parseNmapArgs(const std::vector<std::string>& tokens) {
     // Restart scanning at argv[1]
     optind = 1;
 
+    // Needed for getopt_long
+    // If getopt_long matches an option, it returns a char
+    static const option longopts[] = {
+        {"help",  no_argument,       nullptr, 'h'},
+        {"ports", required_argument, nullptr, 'p'},
+        {"scan",  required_argument, nullptr, 's'}, // e.g. -sT / -sU
+        {nullptr, 0,                 nullptr,  0 }
+    };
+
     int option;
-    while ((option = getopt(argc, argv.data(), "p:utv")) != -1) {
+    while ((option = getopt_long(argc, argv.data(), "hp:s:v", longopts, nullptr)) != -1) {
         switch (option) {
+            case 'h': nmapOptions.help = true; break;
             case 'p':
-                nmap_options.hasPort = true;
-                nmap_options.ports = optarg ? optarg : "";
+                nmapOptions.hasPort = true;
+                nmapOptions.ports = optarg ? optarg : "";
                 break;
-            case 'u':
-                nmap_options.udp = true;
-                nmap_options.tcp = false;
-                break;
-            case 't':
-                nmap_options.tcp = true;
-                nmap_options.udp = false;
+            case 's': // -sT, -sU, -sn
+                if (!optarg || !*optarg) {
+                    nmapOptions.hasTrash = true;
+                    break;
+                }
+                for (const char* p = optarg; *p; ++p) {
+                    // Don't allow both TCP and UDP
+                    if (*p == 'T') {nmapOptions.tcp = true; nmapOptions.udp = false; break;}
+                    else if (*p == 'U') {nmapOptions.udp = true; nmapOptions.tcp = false; break; }
+                    else if (*p == 'n') {nmapOptions.pingOnly = true; break; }
+                    else nmapOptions.hasTrash = true; // unknown letter after -s
+                }
                 break;
             case 'v':
                 // If using double verbosity, it will add
-                ++nmap_options.verbosity;
+                ++nmapOptions.verbosity;
                 break;
             default:
                 // Unknown options
-                nmap_options.hasTrash = true;
+                nmapOptions.hasTrash = true;
                 break;
         }
     }
 
-    return nmap_options;
+    return nmapOptions;
 }
 
-NmapService::NmapService() : ready(false), arg_transformer(nullptr), verbosity(0), layer4_protocol(Layer4Protocol::TCP) {}
+NmapService::NmapService() : ready(false), argTransformer(nullptr), verbosity(0), layer4Protocol(Layer4Protocol::TCP), icmpService(nullptr) {}
 
-void NmapService::setArgTransformer(ArgTransformer& arg_transformer){
-    this->arg_transformer = &arg_transformer;
+void NmapService::setArgTransformer(ArgTransformer& argTransformer){
+    this->argTransformer = &argTransformer;
 }
 
 const bool NmapService::isReady() {
@@ -249,6 +290,7 @@ static int tcp_connect_with_timeout(in_addr addr, uint16_t port, int timeout_ms)
     return nmap_rc_enum::OTHER;
 }
 
+
 static bool resolveIPv4(const std::string& host, in_addr& out)
 {
     struct addrinfo hints{};
@@ -289,52 +331,76 @@ void NmapService::scanTarget(const std::string &host, const std::vector<uint16_t
 
     char ipStr[INET_ADDRSTRLEN]{};
     inet_ntop(AF_INET, &ip, ipStr, sizeof(ipStr));
-    this->report.append("Scanning host: ").append(host).append(" (").append(ipStr).append(")\r\n");
+    this->report.append("Nmap scan report for ").append(host).append(" (").append(ipStr).append(")\r\n");
+    // TODO show if host is up + latency?
+    if (icmpService != nullptr){
+        icmpService->startPingTask(host, 1, 1000, 200);
+        while (!icmpService->isReady()) 
+            vTaskDelay(pdMS_TO_TICKS(50));
+        if (icmpService->lastPingUp()) {
+            this->report.append("Host is up (").append(std::to_string(icmpService->lastMedianMs())).append("ms latency).\r\n");
+        }
+        else {
+            this->report.append("Host is down.\r\n");
+            return; // No point in scanning if host is down
+        }
+    }
+    else {
+        // TODO what to do?
+        this->report.append("Error: ICMP service not available.\r\n");
+        return;
+    }
+
+    if (this->_options.pingOnly) {
+        return;
+    }
+
+    this->report.append("PORT\tSTATE\n"); // TODO SERVICE add
 
     int closed_ports = ports.size();
     for (uint16_t p : ports) {
         //this->report.append("Scanning port ").append(std::to_string(p)).append("...\r\n");
 
-        if (this->layer4_protocol == Layer4Protocol::TCP) {
+        if (this->layer4Protocol == Layer4Protocol::TCP) {
             int st = tcp_connect_with_timeout(ip, p, CONNECT_TIMEOUT_MS);
             switch (st) {
                 case nmap_rc_enum::TCP_OPEN:  
-                    this->report.append("Port ").append(std::to_string(p)).append("/tcp OPEN\r\n"); 
+                    this->report.append(std::to_string(p)).append("/tcp open\r\n"); 
                     closed_ports--;
                     break;
                 case nmap_rc_enum::TCP_CLOSED:
                     if (this->verbosity >= 1)
-                        this->report.append("Port ").append(std::to_string(p)).append("/tcp CLOSED\r\n");
+                        this->report.append(std::to_string(p)).append("/tcp closed\r\n");
                     break;
                 case nmap_rc_enum::TCP_FILTERED:
-                    this->report.append("Port ").append(std::to_string(p)).append("/tcp FILTERED\r\n");
+                    this->report.append(std::to_string(p)).append("/tcp filtered\r\n");
                     closed_ports--;
                     break;
                 default: 
                     if (this->verbosity >= 1)
-                        this->report.append("Port ").append(std::to_string(p)).append("/tcp ERROR\r\n"); break;
+                        this->report.append(std::to_string(p)).append("/tcp error\r\n"); break;
             }
         }
-        else if (this->layer4_protocol == Layer4Protocol::UDP) {
+        else if (this->layer4Protocol == Layer4Protocol::UDP) {
             int st = udp_probe_with_timeout(ip, p, CONNECT_TIMEOUT_MS, nullptr, 0);
 
             // TODO add custom payload per protocol
             switch (st) {
                 case nmap_rc_enum::UDP_OPEN:
-                    this->report.append("Port ").append(std::to_string(p)).append("/udp OPEN\r\n"); 
+                    this->report.append(std::to_string(p)).append("/udp open\r\n"); 
                     closed_ports--;
                     break;
                 case nmap_rc_enum::UDP_CLOSED:
                     if (this->verbosity >= 1)
-                        this->report.append("Port ").append(std::to_string(p)).append("/udp CLOSED\r\n");
+                        this->report.append(std::to_string(p)).append("/udp closed\r\n");
                     break;
                 case nmap_rc_enum::UDP_OPEN_FILTERED:
-                    this->report.append("Port ").append(std::to_string(p)).append("/udp OPEN|FILTERED\r\n");
+                    this->report.append(std::to_string(p)).append("/udp open|filtered\r\n");
                     closed_ports--;
                     break;
                 default:
                     if (this->verbosity >= 1)
-                        this->report.append("Port ").append(std::to_string(p)).append("/udp ERROR\r\n");
+                        this->report.append(std::to_string(p)).append("/udp error\r\n");
                     break;
             }
         }
@@ -347,17 +413,21 @@ void NmapService::scanTarget(const std::string &host, const std::vector<uint16_t
     }
     
     if (closed_ports > 0)
-        this->report.append("Closed ports: ").append(std::to_string(closed_ports)).append("\r\n\n");
+        this->report.append("Not shown: ").append(std::to_string(closed_ports)).append(" ports\r\n\n");
 
+}
+
+void NmapService::setICMPService(ICMPService* icmpService){
+    this->icmpService = icmpService;
 }
 
 void NmapService::clean()
 {
-    this->target_hosts.clear();
-    this->target_ports.clear();
+    this->targetHosts.clear();
+    this->targetPorts.clear();
     this->report.clear();
     this->ready = false;
-    this->layer4_protocol = Layer4Protocol::TCP;
+    this->layer4Protocol = Layer4Protocol::TCP;
     this->verbosity = 0;
 }
 
@@ -365,9 +435,9 @@ void NmapService::scanTask(void *pvParams)
 {
     auto *params = static_cast<NmapTaskParams *>(pvParams);
     auto &service = *params->service;
-    auto &hosts = params->target_hosts;
+    auto &hosts = params->targetHosts;
     for (auto host : hosts) {
-        service.scanTarget(host, params->target_ports);
+        service.scanTarget(host, params->targetPorts);
     }
 
     service.ready = true;
@@ -378,20 +448,20 @@ void NmapService::scanTask(void *pvParams)
 
 void NmapService::startTask(int verbosity)
 {
-    auto *params = new NmapTaskParams{this->target_hosts, this->target_ports, verbosity, this};
+    auto *params = new NmapTaskParams{this->targetHosts, this->targetPorts, verbosity, this};
     xTaskCreatePinnedToCore(scanTask, "NmapConnect", 20000, params, 1, nullptr, 1);
     delay(100); // start task delay
 }
 
 bool NmapService::parseHosts(const std::string& hosts_arg)
 {
-    this->target_hosts = std::vector<std::string>();
+    this->targetHosts = std::vector<std::string>();
 
     // If we find ',' or '-' or '/network_mask' there are multiple hosts
     if (hosts_arg.find(',') == std::string::npos && hosts_arg.find('-') == std::string::npos && hosts_arg.find('/') == std::string::npos) {
         // Single host
         if (isIpv4(hosts_arg)) {
-            this->target_hosts.push_back(hosts_arg);
+            this->targetHosts.push_back(hosts_arg);
         }
         else {
             return false;
@@ -404,18 +474,18 @@ bool NmapService::parseHosts(const std::string& hosts_arg)
     return true;
 }
 
-void NmapService::setLayer4(bool layer4_protocol){
-    if (layer4_protocol == true){
-        this->layer4_protocol = Layer4Protocol::TCP;
+void NmapService::setLayer4(bool layer4Protocol){
+    if (layer4Protocol == true){
+        this->layer4Protocol = Layer4Protocol::TCP;
     }
     else {
-        this->layer4_protocol = Layer4Protocol::UDP;
+        this->layer4Protocol = Layer4Protocol::UDP;
     }
 }
 
 bool NmapService::parsePorts(const std::string& ports_arg)
 {
-    this->target_ports = std::vector<uint16_t>();
+    this->targetPorts = std::vector<uint16_t>();
 
     if (ports_arg.empty())
         return false;
@@ -436,8 +506,8 @@ bool NmapService::parsePorts(const std::string& ports_arg)
             trimWhitespaces(a);
             trimWhitespaces(b);
 
-            uint16_t port1 = this->arg_transformer->parseHexOrDec16(a);
-            uint16_t port2 = this->arg_transformer->parseHexOrDec16(b);
+            uint16_t port1 = this->argTransformer->parseHexOrDec16(a);
+            uint16_t port2 = this->argTransformer->parseHexOrDec16(b);
 
             if (!port1 || !port2)
                 return false;
@@ -447,22 +517,22 @@ bool NmapService::parsePorts(const std::string& ports_arg)
 
             for (uint16_t port = port1; port <= port2; ++port) {
                 if (seen.insert(port).second)
-                    target_ports.push_back(port);
+                    targetPorts.push_back(port);
             }
         } else {
             // Single port
-            uint16_t port = this->arg_transformer->parseHexOrDec16(token);
+            uint16_t port = this->argTransformer->parseHexOrDec16(token);
             if (!port)
                 return false;
             if (seen.insert(port).second)
-                target_ports.push_back(port);
+                targetPorts.push_back(port);
         }
     }
 
-    if (target_ports.empty()) 
+    if (targetPorts.empty()) 
         return false;
 
-    std::sort(target_ports.begin(), target_ports.end());
+    std::sort(targetPorts.begin(), targetPorts.end());
     return true;
 }
 
