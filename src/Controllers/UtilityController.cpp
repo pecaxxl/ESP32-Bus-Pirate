@@ -346,7 +346,7 @@ void UtilityController::handleHelp() {
 
     terminalView.println("");
     terminalView.println(" 7. 2WIRE:");
-    terminalView.println("  sniff                - View traffic [NYI]");
+    terminalView.println("  sniff                - View 2WIRE traffic");
     terminalView.println("  smartcard            - Smartcard operations");
     terminalView.println("  config               - Configure settings");
     terminalView.println("  [0xAB r:4]           - Instruction syntax");

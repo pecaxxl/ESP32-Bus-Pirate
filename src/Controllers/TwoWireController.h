@@ -1,7 +1,5 @@
 #pragma once
 
-// Placeholder implementation for 2WIRE controller
-
 #include <vector>
 #include "Interfaces/ITerminalView.h"
 #include "Services/SpiService.h" 
