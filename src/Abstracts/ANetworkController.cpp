@@ -1,6 +1,4 @@
 #include "ANetworkController.h"
-#include <ESP32Ping.h>
-
 
 ANetworkController::ANetworkController(
     ITerminalView& terminalView, 
@@ -34,7 +32,7 @@ ANetworkController::ANetworkController(
 }
 
 /*
-Ping
+ICMP Ping
 */
 void ANetworkController::handlePing(const TerminalCommand &cmd)
 {
@@ -49,17 +47,17 @@ void ANetworkController::handlePing(const TerminalCommand &cmd)
         return;
     }
 
-    // Laisse la lib gérer IP vs DNS :
-    const unsigned long t0 = millis();
-    const bool ok = Ping.ping(host.c_str(), 1);
-    const unsigned long t1 = millis();
+    icmpService.startPingTask(host, 5, 1000, 200);
+    while (!icmpService.isReady()) 
+        vTaskDelay(pdMS_TO_TICKS(50));
 
-    if (ok) {
-        const int avg = Ping.averageTime();
-        terminalView.println("Ping: " + host + " ok (" + std::to_string(avg) + " ms).");
+    if (icmpService.lastPingUp()) {
+        terminalView.println("UP, median " + std::to_string(icmpService.lastMedianMs()) + " ms");
     } else {
-        terminalView.println("Ping: Failed to ping " + host + ".");
+        terminalView.println("DOWN");
     }
+
+    terminalView.print(icmpService.getReport());
 }
 
 /*
