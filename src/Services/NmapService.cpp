@@ -49,13 +49,19 @@ NmapOptions NmapService::parseNmapArgs(const std::vector<std::string>& tokens) {
                 nmap_options.hasPort = true;
                 nmap_options.ports = optarg ? optarg : "";
                 break;
-            case 'u':
-                nmap_options.udp = true;
+            case 's': // -sT, -sU, or -sTU
                 nmap_options.tcp = false;
-                break;
-            case 't':
-                nmap_options.tcp = true;
                 nmap_options.udp = false;
+                if (!optarg || !*optarg) { 
+                    nmap_options.hasTrash = true; 
+                    break; 
+                }
+                for (const char* p = optarg; *p; ++p) {
+                    // Don't allow both TCP and UDP
+                    if (*p == 'T' || *p == 't') {nmap_options.tcp = true; break;}
+                    else if (*p == 'U' || *p == 'u') {nmap_options.udp = true; break; }
+                    else nmap_options.hasTrash = true; // unknown letter after -s
+                }
                 break;
             case 'v':
                 // If using double verbosity, it will add
@@ -206,7 +212,7 @@ static int tcp_connect_with_timeout(in_addr addr, uint16_t port, int timeout_ms)
     rc = ::select(s + 1, nullptr, &wfds, &efds, &tv);
     if (rc == 0) {
         ::close(s);
-        return nmap_rc_enum::TCP_CLOSED;
+        return nmap_rc_enum::TCP_FILTERED;
     }
     if (rc < 0)  {
         ::close(s);
