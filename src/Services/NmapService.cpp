@@ -30,6 +30,10 @@ void NmapService::setDefaultPorts(bool tcp){
     }
 }
 
+void NmapService::setOptions(const NmapOptions& options){
+    this->_options = options;
+}
+
 std::string NmapService::getHelpText() {
     return
     "Usage: nmap <host> [options]\r\n"
@@ -49,7 +53,7 @@ std::string NmapService::getHelpText() {
 }
 
 NmapOptions NmapService::parseNmapArgs(const std::vector<std::string>& tokens) {
-    NmapOptions nmap_options;
+    NmapOptions nmapOptions;
     std::vector<char*> argv;
 
     argv.reserve(tokens.size() + 1);
@@ -76,36 +80,36 @@ NmapOptions NmapService::parseNmapArgs(const std::vector<std::string>& tokens) {
     int option;
     while ((option = getopt_long(argc, argv.data(), "hp:s:v", longopts, nullptr)) != -1) {
         switch (option) {
-            case 'h': nmap_options.help = true; break;
+            case 'h': nmapOptions.help = true; break;
             case 'p':
-                nmap_options.hasPort = true;
-                nmap_options.ports = optarg ? optarg : "";
+                nmapOptions.hasPort = true;
+                nmapOptions.ports = optarg ? optarg : "";
                 break;
             case 's': // -sT, -sU, -sn
                 if (!optarg || !*optarg) {
-                    nmap_options.hasTrash = true;
+                    nmapOptions.hasTrash = true;
                     break;
                 }
                 for (const char* p = optarg; *p; ++p) {
                     // Don't allow both TCP and UDP
-                    if (*p == 'T') {nmap_options.tcp = true; nmap_options.udp = false; break;}
-                    else if (*p == 'U') {nmap_options.udp = true; nmap_options.tcp = false; break; }
-                    else if (*p == 'n') {nmap_options.pingOnly = true; break; }
-                    else nmap_options.hasTrash = true; // unknown letter after -s
+                    if (*p == 'T') {nmapOptions.tcp = true; nmapOptions.udp = false; break;}
+                    else if (*p == 'U') {nmapOptions.udp = true; nmapOptions.tcp = false; break; }
+                    else if (*p == 'n') {nmapOptions.pingOnly = true; break; }
+                    else nmapOptions.hasTrash = true; // unknown letter after -s
                 }
                 break;
             case 'v':
                 // If using double verbosity, it will add
-                ++nmap_options.verbosity;
+                ++nmapOptions.verbosity;
                 break;
             default:
                 // Unknown options
-                nmap_options.hasTrash = true;
+                nmapOptions.hasTrash = true;
                 break;
         }
     }
 
-    return nmap_options;
+    return nmapOptions;
 }
 
 NmapService::NmapService() : ready(false), argTransformer(nullptr), verbosity(0), layer4Protocol(Layer4Protocol::TCP), icmpService(nullptr) {}
@@ -243,7 +247,7 @@ static int tcp_connect_with_timeout(in_addr addr, uint16_t port, int timeout_ms)
     rc = ::select(s + 1, nullptr, &wfds, &efds, &tv);
     if (rc == 0) {
         ::close(s);
-        return nmap_rc_enum::TCP_FILTERED;
+        return nmap_rc_enum::TCP_CLOSED;
     }
     if (rc < 0)  {
         ::close(s);
@@ -344,6 +348,10 @@ void NmapService::scanTarget(const std::string &host, const std::vector<uint16_t
     else {
         // TODO what to do?
         this->report.append("Error: ICMP service not available.\r\n");
+        return;
+    }
+
+    if (this->_options.pingOnly) {
         return;
     }
 

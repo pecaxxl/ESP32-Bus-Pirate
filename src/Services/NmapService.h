@@ -36,6 +36,8 @@ public:
     void setArgTransformer(ArgTransformer& argTransformer);
     void setICMPService(ICMPService* icmpService);
     void setLayer4(bool layer4Protocol);
+    void setOptions(const NmapOptions& options);
+
     std::string getHelpText();
 
 private:
@@ -52,5 +54,7 @@ private:
     Layer4Protocol layer4Protocol;
     ArgTransformer* argTransformer;
     int verbosity;
+
+    NmapOptions _options;
 };
 

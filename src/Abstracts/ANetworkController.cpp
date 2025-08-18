@@ -174,7 +174,8 @@ void ANetworkController::handleNmap(const TerminalCommand &cmd)
     nmapService.setArgTransformer(argTransformer);
     auto tokens = argTransformer.splitArgs(cmd.getArgs());
     auto options = NmapService::parseNmapArgs(tokens);
-
+    this->nmapService.setOptions(options);
+    
     // Second helper
     if (options.help) {
         terminalView.println(nmapService.getHelpText());
