@@ -63,6 +63,8 @@ NmapOptions NmapService::parseNmapArgs(const std::vector<std::string>& tokens) {
     // Restart scanning at argv[1]
     optind = 1;
 
+    // Needed for getopt_long
+    // If getopt_long matches an option, it returns a char
     static const option longopts[] = {
         {"help",  no_argument,       nullptr, 'h'},
         {"ports", required_argument, nullptr, 'p'},
@@ -71,7 +73,7 @@ NmapOptions NmapService::parseNmapArgs(const std::vector<std::string>& tokens) {
     };
 
     int option;
-    while ((option = getopt(argc, argv.data(), "hp:s:utv")) != -1) {
+    while ((option = getopt_long(argc, argv.data(), "hp:s:utv", longopts, nullptr)) != -1) {
         switch (option) {
             case 'h': nmap_options.help = true; break;
             case 'p':
