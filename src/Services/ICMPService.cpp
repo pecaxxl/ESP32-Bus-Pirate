@@ -25,6 +25,20 @@ struct ICMPTaskParams
 
 ICMPService::ICMPService() {}
 
+ICMPService::~ICMPService() {
+    cleanupICMPService();
+}
+
+void ICMPService::cleanupICMPService(){
+    // Reset last results
+    ready = false;
+    ping_up = false;
+    ping_median_ms = -1;
+    ping_sent = 0;
+    ping_recv = 0;
+    report.clear();
+}
+
 static bool resolve_ipv4_to_ip_addr(const std::string &host, ip_addr_t &out)
 {
     // literal first
@@ -60,14 +74,9 @@ static int median_ms(std::vector<uint32_t> &v)
 
 void ICMPService::startPingTask(const std::string &host, int count, int timeout_ms, int interval_ms)
 {
-    // Reset last results
-    ready = false;
-    ping_up = false;
-    ping_median_ms = -1;
-    ping_sent = 0;
-    ping_recv = 0;
-    report.clear();
-
+    // Cleanup first
+    this->cleanupICMPService();
+    
     auto *params = new ICMPTaskParams{host,
                                       count > 0 ? count : 5,
                                       timeout_ms > 0 ? timeout_ms : 1000,
