@@ -10,6 +10,7 @@
 #include "Services/SshService.h"
 #include "Services/NetcatService.h"
 #include "Services/NmapService.h"
+#include "Services/ICMPService.h"
 #include "Services/NvsService.h"
 #include "Transformers/ArgTransformer.h"
 #include "Managers/UserInputManager.h"
@@ -29,6 +30,7 @@ public:
         SshService& sshService,
         NetcatService& netcatService,
         NmapService& nmapService,
+        ICMPService& icmpService,
         NvsService& nvsService, 
         ArgTransformer& argTransformer,
         UserInputManager& userInputManager
@@ -54,7 +56,8 @@ protected:
     SshService&        sshService;
     NetcatService&     netcatService;
     NmapService&       nmapService;
-
+    ICMPService&       icmpService;
+    
     ArgTransformer&    argTransformer;
     UserInputManager&  userInputManager;
     GlobalState&       globalState = GlobalState::getInstance();

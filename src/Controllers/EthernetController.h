@@ -11,6 +11,7 @@
 #include "Services/SshService.h"
 #include "Services/NetcatService.h"
 #include "Services/NmapService.h"
+#include "Services/ICMPService.h"
 #include "Transformers/ArgTransformer.h"
 #include "Models/TerminalCommand.h"
 #include "States/GlobalState.h"

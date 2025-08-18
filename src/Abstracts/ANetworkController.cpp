@@ -12,6 +12,7 @@ ANetworkController::ANetworkController(
     SshService& sshService,
     NetcatService& netcatService,
     NmapService& nmapService,
+    ICMPService& icmpService,
     NvsService& nvsService, 
     ArgTransformer& argTransformer,
     UserInputManager& userInputManager
@@ -25,6 +26,7 @@ ANetworkController::ANetworkController(
   sshService(sshService),
   netcatService(netcatService),
   nmapService(nmapService),
+  icmpService(icmpService),
   nvsService(nvsService),
   argTransformer(argTransformer),
   userInputManager(userInputManager)
