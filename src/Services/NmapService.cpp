@@ -10,6 +10,10 @@
 #include <Data/NmapUtils.h>
 #include <unordered_set>
 
+extern "C" {
+#include <getopt.h>   // provides getopt_long
+}
+
 struct NmapTaskParams
 {
     std::vector<std::string> target_hosts;
@@ -24,6 +28,23 @@ void NmapService::setDefaultPorts(bool tcp){
     } else {
         this->target_ports = TOP_100_UDP_PORTS;
     }
+}
+
+std::string NmapService::getHelpText() {
+    return
+    "Usage: nmap <host> [options]\r\n"
+    "\r\n"
+    "Options:\r\n"
+    "  -h              Show this help\r\n"
+    "  -p <spec>       Ports: 80 | 22,80,443 | 8000-8010 | 0x50\r\n"
+    "  -sT             TCP connect scan (default)\r\n"
+    "  -sU             UDP scan\r\n"
+    "  -v / -vv        Verbosity\r\n"
+    "\r\n"
+    "Examples:\r\n"
+    "  nmap 192.168.1.10 -p 22,80-90 -sT -vv\r\n"
+    "  nmap example.com -sU -p 53,123\r\n"
+    "  nmap 10.0.0.5 -p 8080\r\n";
 }
 
 NmapOptions NmapService::parseNmapArgs(const std::vector<std::string>& tokens) {
@@ -42,9 +63,17 @@ NmapOptions NmapService::parseNmapArgs(const std::vector<std::string>& tokens) {
     // Restart scanning at argv[1]
     optind = 1;
 
+    static const option longopts[] = {
+        {"help",  no_argument,       nullptr, 'h'},
+        {"ports", required_argument, nullptr, 'p'},
+        {"scan",  required_argument, nullptr, 's'}, // e.g. -sT / -sU
+        {nullptr, 0,                 nullptr,  0 }
+    };
+
     int option;
-    while ((option = getopt(argc, argv.data(), "p:utv")) != -1) {
+    while ((option = getopt(argc, argv.data(), "hp:s:utv")) != -1) {
         switch (option) {
+            case 'h': nmap_options.help = true; break;
             case 'p':
                 nmap_options.hasPort = true;
                 nmap_options.ports = optarg ? optarg : "";

@@ -153,6 +153,13 @@ void ANetworkController::handleNmap(const TerminalCommand &cmd)
     // Parse args
     // Parse hosts first
     auto hosts_arg = cmd.getSubcommand();
+    
+    // First helper invoke
+    if (hosts_arg.find('-h') || hosts_arg.find("--help")) {
+        terminalView.println(nmapService.getHelpText());
+        return;
+    }
+    
     if(!nmapService.parseHosts(hosts_arg)) {
         terminalView.println("Nmap: Invalid host.");
         return;
@@ -167,6 +174,12 @@ void ANetworkController::handleNmap(const TerminalCommand &cmd)
     nmapService.setArgTransformer(argTransformer);
     auto tokens = argTransformer.splitArgs(cmd.getArgs());
     auto options = NmapService::parseNmapArgs(tokens);
+
+    // Second helper
+    if (options.help) {
+        terminalView.println(nmapService.getHelpText());
+        return;
+    }
 
     if (options.hasTrash){
         // TODO handle this better

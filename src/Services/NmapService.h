@@ -11,6 +11,7 @@ struct NmapOptions {
     bool hasPort = false;    // Did user pass `-p` ?
     std::string ports;       // "80", "22,80-90"
     bool hasTrash = false;   // Did user pass non-option tokens?
+    bool help = false;      // -h or --help
 };
 
 enum class Layer4Protocol {
@@ -32,6 +33,7 @@ public:
     void setDefaultPorts(bool tcp);
     void setArgTransformer(ArgTransformer& arg_transformer);
     void setLayer4(bool layer4_protocol);
+    std::string getHelpText();
 
 private:
     // Nmap Task, cause overflow if it runs in the main loop, so it must run in a dedicated FreeRTOS task with a larger stack
