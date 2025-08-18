@@ -457,6 +457,17 @@ void UtilityController::handleHelp() {
     terminalView.println("  config               - Configure settings");
 
     terminalView.println("");
+    terminalView.println(" 18. ETHERNET:");
+    terminalView.println("  connect              - Connect using DHCP");
+    terminalView.println("  status               - Show ETH status");
+    terminalView.println("  ping <host>          - Ping a remote host");
+    terminalView.println("  ssh <h> <u> <p> [p]  - Open SSH session");
+    terminalView.println("  nc <host> <port>     - Open netcat session");
+    terminalView.println("  nmap <h> [-p ports]  - Scan host ports");
+    terminalView.println("  reset                - Reset interface");
+    terminalView.println("  config               - Configure settings");
+
+    terminalView.println("");
     terminalView.println(" Instructions (available in most modes):");
     terminalView.println(" See documentation for instruction syntax.");
     terminalView.println("");

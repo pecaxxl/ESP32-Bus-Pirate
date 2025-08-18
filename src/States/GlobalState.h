@@ -23,7 +23,7 @@ private:
     uint8_t spiCLKPin = 40;
     uint8_t spiMISOPin = 39;
     uint8_t spiMOSIPin = 14;
-    uint32_t spiFrequency = 8000000;
+    uint32_t spiFrequency = 20000000;
 
     // WiFi AP Credentials
     std::string apName = "ESP32-Bus-Pirate";
@@ -120,7 +120,9 @@ private:
     uint8_t ethernetSckPin = 18;
     uint8_t ethernetMisoPin = 19;
     uint8_t ethernetMosiPin = 23;
-    uint32_t ethernetFrequency = 26000000UL; // 26 MHz
+    uint8_t ethernetIrqPin = 39;
+    uint32_t ethernetFrequency = 20000000; // 20 MHz
+    std::array<uint8_t,6> ethernetMac = { 0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x42 };
 
     // JTAG Default Pin
     std::vector<uint8_t> jtagScanPins = { 1, 3, 5, 7, 9 };
@@ -315,6 +317,8 @@ public:
     uint8_t getEthernetMisoPin() const { return ethernetMisoPin; }
     uint8_t getEthernetMosiPin() const { return ethernetMosiPin; }
     uint32_t getEthernetFrequency() const { return ethernetFrequency; }
+    uint8_t getEthernetIrqPin() const { return ethernetIrqPin; }
+    const std::array<uint8_t,6>& getEthernetMac() const { return ethernetMac; }
 
     void setEthernetCsPin(uint8_t pin) { ethernetCsPin = pin; }
     void setEthernetRstPin(uint8_t pin) { ethernetRstPin = pin; }
@@ -322,6 +326,8 @@ public:
     void setEthernetMisoPin(uint8_t pin) { ethernetMisoPin = pin; }
     void setEthernetMosiPin(uint8_t pin) { ethernetMosiPin = pin; }
     void setEthernetFrequency(uint32_t freq) { ethernetFrequency = freq; }
+    void setEthernetIrqPin(uint8_t pin) { ethernetIrqPin = pin; }
+    void setEthernetMac(const std::array<uint8_t,6>& mac) { ethernetMac = mac; }
 
     // SD File Limits
     size_t getFileCountLimit() const { return fileCountLimit; }
@@ -467,6 +473,9 @@ public:
         #endif
         #ifdef ETHERNET_MOSI_PIN
             ethernetMosiPin = ETHERNET_MOSI_PIN;
+        #endif
+        #ifdef ETHERNET_IRQ_PIN
+            ethernetIrqPin = ETHERNET_IRQ_PIN;
         #endif
 
         #ifdef PROTECTED_PINS
