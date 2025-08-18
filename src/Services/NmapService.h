@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "Transformers/ArgTransformer.h"
+#include "Services/ICMPService.h"
 
 struct NmapOptions {
     bool tcp = true;        // -t sets TCP only (default)
@@ -32,8 +33,9 @@ public:
 
     static NmapOptions parseNmapArgs(const std::vector<std::string>& tokens);
     void setDefaultPorts(bool tcp);
-    void setArgTransformer(ArgTransformer& arg_transformer);
-    void setLayer4(bool layer4_protocol);
+    void setArgTransformer(ArgTransformer& argTransformer);
+    void setICMPService(ICMPService* icmpService);
+    void setLayer4(bool layer4Protocol);
     std::string getHelpText();
 
 private:
@@ -42,12 +44,13 @@ private:
     bool isIpv4(const std::string& address);
     void scanTarget(const std::string &host, const std::vector<uint16_t> &ports);
 
-    std::vector<std::string> target_hosts;
-    std::vector<uint16_t> target_ports;
+    ICMPService* icmpService;
+    std::vector<std::string> targetHosts;
+    std::vector<uint16_t> targetPorts;
     bool ready;
     std::string report;
-    Layer4Protocol layer4_protocol;
-    ArgTransformer* arg_transformer;
+    Layer4Protocol layer4Protocol;
+    ArgTransformer* argTransformer;
     int verbosity;
 };
 

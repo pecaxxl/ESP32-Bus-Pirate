@@ -200,6 +200,8 @@ void ANetworkController::handleNmap(const TerminalCommand &cmd)
         terminalView.println("Nmap: Using top 100 common ports (may take a few seconds)");
     }
 
+    // Re-use it for ICMP pings
+    nmapService.setICMPService(&icmpService);
     nmapService.startTask(options.verbosity);
     
     while(!nmapService.isReady()){
