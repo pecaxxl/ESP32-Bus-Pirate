@@ -72,6 +72,11 @@ static int median_ms(std::vector<uint32_t> &v)
     return (int)((v[n / 2 - 1] + v[n / 2] + 1) / 2);
 }
 
+void ICMPService::startDiscoveryTask(const std::string deviceIP){
+    // Assume network mask is 255.255.255.0 for now
+    
+}
+
 void ICMPService::startPingTask(const std::string &host, int count, int timeout_ms, int interval_ms)
 {
     // Cleanup first

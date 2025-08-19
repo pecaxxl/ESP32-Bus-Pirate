@@ -10,6 +10,7 @@ void EthernetController::handleCommand(const TerminalCommand& cmd) {
     else if (root == "connect")   handleConnect();
     else if (root == "nc")        handleNetcat(cmd);
     else if (root == "nmap")      handleNmap(cmd);
+    else if (root == "discovery") handleDiscovery(cmd);
     else if (root == "ping")      handlePing(cmd);
     else if (root == "ssh")       handleSsh(cmd);
     else if (root == "status")    handleStatus();

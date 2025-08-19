@@ -1,12 +1,21 @@
 #pragma once
 #include <string>
 
+enum phy_interface_t {
+    None,
+    WiFi,
+    Eth
+};
+
 class ICMPService {
 public:
     ICMPService();
     ~ICMPService();
 
+    // Normal ping
     void startPingTask(const std::string& host, int count = 5, int timeout_ms = 1000, int interval_ms = 200);
+    // Discovery of devices
+    void startDiscoveryTask(const std::string deviceIP);
 
     // Results
     bool isReady() const { return ready; }

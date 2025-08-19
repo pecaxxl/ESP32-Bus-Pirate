@@ -20,6 +20,7 @@ void WifiController::handleCommand(const TerminalCommand &cmd)
     else if (root == "ssh") handleSsh(cmd);
     else if (root == "nc") handleNetcat(cmd);
     else if (root == "nmap") handleNmap(cmd);
+    else if (root == "discovery") handleDiscovery(cmd);
     else if (root == "reset") handleReset();
     else if (root == "deauth") handleDeauth(cmd);
     else handleHelp();

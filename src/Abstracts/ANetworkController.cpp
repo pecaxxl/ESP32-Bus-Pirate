@@ -60,6 +60,47 @@ void ANetworkController::handlePing(const TerminalCommand &cmd)
     terminalView.print(icmpService.getReport());
 }
 
+void ANetworkController::handleDiscovery(const TerminalCommand &cmd)
+{
+    bool wifiConnected = wifiService.isConnected();
+    bool ethConnected = ethernetService.isConnected();
+    phy_interface_t phy_interface = phy_interface_t::None;
+
+    if (!wifiConnected && !ethConnected) {
+        terminalView.println("Discovery: You must be connected to Wi-Fi or Ethernet. Use 'connect' first.");
+        return;
+    }
+
+    // Which interface to scan
+    auto args = argTransformer.splitArgs(cmd.getArgs());
+    if (cmd.getSubcommand().empty() || args.size() < 1) {
+        if (wifiConnected){
+            terminalView.println("Discovery: Using WiFi as default interface.");
+            phy_interface = phy_interface_t::WiFi;
+        }
+        else{
+            terminalView.println("Discovery: Using Ethernet as default interface.");
+            phy_interface = phy_interface_t::Eth;
+        }
+    }
+    else {
+        if (cmd.getSubcommand() == "eth"){
+            terminalView.println("Discovery: Using Ethernet as default interface.");
+            phy_interface = phy_interface_t::Eth;  
+        }else if (cmd.getSubcommand() == "wifi"){ 
+            terminalView.println("Discovery: Using WiFi as default interface.");
+            phy_interface = phy_interface_t::WiFi;
+        }
+        else {
+            terminalView.println("Discovery: Invalid interface. Use 'wifi' or 'eth'.");
+        }
+    }
+
+    const std::string deviceIP = phy_interface == phy_interface_t::WiFi ? wifiService.getLocalIP() : ethernetService.getLocalIP();
+    icmpService.startDiscoveryTask(deviceIP);
+    
+}
+
 /*
 Netcat
 */
