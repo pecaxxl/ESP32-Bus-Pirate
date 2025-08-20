@@ -51,7 +51,7 @@ public:
             {ModeEnum::JTAG,       "JTAG"},
             {ModeEnum::I2S,        "I2S"},
             {ModeEnum::CAN_,        "CAN"},
-            {ModeEnum::ETHERNET,   "ETHERNET"}
+            {ModeEnum::ETHERNET,   "ETHERNET"},
             {ModeEnum::CC1101,     "CC1101"},
         };
 
@@ -86,8 +86,8 @@ public:
             {"JTAG",       ModeEnum::JTAG},
             {"I2S",        ModeEnum::I2S},
             {"CAN",        ModeEnum::CAN_},
-            {"ETHERNET",   ModeEnum::ETHERNET}
-            {"CC1101",     ModeEnum::CC1101},
+            {"ETHERNET",   ModeEnum::ETHERNET},
+            {"CC1101",     ModeEnum::CC1101}
         };
 
         std::string upper;
