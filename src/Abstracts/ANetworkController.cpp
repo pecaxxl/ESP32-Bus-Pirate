@@ -51,12 +51,6 @@ void ANetworkController::handlePing(const TerminalCommand &cmd)
     while (!icmpService.isReady()) 
         vTaskDelay(pdMS_TO_TICKS(50));
 
-    if (icmpService.lastPingUp()) {
-        terminalView.println("UP, median " + std::to_string(icmpService.lastMedianMs()) + " ms");
-    } else {
-        terminalView.println("DOWN");
-    }
-
     terminalView.print(icmpService.getReport());
 }
 

@@ -337,7 +337,7 @@ void NmapService::scanTarget(const std::string &host, const std::vector<uint16_t
         icmpService->startPingTask(host, 1, 1000, 200);
         while (!icmpService->isReady()) 
             vTaskDelay(pdMS_TO_TICKS(50));
-        if (icmpService->lastPingUp()) {
+        if (icmpService->lastRc() == ping_rc_t::ping_ok) {
             this->report.append("Host is up (").append(std::to_string(icmpService->lastMedianMs())).append("ms latency).\r\n");
         }
         else {

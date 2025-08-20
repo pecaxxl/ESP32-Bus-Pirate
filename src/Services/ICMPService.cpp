@@ -16,7 +16,7 @@ extern "C"
 // Task params
 struct ICMPTaskParams
 {
-    std::string host;
+    std::string targetIP;
     int count;
     int timeout_ms;
     int interval_ms;
@@ -34,18 +34,18 @@ void ICMPService::cleanupICMPService()
 {
     // Reset last results
     ready = false;
-    ping_up = false;
-    ping_median_ms = -1;
-    ping_sent = 0;
-    ping_recv = 0;
+    pingRC = ping_rc_t::ping_error;
+    pingMedianMs = -1;
+    pingTX = 0;
+    pingRX = 0;
     report.clear();
 }
 
-static bool resolve_ipv4_to_ip_addr(const std::string &host, ip_addr_t &out)
+static bool resolve_ipv4_to_ip_addr(const std::string &targetIP, ip_addr_t &out)
 {
     // literal first
     ip4_addr_t a4{};
-    if (ip4addr_aton(host.c_str(), &a4))
+    if (ip4addr_aton(targetIP.c_str(), &a4))
     {
         out.type = IPADDR_TYPE_V4;
         out.u_addr.ip4 = a4;
@@ -55,7 +55,7 @@ static bool resolve_ipv4_to_ip_addr(const std::string &host, ip_addr_t &out)
     struct addrinfo hints{};
     hints.ai_family = AF_INET;
     struct addrinfo *res = nullptr;
-    if (getaddrinfo(host.c_str(), nullptr, &hints, &res) != 0 || !res)
+    if (getaddrinfo(targetIP.c_str(), nullptr, &hints, &res) != 0 || !res)
         return false;
     out.type = IPADDR_TYPE_V4;
     out.u_addr.ip4.addr = ((sockaddr_in *)res->ai_addr)->sin_addr.s_addr;
@@ -80,6 +80,7 @@ void ICMPService::startDiscoveryTask(const std::string deviceIP)
     std::string deviceIPcopy = deviceIP;
     ip4_addr_t targetIP;
     TaskHandle_t pingTaskHandle = nullptr;
+    uint32_t targetsResponded = 0;
 
     if (!ip4addr_aton(deviceIPcopy.c_str(), &targetIP))
     {
@@ -107,44 +108,69 @@ void ICMPService::startDiscoveryTask(const std::string deviceIP)
         std::string targetIPStr(targetIPCStr);
 
         this->cleanupICMPService();
-        auto *params = new ICMPTaskParams{targetIPStr, 2, 50, 100, this};
-        xTaskCreatePinnedToCore(pingTask, "ICMPPing", 4096, params, 1, &pingTaskHandle, 1);
+        auto *params = new ICMPTaskParams{targetIPStr, 1, 100, 100, this};
+        xTaskCreatePinnedToCore(pingAPI, "ICMPPing", 4096, params, 1, &pingTaskHandle, 1);
 
-        while (!ready) {
+        while (!this->ready)
+        {
             vTaskDelay(pdMS_TO_TICKS(10));
         }
-
+        if (this->pingRC == ping_rc_t::ping_ok){
+            deviceDiscoveryReport += "Device found: " + targetIPStr + "\r\n";
+            targetsResponded++;
+        }
         deviceDiscoveryReport.append(report);
     }
 
+    deviceDiscoveryReport += std::to_string(targetsResponded) + " devices up, pinged " + 
+        std::to_string(254 - targetsResponded) + " devices down\r\n";
     // Put all the results here, can be called with getReport
     report = std::move(deviceDiscoveryReport);
     ready = true;
 }
 
-void ICMPService::startPingTask(const std::string &host, int count, int timeout_ms, int interval_ms)
+void ICMPService::startPingTask(const std::string &targetIP, int count, int timeout_ms, int interval_ms)
 {
     // Cleanup first
     this->cleanupICMPService();
 
-    auto *params = new ICMPTaskParams{host,
+    auto *params = new ICMPTaskParams{targetIP,
                                       count > 0 ? count : 5,
                                       timeout_ms > 0 ? timeout_ms : 1000,
                                       interval_ms > 0 ? interval_ms : 200,
                                       this};
-    xTaskCreatePinnedToCore(pingTask, "ICMPPing", 8192, params, 1, nullptr, 1);
-    delay(10);
+    xTaskCreatePinnedToCore(pingAPI, "ICMPPing", 4096, params, 1, nullptr, 1);
+
+    while(!this->ready)
+        vTaskDelay(pdMS_TO_TICKS(10));
+
+    // Prepare the report
+    this->report.clear();
+    if (this->pingRC == ping_rc_t::ping_ok || this->pingRC == ping_rc_t::ping_timeout) {
+        this->report = "--- " + targetIP + " ping statistics ---\r\n";
+        this->report += std::to_string(this->pingTX) + " packets transmitted, ";
+        this->report += std::to_string(this->pingRX) + " received, ";
+        this->report += std::to_string(this->pingRX * 100 / this->pingTX) + "\% packet loss,";
+        this->report += " time " + std::to_string(this->pingMedianMs) + " ms\r\n";
+    } else if (this->pingRC == ping_rc_t::ping_resolve_fail) {
+        this->report = "Failed to resolve \"" + targetIP + "\"\r\n";
+    } else if (this->pingRC == ping_rc_t::ping_session_fail) {
+        this->report = "Failed to create session\r\n";
+    } else {
+        report = "Unknown error\r\n";
+    }
+        
 }
 
-void ICMPService::pingTask(void *pvParams)
+void ICMPService::pingAPI(void *pvParams)
 {
     auto *params = static_cast<ICMPTaskParams *>(pvParams);
     ICMPService *service = params->service;
 
     ip_addr_t target{};
-    if (!resolve_ipv4_to_ip_addr(params->host, target))
+    if (!resolve_ipv4_to_ip_addr(params->targetIP, target))
     {
-        service->report = "Ping: failed to resolve \"" + params->host + "\"\r\n";
+        service->pingRC = ping_rc_t::ping_resolve_fail;
         service->ready = true;
         delete params;
         vTaskDelete(nullptr);
@@ -187,7 +213,7 @@ void ICMPService::pingTask(void *pvParams)
     esp_ping_handle_t h = nullptr;
     if (esp_ping_new_session(&config, &cbs, &h) != ESP_OK)
     {
-        service->report = "Ping: failed to create session\r\n";
+        service->pingRC = ping_rc_t::ping_session_fail;
         service->ready = true;
         delete params;
         vTaskDelete(nullptr);
@@ -197,7 +223,7 @@ void ICMPService::pingTask(void *pvParams)
     esp_ping_start(h);
 
     // Wait up to count * (timeout + interval) + a small delay
-    uint32_t wait_ms = (uint32_t)config.count * (config.timeout_ms + config.interval_ms) + 500;
+    uint32_t wait_ms = (uint32_t)config.count * (config.timeout_ms + config.interval_ms) + 100;
     uint32_t t0 = millis();
     while (!ctx.done && (millis() - t0) < wait_ms)
     {
@@ -208,28 +234,15 @@ void ICMPService::pingTask(void *pvParams)
     esp_ping_delete_session(h);
 
     // Results
-    service->ping_sent = (int)config.count;
-    service->ping_recv = (int)ctx.rx;
-    service->ping_up = (ctx.rx > 0);
-    service->ping_median_ms = median_ms(ctx.rtts);
+    service->pingTX = (int)config.count;
+    service->pingRX = (int)ctx.rx;
+    service->pingRC = (service->pingRX > 0) ? ping_rc_t::ping_ok : ping_rc_t::ping_timeout;
+    service->pingMedianMs = median_ms(ctx.rtts);
 
-    char ipbuf[16] = {0};
-    if (target.type == IPADDR_TYPE_V4)
-    {
-        ip4addr_ntoa_r(&target.u_addr.ip4, ipbuf, sizeof(ipbuf));
-    }
-
-    if (service->ping_up)
-    {
-        service->report = "Ping " + params->host + " (" + std::string(ipbuf) + ") UP, ";
-        service->report += std::to_string(service->ping_recv) + "/" + std::to_string(service->ping_sent);
-        service->report += " replies, median " + std::to_string(service->ping_median_ms) + " ms\r\n";
-    }
-    else
-    {
-        service->report = "Ping " + params->host + " (" + std::string(ipbuf) + ") DOWN, ";
-        service->report += "0/" + std::to_string(service->ping_sent) + " replies\r\n";
-    }
+    if (service->pingRX > 0)
+        service->pingRC = ping_rc_t::ping_ok;
+    else if (service->pingRX == 0)
+        service->pingRC = ping_rc_t::ping_timeout;
 
     service->ready = true;
 

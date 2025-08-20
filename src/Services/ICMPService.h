@@ -7,6 +7,15 @@ enum phy_interface_t {
     phy_eth
 };
 
+enum ping_rc_t {
+    ping_ok,
+    ping_timeout,
+    ping_resolve_fail,
+    ping_session_fail,
+    ping_error
+};
+
+
 class ICMPService {
 public:
     ICMPService();
@@ -19,22 +28,22 @@ public:
 
     // Results
     bool isReady() const { return ready; }
-    bool lastPingUp() const { return ping_up; }
-    int lastMedianMs() const { return ping_median_ms; }
-    int lastSent() const { return ping_sent; }
-    int lastRecv() const { return ping_recv; }
+    ping_rc_t lastRc() const { return pingRC; }
+    int lastMedianMs() const { return pingMedianMs; }
+    int lastSent() const { return pingTX; }
+    int lastRecv() const { return pingRX; }
     const std::string& getReport() const { return report; }
 
     // Task entry
-    static void pingTask(void *pvParams);
+    static void pingAPI(void *pvParams);
 
 private:
     bool ready = false;
-    bool ping_up = false;
-    int  ping_median_ms = -1;
-    int  ping_sent = 0;
-    int  ping_recv = 0;
+    int  pingMedianMs = -1;
+    int  pingTX = 0;
+    int  pingRX = 0;
     std::string report;
+    ping_rc_t pingRC = ping_rc_t::ping_error;
 
     void cleanupICMPService();
 };
