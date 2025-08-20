@@ -144,6 +144,9 @@ void ActionDispatcher::dispatchCommand(const TerminalCommand& cmd) {
         case ModeEnum::CAN_:
             provider.getCanController().handleCommand(cmd);
             break;
+        case ModeEnum::CC1101:
+            provider.getCC1101Controller().handleCommand(cmd);
+            break;
         // case ModeEnum::ETHERNET:
         //     provider.getEthernetController().handleCommand(cmd);
         //     break;
@@ -441,6 +444,17 @@ void ActionDispatcher::setCurrentMode(ModeEnum newMode) {
                 "SCK GPIO " + std::to_string(state.getCanSckPin()),
                 "SI GPIO " + std::to_string(state.getCanSiPin()),
                 "SO GPIO " + std::to_string(state.getCanSoPin())
+            });
+            break;
+        case ModeEnum::CC1101:
+            provider.getCC1101Controller().ensureConfigured();
+            config.setMappings({
+                "CS GPIO " + std::to_string(state.getCC1101CSPin()),
+                "SCK GPIO " + std::to_string(state.getCC1101CLKPin()),
+                "SI GPIO " + std::to_string(state.getCC1101MOSIPin()),
+                "SO GPIO " + std::to_string(state.getCC1101MISOPin()),
+                "GDO0 GPIO " + std::to_string(state.getCC1101GDO0Pin()),
+                "GDO2 GPIO " + std::to_string(state.getCC1101GDO2Pin())
             });
             break;
         // case ModeEnum::ETHERNET:

@@ -32,6 +32,7 @@ and injecting shared instances of core components
 #include "Services/SystemService.h"
 #include "Services/ThreeWireService.h"
 #include "Services/EthernetService.h"
+#include "Services/Cc1101Service.h"
 #include "Controllers/UartController.h"
 #include "Controllers/I2cController.h"
 #include "Controllers/OneWireController.h"
@@ -50,6 +51,7 @@ and injecting shared instances of core components
 #include "Controllers/I2sController.h"
 #include "Controllers/CanController.h"
 #include "Controllers/EthernetController.h"
+#include "Controllers/Cc1101Controller.h"
 #include "Transformers/TerminalCommandTransformer.h"
 #include "Transformers/InstructionTransformer.h"
 #include "Transformers/ArgTransformer.h"
@@ -109,6 +111,7 @@ public:
     CanService &getCanService();
     SystemService &getSystemService();
     EthernetService &getEthernetService();
+    CC1101Service &getCC1101Service();
   
     // Controllers
     UartController &getUartController();
@@ -129,6 +132,7 @@ public:
     I2sController &getI2sController();
     CanController &getCanController();
     EthernetController &getEthernetController();
+    CC1101Controller &getCC1101Controller();
 
     // Transformers
     TerminalCommandTransformer &getCommandTransformer();
@@ -195,6 +199,7 @@ private:
     CanService canService;
     SystemService systemService;
     EthernetService ethernetService;
+    CC1101Service cc1101Service;
 
     // Controllers
     UartController uartController;
@@ -214,6 +219,7 @@ private:
     I2sController i2sController;
     CanController canController;
     EthernetController ethernetController;
+    CC1101Controller cc1101Controller;
 
     // Transformers
     TerminalCommandTransformer commandTransformer;

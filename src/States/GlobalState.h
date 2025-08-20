@@ -122,6 +122,14 @@ private:
     uint8_t ethernetMosiPin = 23;
     uint32_t ethernetFrequency = 26000000UL; // 26 MHz
 
+    // CC1101
+    uint8_t cc1101CSPin = 5;
+    uint8_t cc1101CLKPin = 36;
+    uint8_t cc1101MISOPin = 37;
+    uint8_t cc1101MOSIPin = 35;
+    uint8_t cc1101GDO0Pin = 6;
+    uint8_t cc1101GDO2Pin = 7;
+
     // JTAG Default Pin
     std::vector<uint8_t> jtagScanPins = { 1, 3, 5, 7, 9 };
 
@@ -323,6 +331,21 @@ public:
     void setEthernetMosiPin(uint8_t pin) { ethernetMosiPin = pin; }
     void setEthernetFrequency(uint32_t freq) { ethernetFrequency = freq; }
 
+    // CC1101
+    uint8_t getCC1101CSPin() const { return cc1101CSPin; }
+    uint8_t getCC1101CLKPin() const { return cc1101CLKPin; }
+    uint8_t getCC1101MISOPin() const { return cc1101MISOPin; }
+    uint8_t getCC1101MOSIPin() const { return cc1101MOSIPin; }
+    uint8_t getCC1101GDO0Pin() const { return cc1101GDO0Pin; }
+    uint8_t getCC1101GDO2Pin() const { return cc1101GDO2Pin; }
+    
+    void setCC1101CSPin(uint8_t pin) { cc1101CSPin = pin; }
+    void setCC1101CLKPin(uint8_t pin) { cc1101CLKPin = pin; }
+    void setCC1101MISOPin(uint8_t pin) { cc1101MISOPin = pin; }
+    void setCC1101MOSIPin(uint8_t pin) { cc1101MOSIPin = pin; }
+    void setCC1101GDO0Pin(uint8_t pin) {cc1101GDO0Pin = pin; }
+    void setCC1101GDO2Pin(uint8_t pin) {cc1101GDO2Pin = pin; }
+
     // SD File Limits
     size_t getFileCountLimit() const { return fileCountLimit; }
     size_t getFileCacheLimit() const { return fileCacheLimit; }
@@ -467,6 +490,24 @@ public:
         #endif
         #ifdef ETHERNET_MOSI_PIN
             ethernetMosiPin = ETHERNET_MOSI_PIN;
+        #endif
+        #ifdef CC1101_CS_PIN
+            cc1101CSPin = CC1101_CS_PIN;
+        #endif
+        #ifdef CC1101_CLK_PIN
+            cc1101CLKPin = CC1101_CLK_PIN;
+        #endif
+        #ifdef CC1101_MISO_PIN
+            cc1101MISOPin = CC1101_MISO_PIN;
+        #endif
+        #ifdef CC1101_MOSI_PIN
+            cc1101MOSIPin = CC1101_MOSI_PIN;
+        #endif
+        #ifdef CC1101_GDO0_PIN
+            cc1101GDO0Pin = CC1101_GDO0_PIN;
+        #endif
+        #ifdef CC1101_GDO2_PIN
+            cc1101GDO2Pin = CC1101_GDO2_PIN;
         #endif
 
         #ifdef PROTECTED_PINS

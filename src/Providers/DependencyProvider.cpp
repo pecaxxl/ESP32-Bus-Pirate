@@ -31,6 +31,7 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       canService(),
       systemService(),
       ethernetService(),
+      cc1101Service(),
 
       // Transformers
       commandTransformer(),
@@ -78,7 +79,8 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       i2sController(terminalView, terminalInput, i2sService, argTransformer, userInputManager),
       wifiController(terminalView, terminalInput, deviceInput, wifiService, wifiScannerService, sshService, netcatService, nmapService, nvsService, argTransformer, userInputManager),
       canController(terminalView, terminalInput, userInputManager, canService, argTransformer),
-      ethernetController(terminalView, terminalInput, deviceInput, ethernetService, argTransformer, userInputManager)
+      ethernetController(terminalView, terminalInput, deviceInput, ethernetService, argTransformer, userInputManager),
+      cc1101Controller(terminalView, terminalInput, cc1101Service, argTransformer, userInputManager)
 {
 }
 
@@ -112,6 +114,7 @@ JtagService &DependencyProvider::getJtagService() { return jtagService; }
 CanService &DependencyProvider::getCanService() { return canService; }
 SystemService &DependencyProvider::getSystemService() { return systemService; }
 EthernetService &DependencyProvider::getEthernetService() { return ethernetService; }
+CC1101Service &DependencyProvider::getCC1101Service() { return cc1101Service; }
 
 // Controllers
 UartController &DependencyProvider::getUartController() { return uartController; }
@@ -132,6 +135,7 @@ BluetoothController &DependencyProvider::getBluetoothController() { return bluet
 I2sController &DependencyProvider::getI2sController() { return i2sController; }
 CanController &DependencyProvider::getCanController() { return canController; }
 EthernetController &DependencyProvider::getEthernetController() { return ethernetController; }
+CC1101Controller &DependencyProvider::getCC1101Controller() { return cc1101Controller; }
 
 // Transformers
 TerminalCommandTransformer &DependencyProvider::getCommandTransformer() { return commandTransformer; }

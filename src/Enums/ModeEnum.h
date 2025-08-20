@@ -25,6 +25,7 @@ enum class ModeEnum {
     I2S,
     CAN_,
     // ETHERNET,
+    CC1101,
     COUNT
 };
 
@@ -51,6 +52,7 @@ public:
             {ModeEnum::I2S,        "I2S"},
             {ModeEnum::CAN_,        "CAN"},
             // {ModeEnum::ETHERNET,   "ETHERNET"}
+            {ModeEnum::CC1101,     "CC1101"},
         };
 
         auto it = map.find(proto);
@@ -85,6 +87,7 @@ public:
             {"I2S",        ModeEnum::I2S},
             {"CAN",        ModeEnum::CAN_},
             // {"ETHERNET",   ModeEnum::ETHERNET}
+            {"CC1101",     ModeEnum::CC1101},
         };
 
         std::string upper;
