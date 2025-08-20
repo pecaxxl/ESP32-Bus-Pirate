@@ -427,11 +427,12 @@ void UtilityController::handleHelp() {
     terminalView.println("  status               - Show Wi-Fi status");
     terminalView.println("  disconnect           - Disconnect from Wi-Fi");
     terminalView.println("  ap <ssid> <password> - Set access point");
+    terminalView.println("  ap spam              - Spam random beacons");
     terminalView.println("  ssh <h> <u> <p> [p]  - Open SSH session");
     terminalView.println("  nc <host> <port>     - Open netcat session");
     terminalView.println("  nmap <h> [-p ports]  - Scan host ports");
     terminalView.println("  webui                - Show the web UI IP");
-    terminalView.println("  deauth <ssid>        - Deauthenticate hosts on AP");
+    terminalView.println("  deauth <ssid>        - Deauthenticate hosts");
     terminalView.println("  reset                - Reset interface");
 
     terminalView.println("");
@@ -451,7 +452,7 @@ void UtilityController::handleHelp() {
     terminalView.println("");
     terminalView.println(" 17. CAN:");
     terminalView.println("  sniff                - Print all received frames");
-    terminalView.println("  send [id]            - Send frame with specified ID");
+    terminalView.println("  send [id]            - Send frame with given ID");
     terminalView.println("  receive [id]         - Capture frames with ID");
     terminalView.println("  status               - State of the CAN controller");
     terminalView.println("  config               - Configure settings");
