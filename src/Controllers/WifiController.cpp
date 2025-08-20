@@ -148,18 +148,28 @@ void WifiController::handleAp(const TerminalCommand &cmd)
 {
     auto ssid = cmd.getSubcommand();
 
+    if (ssid.empty())
+    {
+        terminalView.println("Usage: ap <ssid> <password>");
+        terminalView.println("       ap spam");
+        return;
+    }
+
     if (ssid == "spam") {
         handleApSpam();
         return;
     }
 
-    if (ssid.empty())
-    {
-        terminalView.println("Usage: ap <ssid> <password>");
+    auto full = cmd.getSubcommand() + " " + cmd.getArgs();
+
+    // Find the last space to separate SSID and password
+    size_t pos = full.find_last_of(' ');
+    if (pos == std::string::npos || pos == full.size() - 1) {
+        terminalView.println("Usage: connect <ssid> <password>");
         return;
     }
-
-    std::string password = cmd.getArgs();
+    ssid = full.substr(0, pos);
+    auto password = full.substr(pos + 1);
 
     // Already connected, mode AP+STA
     if (wifiService.isConnected())
