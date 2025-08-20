@@ -98,7 +98,10 @@ void ANetworkController::handleDiscovery(const TerminalCommand &cmd)
 
     const std::string deviceIP = phy_interface == phy_interface_t::phy_wifi ? wifiService.getLocalIP() : ethernetService.getLocalIP();
     icmpService.startDiscoveryTask(deviceIP);
-    
+    while (!icmpService.isReady()) {
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
+    terminalView.println(icmpService.getReport());
 }
 
 /*

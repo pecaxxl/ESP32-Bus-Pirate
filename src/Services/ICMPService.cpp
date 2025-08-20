@@ -87,29 +87,39 @@ void ICMPService::startDiscoveryTask(const std::string deviceIP)
         return;
     }
 
-    // Assume network mask is 255.255.255.0 for now
-    uint8_t deviceIndex = targetIP.addr & 0xFF;
+    // Octets of an IPv4 addr
+    uint8_t o1 = ip4_addr1(&targetIP);
+    uint8_t o2 = ip4_addr2(&targetIP);
+    uint8_t o3 = ip4_addr3(&targetIP);
+    uint8_t deviceIndex = ip4_addr4(&targetIP);
 
-    for (uint8_t targetIndex = 0; targetIndex < 255; targetIndex++)
+    for (uint8_t targetIndex = 1; targetIndex < 255; targetIndex++)
     {
-        char targetIPCStr[16];
-        std::string targetIPStr;
         if (targetIndex == deviceIndex)
             continue;
 
-        targetIP.addr = (targetIP.addr & 0xFFFFFF00) | targetIndex;
-        // Convert numeric IP address into decimal dotted ASCII representation
+        // Rebuild the target IP from octets
+        IP4_ADDR(&targetIP, o1, o2, o3, targetIndex);
+
+        // Convert to dotted string
+        char targetIPCStr[16];
         ip4addr_ntoa_r(&targetIP, targetIPCStr, sizeof(targetIPCStr));
-        targetIPStr = std::string(targetIPCStr);
+        std::string targetIPStr(targetIPCStr);
 
         this->cleanupICMPService();
-        auto *params = new ICMPTaskParams{targetIPStr, 5, 1000, 200, this};
-        xTaskCreatePinnedToCore(pingTask, "ICMPPing", 8192, params, 1, &pingTaskHandle, 1);
-        while (!ready){
+        auto *params = new ICMPTaskParams{targetIPStr, 2, 50, 100, this};
+        xTaskCreatePinnedToCore(pingTask, "ICMPPing", 4096, params, 1, &pingTaskHandle, 1);
+
+        while (!ready) {
             vTaskDelay(pdMS_TO_TICKS(10));
         }
+
         deviceDiscoveryReport.append(report);
     }
+
+    // Put all the results here, can be called with getReport
+    report = std::move(deviceDiscoveryReport);
+    ready = true;
 }
 
 void ICMPService::startPingTask(const std::string &host, int count, int timeout_ms, int interval_ms)
