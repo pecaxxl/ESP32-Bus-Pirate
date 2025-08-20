@@ -106,17 +106,6 @@ bool WifiService::startAccessPoint(const std::string& ssid, const std::string& p
     }
 }
 
-int WifiService::ping(const std::string& host) {
-    IPAddress ip;
-    if (!WiFi.hostByName(host.c_str(), ip)) return -1;
-
-    unsigned long start = millis();
-    bool success = Ping.ping(ip, 1);
-    unsigned long end = millis();
-
-    return success ? (end - start) : -1;
-}
-
 void WifiService::reset() {
     disconnect();
     WiFi.mode(WIFI_STA);

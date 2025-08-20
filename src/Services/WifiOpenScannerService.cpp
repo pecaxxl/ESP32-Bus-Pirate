@@ -44,25 +44,6 @@ void WifiOpenScannerService::openProbeTaskThunk(void* arg) {
     vTaskDelete(nullptr);
 }
 
-bool WifiOpenScannerService::hasInternetConnectivity(unsigned long httpTimeoutMs) {
-    HTTPClient http;
-    // 204 expected for connectivity check
-    if (http.begin("http://connectivitycheck.gstatic.com/generate_204")) {
-        http.setTimeout(httpTimeoutMs);
-        int code = http.GET();
-        http.end();
-        if (code == 204) return true;
-        if (code > 0 && code < 600) return true; // HTTP joignable
-    }
-    if (http.begin("http://example.com")) {
-        http.setTimeout(httpTimeoutMs);
-        int code = http.GET();
-        http.end();
-        return code > 0;
-    }
-    return false;
-}
-
 bool WifiOpenScannerService::isOpenAuth(int enc) {
     return enc == WIFI_AUTH_OPEN;
 }
@@ -142,29 +123,36 @@ void WifiOpenScannerService::processOneNetwork(int idx) {
     unsigned long connectMs = 0;
     const unsigned long timeoutMs = 12000;
 
-    const bool ok = connectToNetwork(ssid, /*isOpen=*/true, timeoutMs, ip, connectMs);
-    if (!ok) {
+    // IRAM overflow at compile time on M5Stick, so skip connection check
+    #ifdef DEVICE_M5STICK
         char line[256];
         snprintf(line, sizeof(line),
-                 "[TRY]  SSID=\"%s\" ENC=%s -> connect FAILED (%lums)",
-                 ssid.c_str(), encToStr(enc), connectMs);
+                "[SKIP] SSID=\"%s\" ENC=%s -> Open. Can't check internet access on M5Stick",
+                ssid.c_str(), encToStr(enc));
         pushProbeLog(line);
-        safeDisconnect();
-        return;
-    }
+    #else
+        const bool ok = connectToNetwork(ssid, /*isOpen=*/true, timeoutMs, ip, connectMs);
+        if (!ok) {
+            char line[320];
+            snprintf(line, sizeof(line),
+                    "[TRY]  SSID=\"%s\" ENC=%s -> connect FAILED (%lums)",
+                    ssid.c_str(), encToStr(enc), connectMs);
+            pushProbeLog(line);
+            safeDisconnect();
 
-    // Test HTTP/Internet
-    int httpCode = -1; unsigned long httpMs = 0;
-    const bool internet = performHttpCheck(httpCode, httpMs);
+            // Test HTTP/Internet
+            int httpCode = -1; unsigned long httpMs = 0;
+            const bool internet = performHttpCheck(httpCode, httpMs);
 
-    char line[320];
-    snprintf(line, sizeof(line),
-             "[TRY]  SSID=\"%s\" ENC=%s -> CONNECTED ip=%s (connect %lums) HTTP=%d (%s, %lums)",
-             ssid.c_str(), encToStr(enc), ip.c_str(), connectMs, httpCode,
-             internet ? "Internet OK" : "No Internet", httpMs);
-    pushProbeLog(line);
+            snprintf(line, sizeof(line),
+                    "[TRY]  SSID=\"%s\" ENC=%s -> CONNECTED ip=%s (connect %lums) HTTP=%d (%s, %lums)",
+                    ssid.c_str(), encToStr(enc), ip.c_str(), connectMs, httpCode,
+                    internet ? "Internet OK" : "No Internet", httpMs);
+            pushProbeLog(line);
 
-    safeDisconnect(50);
+            safeDisconnect(50);
+        }
+    #endif
 }
 
 bool WifiOpenScannerService::connectToNetwork(const std::string& ssid,

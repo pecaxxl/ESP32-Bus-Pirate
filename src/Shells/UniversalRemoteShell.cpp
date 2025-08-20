@@ -15,15 +15,15 @@ UniversalRemoteShell::UniversalRemoteShell(
 void UniversalRemoteShell::run() {
     // Remote actions
     const std::vector<std::string> actions = {
-        "⏻ ON/OFF",
-        "🔇 MUTE",
-        "▶️  PLAY",
-        "⏸️  PAUSE",
-        "🔊 VOL UP",
-        "🔉 VOL DOWN",
-        "🔼 CH UP",
-        "🔽 CH DOWN",
-        "🚪 EXIT SHELL"
+        " ⏻ ON/OFF",
+        " 🔇 MUTE",
+        " ▶️  PLAY",
+        " ⏸️  PAUSE",
+        " 🔊 VOL UP",
+        " 🔉 VOL DOWN",
+        " 🔼 CH UP",
+        " 🔽 CH DOWN",
+        " 🚪 EXIT SHELL"
     };
 
     terminalView.println("INFRARED: Universal IR Remote started...\n");
@@ -38,7 +38,7 @@ void UniversalRemoteShell::run() {
         }
 
         // Handle exit
-        if (actions[index] == "🚪 EXIT SHELL") {
+        if (actions[index] == " 🚪 EXIT SHELL") {
             terminalView.println("INFRARED: Exiting infrared remote shell...\n");
             break;
         }

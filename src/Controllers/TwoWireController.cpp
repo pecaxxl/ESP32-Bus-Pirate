@@ -16,7 +16,6 @@ TwoWireController::TwoWireController(
     , twoWireService(twoWireService)
     , smartCardShell(smartCardShell)
 {
-    // Additional initialization if needed
 }
 
 /*
@@ -40,7 +39,75 @@ void TwoWireController::handleInstruction(const std::vector<ByteCode>& bytecodes
 Sniff
 */
 void TwoWireController::handleSniff() {
-    terminalView.println("2WIRE Sniff [NYI]\n");
+    ensureConfigured();
+    terminalView.println("2WIRE Sniffer: Running on CLK/IO... Press [ENTER] to stop\r\n");
+
+    if (!twoWireService.startSniffer()) {
+        terminalView.println("Failed to start sniffer (check pins/config).");
+        return;
+    }
+
+    // Event types
+    const uint8_t EVT_START = 1;
+    const uint8_t EVT_STOP  = 2;
+    const uint8_t EVT_DATA  = 3;
+
+    std::vector<uint8_t> frame; // Accumulates bytes between START and STOP
+    bool running = true;
+
+    while (running) {
+        // Drain events produced by the sniffer
+        uint8_t t, d;
+        while (twoWireService.getNextSniffEvent(t, d)) {
+            if (t == EVT_START) {
+                frame.clear();
+            }
+            else if (t == EVT_DATA) {
+                frame.push_back(d);
+            }
+            else if (t == EVT_STOP) {
+                // Print cmd on a single line
+                if (frame.size() == 3) {
+                    //  3 bytes => command (OP, A, B)
+                    uint8_t op = frame[0], A = frame[1], B = frame[2];
+                    const char* name = "UNKNOWN";
+                    switch (op) {
+                        case 0x30: name = "READ_MAIN";        break;
+                        case 0x31: name = "READ_SECURITY";     break;
+                        case 0x34: name = "READ_PROTECTION";   break;
+                        case 0x33: name = "COMPARE_PSC_BYTE";  break;
+                        case 0x38: name = "WRITE_MAIN";        break;
+                        case 0x39: name = "WRITE_SECURITY";    break;
+                        case 0x3C: name = "WRITE_PROTECTION";  break;
+                    }
+                    char line[96];
+                    snprintf(line, sizeof(line),
+                             "CMD %-16s : [%02X %02X %02X]\r\n",
+                             name, op, A, B);
+                    terminalView.print(line);
+                } else {
+                    // Otherwise, consider it a response
+                    terminalView.print("RESP data            :");
+                    for (size_t i = 0; i < frame.size(); ++i) {
+                        char buf[6];
+                        snprintf(buf, sizeof(buf), " %02X", frame[i]);
+                        terminalView.print(buf);
+                    }
+                    terminalView.print("\r\n");
+                }
+                frame.clear();
+            }
+        }
+
+        // Exit on [ENTER]
+        int ch = terminalInput.readChar();
+        if (ch == '\r' || ch == '\n') {
+            running = false;
+        }
+    }
+
+    twoWireService.stopSniffer();
+    terminalView.println("\r\n2WIRE Sniffer: Stopped by user.");
 }
 
 /*
@@ -77,7 +144,7 @@ Help
 void TwoWireController::handleHelp() {
     terminalView.println("Unknown 2Wire command. Usage:");
     terminalView.println("  config");
-    terminalView.println("  sniff [NYI]");
+    terminalView.println("  sniff");
     terminalView.println("  smartcard ");
     terminalView.println("  [0xAB r:4] Instruction syntax [NYI]");
 }

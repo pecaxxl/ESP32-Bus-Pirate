@@ -1,33 +1,5 @@
 #include "Controllers/WifiController.h"
-
-/*
-Constructor
-*/
-WifiController::WifiController(
-    ITerminalView &terminalView,
-    IInput &terminalInput,
-    IInput &deviceInput,
-    WifiService &wifiService,
-    WifiOpenScannerService &wifiScannerService,
-    SshService &sshService,
-    NetcatService &netcatService,
-    NmapService &nmapService,
-    NvsService &nvsService,
-    ArgTransformer &argTransformer,
-    UserInputManager &userInputManager
-)
-    : terminalView(terminalView),
-      terminalInput(terminalInput),
-      deviceInput(deviceInput),
-      wifiService(wifiService),
-      wifiScannerService(wifiScannerService),
-      sshService(sshService),
-      netcatService(netcatService),
-      nmapService(nmapService),
-      nvsService(nvsService),
-      argTransformer(argTransformer),
-      userInputManager(userInputManager)
-{}
+#include "Vendors/wifi_atks.h"
 
 /*
 Entry point for command
@@ -179,10 +151,25 @@ void WifiController::handleAp(const TerminalCommand &cmd)
     if (ssid.empty())
     {
         terminalView.println("Usage: ap <ssid> <password>");
+        terminalView.println("       ap spam");
         return;
     }
 
-    std::string password = cmd.getArgs();
+    if (ssid == "spam") {
+        handleApSpam();
+        return;
+    }
+
+    auto full = cmd.getSubcommand() + " " + cmd.getArgs();
+
+    // Find the last space to separate SSID and password
+    size_t pos = full.find_last_of(' ');
+    if (pos == std::string::npos || pos == full.size() - 1) {
+        terminalView.println("Usage: connect <ssid> <password>");
+        return;
+    }
+    ssid = full.substr(0, pos);
+    auto password = full.substr(pos + 1);
 
     // Already connected, mode AP+STA
     if (wifiService.isConnected())
@@ -219,6 +206,25 @@ void WifiController::handleAp(const TerminalCommand &cmd)
     {
         terminalView.println("WiFi: Failed to start Access Point.");
     }
+}
+
+/*
+AP Spam
+*/
+void WifiController::handleApSpam()
+{
+    terminalView.println("WiFi: Starting beacon spam... Press [ENTER] to stop.");
+    while (true)
+    {
+        beaconCreate(); // func from Vendors/wifi_atks.h
+
+        // Enter press to stop
+        char key = terminalInput.readChar();
+        if (key == '\r' || key == '\n') break;
+        delay(10);
+    }
+
+    terminalView.println("WiFi: Beacon spam stopped.\n");
 }
 
 /*
@@ -270,13 +276,13 @@ void WifiController::handleProbe()
     }
 
     // Stop any existing probe
-    if (wifiScannerService.isOpenProbeRunning()) {
-        wifiScannerService.stopOpenProbe();
+    if (wifiOpenScannerService.isOpenProbeRunning()) {
+        wifiOpenScannerService.stopOpenProbe();
     }
-    wifiScannerService.clearProbeLog();
+    wifiOpenScannerService.clearProbeLog();
 
     // Start the open probe service
-    if (!wifiScannerService.startOpenProbe()) {
+    if (!wifiOpenScannerService.startOpenProbe()) {
         terminalView.println("WIFI: Failed to start probe.\n");
         return;
     }
@@ -284,9 +290,9 @@ void WifiController::handleProbe()
     terminalView.println("WIFI: Probe for internet access... Press [ENTER] to stop.\n");
 
     // Start the open probe task
-    while (wifiScannerService.isOpenProbeRunning()) {
+    while (wifiOpenScannerService.isOpenProbeRunning()) {
         // Display logs
-        auto batch = wifiScannerService.fetchProbeLog();
+        auto batch = wifiOpenScannerService.fetchProbeLog();
         for (auto& ln : batch) {
             terminalView.println(ln.c_str());
         }
@@ -294,7 +300,7 @@ void WifiController::handleProbe()
         // Enter Press to stop
         int ch = terminalInput.readChar();
         if (ch == '\n' || ch == '\r') {
-            wifiScannerService.stopOpenProbe();
+            wifiOpenScannerService.stopOpenProbe();
             break;
         }
 
@@ -302,29 +308,10 @@ void WifiController::handleProbe()
     }
 
     // Flush final logs
-    for (auto& ln : wifiScannerService.fetchProbeLog()) {
+    for (auto& ln : wifiOpenScannerService.fetchProbeLog()) {
         terminalView.println(ln.c_str());
     }
     terminalView.println("WIFI: Open-Wifi probe ended.\n");
-}
-
-/*
-Ping
-*/
-void WifiController::handlePing(const TerminalCommand &cmd)
-{
-    std::string host = cmd.getSubcommand();
-
-    int responseTimeMs = wifiService.ping(host);
-
-    if (responseTimeMs >= 0)
-    {
-        terminalView.println("WiFi: Ping on " + host + " successful (" + std::to_string(responseTimeMs) + " ms).");
-    }
-    else
-    {
-        terminalView.println("WiFi: Ping failed.");
-    }
 }
 
 /*
@@ -447,232 +434,6 @@ void WifiController::handleWebUi(const TerminalCommand &)
 }
 
 /*
-SSH
-*/
-void WifiController::handleSsh(const TerminalCommand &cmd)
-{
-    // Check connection
-    if (!wifiService.isConnected())
-    {
-        terminalView.println("SSH: You must be connected to Wi-Fi. Use 'connect' first.");
-        return;
-    }
-
-    // Check args
-    auto args = argTransformer.splitArgs(cmd.getArgs());
-    if (cmd.getSubcommand().empty() || args.size() < 2)
-    {
-        terminalView.println("Usage: ssh <host> <user> <password> [port]");
-        return;
-    }
-
-    // Check port
-    int port = 22;
-    if (args.size() == 3)
-    {
-        if (argTransformer.isValidNumber(args[2]))
-        {
-            port = argTransformer.parseHexOrDec16(args[2]);
-        }
-    }
-
-    std::string host = cmd.getSubcommand();
-    std::string user = args[0];
-    std::string pass = args[1];
-
-    // Connect, start the ssh task
-    terminalView.println("SSH: Connecting to " + host + " as " + user + " with port " + std::to_string(port) + "...");
-    sshService.startTask(host, user, pass, false, port);
-
-    // Wait 5sec for connection success
-    unsigned long start = millis();
-    while (!sshService.isConnected() && millis() - start < 5000)
-    {
-        delay(500);
-    }
-
-    // Can't connect
-    if (!sshService.isConnected())
-    {
-        terminalView.println("\r\nSSH: Connection failed.");
-        sshService.close();
-        return;
-    }
-
-    // Connected, start the bridge loop
-    terminalView.println("SSH: Connected. Shell started... Press [ANY ESP32 KEY] to stop.\n");
-    while (true)
-    {
-        char terminalKey = terminalInput.readChar();
-        if (terminalKey != KEY_NONE)
-            sshService.writeChar(terminalKey);
-
-        char deviceKey = deviceInput.readChar();
-        if (deviceKey != KEY_NONE)
-            break;
-
-        std::string output = sshService.readOutputNonBlocking();
-        if (!output.empty())
-            terminalView.print(output);
-
-        delay(10);
-    }
-
-    // Close SSH
-    sshService.close();
-    terminalView.println("\r\n\nSSH: Session closed.");
-}
-
-/*
-Netcat
-*/
-void WifiController::handleNetcat(const TerminalCommand &cmd)
-{
-    // Check connection
-    if (!wifiService.isConnected())
-    {
-        terminalView.println("Netcat: You must be connected to Wi-Fi. Use 'connect' first.");
-        return;
-    }
-
-    // Check args
-    auto args = argTransformer.splitArgs(cmd.getArgs());
-    if (cmd.getSubcommand().empty() || args.size() < 1)
-    {
-        terminalView.println("Usage: nc <host> <port>");
-        return;
-    }
-
-    std::string host = cmd.getSubcommand();
-    std::string port_str = args[0];
-
-    // Check port
-    int port = 1;
-    if (argTransformer.isValidNumber(port_str))
-    {
-        port = argTransformer.parseHexOrDec16(port_str);
-    }
-    else
-    {
-        terminalView.println("Netcat: Invalid port number. Use a valid integer.");
-        return;
-    }
-
-    if (port < 1 || port > 65535)
-    {
-        terminalView.println("Netcat: Port must be between 1 and 65535.");
-        return;
-    }
-
-    // Connect, start the netcat task
-    terminalView.println("Netcat: Connecting to " + host + " with port " + port_str + "...");
-    netcatService.startTask(host, 0, port, true);
-
-    // Wait 5sec for connection success
-    unsigned long start = millis();
-    while (!netcatService.isConnected() && millis() - start < 5000)
-    {
-        delay(50);
-    }
-
-    // Can't connect
-    if (!netcatService.isConnected())
-    {
-        terminalView.println("\r\nNetcat: Connection failed.");
-        netcatService.close();
-        return;
-    }
-
-    // Connected, start the bridge loop
-    terminalView.println("Netcat: Connected. Shell started...\n");
-    terminalView.println("Press [CTRL+C],[ESC] or [ANY ESP32 BUTTON] to stop.\n");
-
-    while (true)
-    {
-        char deviceKey = deviceInput.readChar();
-        if (deviceKey != KEY_NONE)
-            break;
-
-        char terminalKey = terminalInput.readChar();
-        if (terminalKey == KEY_NONE){
-            continue;
-        }
-
-        netcatService.writeChar(terminalKey);
-        terminalView.print(std::string(1, terminalKey));        // local echo
-        if (terminalKey == 0x1B || terminalKey == 0x03) break;  // ESC or CTRL+C to exit
-        if (terminalKey == '\r' || terminalKey == '\n')
-            terminalView.println("");
-
-        std::string output = netcatService.readOutputNonBlocking();
-        if (!output.empty())
-            terminalView.print(output);
-
-        delay(10);
-    }
-
-    // Close Netcat
-    netcatService.close();
-    terminalView.println("\r\n\nNetcat: Session closed.");
-}
-
-/*
-Nmap
-*/
-void WifiController::handleNmap(const TerminalCommand &cmd)
-{
-    // Check connection
-    if (!wifiService.isConnected())
-    {
-        terminalView.println("Nmap: You must be connected to Wi-Fi. Use 'connect' first.");
-        return;
-    }
-
-    auto args = argTransformer.splitArgs(cmd.getArgs());
-
-    // Parse args
-    // Parse hosts first
-    auto hosts_arg = cmd.getSubcommand();
-    if(!nmapService.parseHosts(hosts_arg)) {
-        terminalView.println("Nmap: Invalid host.");
-        return;
-    }
-
-    nmapService.setArgTransformer(argTransformer);
-    auto tokens = argTransformer.splitArgs(cmd.getArgs());
-    auto options = NmapService::parseNmapArgs(tokens);
-
-    if (options.hasTrash){
-        // TODO handle this better
-        //terminalView.println("Nmap: Invalid options.");
-    }
-
-    if (options.hasPort) {
-        // Parse ports
-        if (!nmapService.parsePorts(options.ports)) {
-            terminalView.println("Nmap: invalid -p value. Use 80,22,443 or 1000-2000.");
-            return;
-        }
-        nmapService.setLayer4(options.tcp);
-    } else {
-        // Set the most popular ports
-        nmapService.setDefaultPorts(options.tcp);
-        terminalView.println("Nmap: Using default ports.");
-    }
-
-    nmapService.startTask(options.verbosity);
-    
-    while(!nmapService.isReady()){
-        delay(100);
-    }
-
-    terminalView.println(nmapService.getReport());
-    nmapService.clean();
-    
-    terminalView.println("\r\n\nNmap: Scan finished.");
-}
-
-/*
 Config
 */
 void WifiController::handleConfig()
@@ -700,9 +461,10 @@ void WifiController::handleHelp()
     terminalView.println("  status");
     terminalView.println("  disconnect");
     terminalView.println("  ap <ssid> <password>");
+    terminalView.println("  ap spam");
     terminalView.println("  ssh <host> <username> <password> [port]");
     terminalView.println("  nc <host> <port>");
-    terminalView.println("  nmap <host> <port>");
+    terminalView.println("  nmap <host> [port]");
     terminalView.println("  webui");
     terminalView.println("  reset");
     terminalView.println("  deauth <ssid>");

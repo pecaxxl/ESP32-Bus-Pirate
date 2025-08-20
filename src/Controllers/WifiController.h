@@ -7,29 +7,18 @@
 #include <Services/SshService.h>
 #include <Services/NetcatService.h>
 #include <Services/NmapService.h>
+#include <Services/ICMPService.h>
 #include <Services/WifiOpenScannerService.h>
 #include <Transformers/ArgTransformer.h>
 #include <Managers/UserInputManager.h>
 #include <Models/TerminalCommand.h>
 #include <States/GlobalState.h>
+#include <Abstracts/ANetworkController.h>
 #include <Preferences.h>
 
-class WifiController {
+class WifiController : public ANetworkController {
 public:
-    // Constructor
-    WifiController(
-        ITerminalView& terminalView, 
-        IInput& terminalInput, 
-        IInput& deviceInput,
-        WifiService& wifiService, 
-        WifiOpenScannerService& wifiScannerService, 
-        SshService& sshService,
-        NetcatService& netcatService,
-        NmapService& nmapService,
-        NvsService& nvsService,
-        ArgTransformer& argTransformer,
-        UserInputManager& userInputManager
-    );
+    using ANetworkController::ANetworkController;
 
     //  Entry point for Wi-Fi command
     void handleCommand(const TerminalCommand& cmd);
@@ -38,17 +27,6 @@ public:
     void ensureConfigured();
 
 private:
-    ITerminalView& terminalView;
-    IInput& terminalInput;
-    IInput& deviceInput;
-    WifiService& wifiService;
-    WifiOpenScannerService& wifiScannerService;
-    NvsService& nvsService;
-    SshService& sshService;
-    NetcatService& netcatService;
-    NmapService& nmapService;
-    ArgTransformer& argTransformer;
-    UserInputManager& userInputManager;
     GlobalState& state = GlobalState::getInstance();
     bool configured = false;
     Preferences preferences;
@@ -65,11 +43,11 @@ private:
     // Configure and start Access Point mode
     void handleAp(const TerminalCommand& cmd);
 
+    // Spam random acccess point
+    void handleApSpam();
+
     // Perform Wi-Fi network scan
     void handleScan(const TerminalCommand& cmd);
-
-    // Ping a target over Wi-Fi
-    void handlePing(const TerminalCommand& cmd);
 
     // Start probing open networks for net access
     void handleProbe();
@@ -83,15 +61,6 @@ private:
     // Spoof Mac addr
     void handleSpoof(const TerminalCommand& cmd);
 
-    // Connect to SSH host
-    void handleSsh(const TerminalCommand& cmd);
-
-    // Connect using netcat 
-    void handleNetcat(const TerminalCommand& cmd);
-
-    // Scan using nmap
-    void handleNmap(const TerminalCommand& cmd);
-
     // Deauthentication attack
     void handleDeauth(const TerminalCommand& cmd);
 
@@ -103,6 +72,4 @@ private:
 
     // Show help for Wi-Fi commands
     void handleHelp();
-
-
 };

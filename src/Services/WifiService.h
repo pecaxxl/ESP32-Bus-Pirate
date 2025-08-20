@@ -1,7 +1,6 @@
 #pragma once
 
 #include <WiFi.h>
-#include <ESP32Ping.h>
 #include <string>
 #include <vector>
 #include <sstream>
@@ -70,9 +69,6 @@ public:
     
     // Access point
     bool startAccessPoint(const std::string& ssid, const std::string& password = "", int channel = 1, int maxConn = 4);
-    
-    // Ping
-    int ping(const std::string& host);
 
     // Spoof MAC
     bool spoofMacAddress(const std::string& macStr, MacInterface which);

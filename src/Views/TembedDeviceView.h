@@ -4,6 +4,7 @@
 
 #include "Interfaces/IDeviceView.h"
 #include <TFT_eSPI.h>
+#include "States/GlobalState.h"
 
 
 #ifdef DEVICE_TEMBEDS3CC1101

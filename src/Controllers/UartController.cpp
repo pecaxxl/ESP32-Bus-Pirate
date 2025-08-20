@@ -311,19 +311,28 @@ void UartController::handleSpam(const TerminalCommand& cmd) {
         return;
     }
 
-    std::string text = argTransformer.decodeEscapes(cmd.getSubcommand());
-    std::vector<std::string> args = argTransformer.splitArgs(cmd.getArgs());
+    // Find the last space to separate SSID and password
+    std::string full = cmd.getSubcommand() + " " + cmd.getArgs();
+    size_t pos = full.find_last_of(' ');
+    if (pos == std::string::npos || pos == full.size() - 1) {
+        terminalView.println("Usage: spam <text> <ms>");
+        return;
+    }
+    auto textRaw = full.substr(0, pos);
+    auto msRaw = full.substr(pos + 1);
 
-    if (args.empty() || !argTransformer.isValidNumber(args[0])) {
+    std::string text = argTransformer.decodeEscapes(textRaw);
+
+    if (!argTransformer.isValidNumber(msRaw)) {
         terminalView.println("Usage: spam <text> <ms>");
         return;
     }
 
-    uint32_t delayMs = std::stoi(args[0]);
+    uint32_t delayMs = argTransformer.toUint32(msRaw);
     unsigned long lastSend = 0;
 
     terminalView.println(
-        "UART Spam: Sending \"" + cmd.getSubcommand() + 
+        "UART Spam: Sending \"" + text + 
         "\" every " + std::to_string(delayMs) + 
         " ms at baud " + std::to_string(state.getUartBaudRate()) + 
         "... Press [ENTER] to stop."
