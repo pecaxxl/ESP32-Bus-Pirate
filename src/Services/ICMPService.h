@@ -2,9 +2,9 @@
 #include <string>
 
 enum phy_interface_t {
-    None,
-    WiFi,
-    Eth
+    phy_none,
+    phy_wifi,
+    phy_eth
 };
 
 class ICMPService {

@@ -25,11 +25,13 @@ struct ICMPTaskParams
 
 ICMPService::ICMPService() {}
 
-ICMPService::~ICMPService() {
+ICMPService::~ICMPService()
+{
     cleanupICMPService();
 }
 
-void ICMPService::cleanupICMPService(){
+void ICMPService::cleanupICMPService()
+{
     // Reset last results
     ready = false;
     ping_up = false;
@@ -72,16 +74,49 @@ static int median_ms(std::vector<uint32_t> &v)
     return (int)((v[n / 2 - 1] + v[n / 2] + 1) / 2);
 }
 
-void ICMPService::startDiscoveryTask(const std::string deviceIP){
+void ICMPService::startDiscoveryTask(const std::string deviceIP)
+{
+    std::string deviceDiscoveryReport = "Discovery: scanning network for devices...\r\n";
+    std::string deviceIPcopy = deviceIP;
+    ip4_addr_t targetIP;
+    TaskHandle_t pingTaskHandle = nullptr;
+
+    if (!ip4addr_aton(deviceIPcopy.c_str(), &targetIP))
+    {
+        report = "Discovery: failed to parse IP address " + deviceIP + "\r\n";
+        return;
+    }
+
     // Assume network mask is 255.255.255.0 for now
-    
+    uint8_t deviceIndex = targetIP.addr & 0xFF;
+
+    for (uint8_t targetIndex = 0; targetIndex < 255; targetIndex++)
+    {
+        char targetIPCStr[16];
+        std::string targetIPStr;
+        if (targetIndex == deviceIndex)
+            continue;
+
+        targetIP.addr = (targetIP.addr & 0xFFFFFF00) | targetIndex;
+        // Convert numeric IP address into decimal dotted ASCII representation
+        ip4addr_ntoa_r(&targetIP, targetIPCStr, sizeof(targetIPCStr));
+        targetIPStr = std::string(targetIPCStr);
+
+        this->cleanupICMPService();
+        auto *params = new ICMPTaskParams{targetIPStr, 5, 1000, 200, this};
+        xTaskCreatePinnedToCore(pingTask, "ICMPPing", 8192, params, 1, &pingTaskHandle, 1);
+        while (!ready){
+            vTaskDelay(pdMS_TO_TICKS(10));
+        }
+        deviceDiscoveryReport.append(report);
+    }
 }
 
 void ICMPService::startPingTask(const std::string &host, int count, int timeout_ms, int interval_ms)
 {
     // Cleanup first
     this->cleanupICMPService();
-    
+
     auto *params = new ICMPTaskParams{host,
                                       count > 0 ? count : 5,
                                       timeout_ms > 0 ? timeout_ms : 1000,

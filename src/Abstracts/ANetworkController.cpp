@@ -64,7 +64,7 @@ void ANetworkController::handleDiscovery(const TerminalCommand &cmd)
 {
     bool wifiConnected = wifiService.isConnected();
     bool ethConnected = ethernetService.isConnected();
-    phy_interface_t phy_interface = phy_interface_t::None;
+    phy_interface_t phy_interface = phy_interface_t::phy_none;
 
     if (!wifiConnected && !ethConnected) {
         terminalView.println("Discovery: You must be connected to Wi-Fi or Ethernet. Use 'connect' first.");
@@ -76,27 +76,27 @@ void ANetworkController::handleDiscovery(const TerminalCommand &cmd)
     if (cmd.getSubcommand().empty() || args.size() < 1) {
         if (wifiConnected){
             terminalView.println("Discovery: Using WiFi as default interface.");
-            phy_interface = phy_interface_t::WiFi;
+            phy_interface = phy_interface_t::phy_wifi;
         }
         else{
             terminalView.println("Discovery: Using Ethernet as default interface.");
-            phy_interface = phy_interface_t::Eth;
+            phy_interface = phy_interface_t::phy_eth;
         }
     }
     else {
         if (cmd.getSubcommand() == "eth"){
             terminalView.println("Discovery: Using Ethernet as default interface.");
-            phy_interface = phy_interface_t::Eth;  
+            phy_interface = phy_interface_t::phy_eth;  
         }else if (cmd.getSubcommand() == "wifi"){ 
             terminalView.println("Discovery: Using WiFi as default interface.");
-            phy_interface = phy_interface_t::WiFi;
+            phy_interface = phy_interface_t::phy_wifi;
         }
         else {
             terminalView.println("Discovery: Invalid interface. Use 'wifi' or 'eth'.");
         }
     }
 
-    const std::string deviceIP = phy_interface == phy_interface_t::WiFi ? wifiService.getLocalIP() : ethernetService.getLocalIP();
+    const std::string deviceIP = phy_interface == phy_interface_t::phy_wifi ? wifiService.getLocalIP() : ethernetService.getLocalIP();
     icmpService.startDiscoveryTask(deviceIP);
     
 }
