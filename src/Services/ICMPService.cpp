@@ -329,6 +329,14 @@ void ICMPService::pushICMPLog(const std::string& line) {
     portEXIT_CRITICAL(&icmpMux);
 }
 
+bool ICMPService::getICMPServiceStatus() {
+    bool v;
+    portENTER_CRITICAL(&ICMPService::icmpMux);
+    v = ICMPService::stopICMPFlag;
+    portEXIT_CRITICAL(&ICMPService::icmpMux);
+    return v;
+}
+
 std::vector<std::string> ICMPService::fetchICMPLog() {
     std::vector<std::string> batch;
     portENTER_CRITICAL(&ICMPService::icmpMux);

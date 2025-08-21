@@ -63,7 +63,7 @@ private:
     static bool stopICMPFlag;
 
     static void pushICMPLog(const std::string& line);
-    static bool getICMPServiceStatus() { return stopICMPFlag; }
+    static bool getICMPServiceStatus();
     // Clears non-static variables
     void cleanupICMPService();
 };
