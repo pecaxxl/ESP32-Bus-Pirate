@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <vector>
+#include <freertos/FreeRTOS.h>
 
 enum phy_interface_t {
     phy_none,
@@ -38,6 +40,11 @@ public:
     // Task entry
     static void pingAPI(void *pvParams);
 
+    // Responsive ICMP logging
+    std::vector<std::string> fetchICMPLog();
+    static void clearICMPLogging();
+    static void stopICMPService();
+
 private:
     bool ready = false;
     int  pingMedianMs = -1;
@@ -46,5 +53,14 @@ private:
     std::string report;
     ping_rc_t pingRC = ping_rc_t::ping_error;
 
+    // Log buffer thread safe
+    static portMUX_TYPE icmpMux;
+    static std::vector<std::string> icmpLog;
+    static constexpr size_t ICMP_LOG_MAX = 200;
+    static bool stopICMPFlag;
+
+    static void pushICMPLog(const std::string& line);
+    static bool getICMPServiceStatus() { return stopICMPFlag; }
+    // Clears non-static variables
     void cleanupICMPService();
 };

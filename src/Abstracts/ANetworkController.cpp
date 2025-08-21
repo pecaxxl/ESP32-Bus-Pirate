@@ -125,10 +125,37 @@ void ANetworkController::handleDiscovery(const TerminalCommand &cmd)
 
     const std::string deviceIP = phy_interface == phy_interface_t::phy_wifi ? wifiService.getLocalIP() : ethernetService.getLocalIP();
     icmpService.startDiscoveryTask(deviceIP);
+
     while (!icmpService.isReady()) {
-        vTaskDelay(pdMS_TO_TICKS(50));
+        terminalView.print("HERE");
+        // Display logs
+        auto batch = icmpService.fetchICMPLog();
+        for (auto& ln : batch) {
+            terminalView.println(ln);
+        }
+
+        // Enter Press to stop
+        int terminalKey = terminalInput.readChar();
+        if (terminalKey == '\n' || terminalKey == '\r') {
+            icmpService.stopICMPService();
+            break;
+        }
+        char deviceKey = deviceInput.readChar();
+        if (deviceKey == KEY_OK) {
+            icmpService.stopICMPService();
+            break;
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
-    terminalView.println(icmpService.getReport());
+
+    // Flush final logs
+    for (auto& ln : icmpService.fetchICMPLog()) {
+        terminalView.println(ln);
+    }
+
+    ICMPService::clearICMPLogging();
+    //terminalView.println(icmpService.getReport());
 }
 
 /*

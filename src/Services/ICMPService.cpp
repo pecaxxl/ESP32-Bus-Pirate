@@ -13,6 +13,10 @@ extern "C"
 #include "esp_ping.h"
 }
 
+portMUX_TYPE ICMPService::icmpMux = portMUX_INITIALIZER_UNLOCKED;
+std::vector<std::string> ICMPService::icmpLog;
+bool ICMPService::stopICMPFlag = false;
+
 // Task params
 struct ICMPTaskParams
 {
@@ -90,8 +94,11 @@ void ICMPService::startDiscoveryTask(const std::string deviceIP)
     TaskHandle_t pingTaskHandle = nullptr;
     uint32_t targetsResponded = 0;
 
+    pushICMPLog("Discovery: scanning network for devices...");
+
     if (!ip4addr_aton(deviceIPcopy.c_str(), &targetIP))
     {
+        pushICMPLog("Discovery: failed to parse IP address " + deviceIP);
         report = "Discovery: failed to parse IP address " + deviceIP + "\r\n";
         return;
     }
@@ -104,6 +111,13 @@ void ICMPService::startDiscoveryTask(const std::string deviceIP)
 
     for (uint8_t targetIndex = 1; targetIndex < 255; targetIndex++)
     {
+        if (ICMPService::getICMPServiceStatus() == true)
+        {
+            pushICMPLog("Discovery: stopped by user");
+            report = "Discovery: stopped by user\r\n";
+            return;
+        }
+
         if (targetIndex == deviceIndex)
             continue;
 
@@ -124,14 +138,19 @@ void ICMPService::startDiscoveryTask(const std::string deviceIP)
             vTaskDelay(pdMS_TO_TICKS(10));
         }
         if (this->pingRC == ping_rc_t::ping_ok){
+            pushICMPLog("Device found: " + targetIPStr);
             deviceDiscoveryReport += "Device found: " + targetIPStr + "\r\n";
             targetsResponded++;
         }
         deviceDiscoveryReport.append(report);
     }
 
+    pushICMPLog(std::to_string(targetsResponded) + " devices up, pinged " + 
+        std::to_string(254 - targetsResponded) + " devices down");
+
     deviceDiscoveryReport += std::to_string(targetsResponded) + " devices up, pinged " + 
         std::to_string(254 - targetsResponded) + " devices down\r\n";
+    
     // Put all the results here, can be called with getReport
     report = std::move(deviceDiscoveryReport);
     ready = true;
@@ -256,4 +275,35 @@ void ICMPService::pingAPI(void *pvParams)
 
     delete params;
     vTaskDelete(nullptr);
+}
+
+void ICMPService::clearICMPLogging() {
+    portENTER_CRITICAL(&icmpMux);
+    icmpLog.clear();
+    stopICMPFlag = false;
+    portEXIT_CRITICAL(&icmpMux);
+}
+
+void ICMPService::pushICMPLog(const std::string& line) {
+    portENTER_CRITICAL(&icmpMux);
+    icmpLog.push_back(line);
+    if (icmpLog.size() > ICMP_LOG_MAX) {
+        size_t excess = icmpLog.size() - ICMP_LOG_MAX;
+        icmpLog.erase(icmpLog.begin(), icmpLog.begin() + excess);
+    }
+    portEXIT_CRITICAL(&icmpMux);
+}
+
+std::vector<std::string> ICMPService::fetchICMPLog() {
+    std::vector<std::string> batch;
+    portENTER_CRITICAL(&ICMPService::icmpMux);
+    batch.swap(ICMPService::icmpLog);
+    portEXIT_CRITICAL(&ICMPService::icmpMux);
+    return batch;
+}
+
+void ICMPService::stopICMPService(){
+    portENTER_CRITICAL(&ICMPService::icmpMux);
+    ICMPService::stopICMPFlag = true;
+    portEXIT_CRITICAL(&ICMPService::icmpMux);
 }
