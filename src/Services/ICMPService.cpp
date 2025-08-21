@@ -159,7 +159,7 @@ void ICMPService::discoveryTask(void* params){
         // This is quite unusable since it takes 5sec per ping
         // TODO: find a better way
         const unsigned long t0 = millis();
-        const bool ok = Ping.ping(targetIPStr.c_str());
+        const bool ok = Ping.ping(targetIPStr.c_str(), 1);
         const unsigned long t1 = millis();
         if (ok) {
             pushICMPLog("Device found: " + targetIPStr);
