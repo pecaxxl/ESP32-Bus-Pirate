@@ -41,6 +41,7 @@ protected:
     void handleNmap(const TerminalCommand& cmd);
     void handleSsh(const TerminalCommand& cmd);
     void handlePing(const TerminalCommand& cmd);
+    void handleDiscovery(const TerminalCommand &cmd);
 
 protected:
     ITerminalView&     terminalView;

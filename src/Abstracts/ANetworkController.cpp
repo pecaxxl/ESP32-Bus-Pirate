@@ -42,22 +42,121 @@ void ANetworkController::handlePing(const TerminalCommand &cmd)
     }
 
     const std::string host = cmd.getSubcommand();
-    if (host.empty()) {
-        terminalView.println("Usage: ping <host|ip>");
+    if (host.empty() || host == "-h" || host == "--help") {
+        terminalView.println(icmpService.getPingHelp());
+        return;
+    }   
+
+    auto args = argTransformer.splitArgs(cmd.getArgs());
+    int pingCount = 5, pingTimeout = 1000, pingInterval = 200;
+
+    for (int i=0;i<args.size();i++) {
+        if (args[i].empty()) continue; // Skip empty args
+        auto argument = args[i];
+        if (argument == "-h" || argument == "--help") {
+            terminalView.println(icmpService.getPingHelp());
+            return;
+        } else if (argument == "-c") {
+            if (++i < args.size()) {
+                if (!argTransformer.parseInt(args[i], pingCount) || args[i].empty()) {
+                    terminalView.println("Invalid count value.");
+                    return;
+                }
+            }
+        } else if (argument == "-t") {
+            if (++i < args.size()) {
+                if (!argTransformer.parseInt(args[i], pingTimeout) || args[i].empty()) {
+                    terminalView.println("Invalid timeout value.");
+                    return;
+                }
+            }
+        } else if (argument == "-i") {
+            if (++i < args.size()) {
+                if (!argTransformer.parseInt(args[i], pingInterval) || args[i].empty()) {
+                    terminalView.println("Invalid interval value.");
+                    return;
+                }
+            }
+        }
+    }
+
+    icmpService.startPingTask(host, pingCount, pingTimeout, pingInterval);
+    while (!icmpService.isPingReady())
+        vTaskDelay(pdMS_TO_TICKS(50));
+
+    terminalView.print(icmpService.getReport());
+}
+
+void ANetworkController::handleDiscovery(const TerminalCommand &cmd)
+{
+    bool wifiConnected = wifiService.isConnected();
+    bool ethConnected = ethernetService.isConnected();
+    phy_interface_t phy_interface = phy_interface_t::phy_none;
+
+    if (!wifiConnected && !ethConnected) {
+        terminalView.println("Discovery: You must be connected to Wi-Fi or Ethernet. Use 'connect' first.");
         return;
     }
 
-    icmpService.startPingTask(host, 5, 1000, 200);
-    while (!icmpService.isReady()) 
-        vTaskDelay(pdMS_TO_TICKS(50));
-
-    if (icmpService.lastPingUp()) {
-        terminalView.println("UP, median " + std::to_string(icmpService.lastMedianMs()) + " ms");
-    } else {
-        terminalView.println("DOWN");
+    // Which interface to scan
+    auto args = argTransformer.splitArgs(cmd.getArgs());
+    if (cmd.getSubcommand().empty() || args.size() < 1) {
+        if (wifiConnected){
+            terminalView.println("Discovery: Using WiFi as default interface.");
+            phy_interface = phy_interface_t::phy_wifi;
+        }
+        else{
+            terminalView.println("Discovery: Using Ethernet as default interface.");
+            phy_interface = phy_interface_t::phy_eth;
+        }
+    }
+    else {
+        if (cmd.getSubcommand() == "eth"){
+            terminalView.println("Discovery: Using Ethernet as default interface.");
+            phy_interface = phy_interface_t::phy_eth;  
+        }else if (cmd.getSubcommand() == "wifi"){ 
+            terminalView.println("Discovery: Using WiFi as default interface.");
+            phy_interface = phy_interface_t::phy_wifi;
+        }
+        else {
+            terminalView.println("Discovery: Invalid interface. Use 'wifi' or 'eth'.");
+        }
     }
 
-    terminalView.print(icmpService.getReport());
+    const std::string deviceIP = phy_interface == phy_interface_t::phy_wifi ? wifiService.getLocalIP() : ethernetService.getLocalIP();
+    icmpService.startDiscoveryTask(deviceIP);
+
+    while (!icmpService.isDiscoveryReady()) {
+        // Display logs
+        auto batch = icmpService.fetchICMPLog();
+        for (auto& line : batch) {
+            terminalView.println(line);
+        }
+
+        // Enter Press to stop
+        int terminalKey = terminalInput.readChar();
+        if (terminalKey == '\n' || terminalKey == '\r') {
+            icmpService.stopICMPService();
+            break;
+        }
+        char deviceKey = deviceInput.readChar();
+        if (deviceKey == KEY_OK) {
+            icmpService.stopICMPService();
+            break;
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+
+    delay(500);
+    // Flush final logs
+    for (auto& line : icmpService.fetchICMPLog()) {
+        terminalView.println(line);
+    }
+
+    ICMPService::clearICMPLogging();
+    icmpService.clearDiscoveryFlag();
+    //terminalView.println(icmpService.getReport());
 }
 
 /*

@@ -21,6 +21,7 @@ void WifiController::handleCommand(const TerminalCommand &cmd)
     else if (root == "ssh") handleSsh(cmd);
     else if (root == "nc") handleNetcat(cmd);
     else if (root == "nmap") handleNmap(cmd);
+    else if (root == "discovery") handleDiscovery(cmd);
     else if (root == "reset") handleReset();
     else if (root == "deauth") handleDeauth(cmd);
     else handleHelp();
@@ -454,6 +455,7 @@ void WifiController::handleHelp()
     terminalView.println("  scan");
     terminalView.println("  connect");
     terminalView.println("  ping <host>");
+    terminalView.println("  discovery [wifi|eth]");
     terminalView.println("  sniff");
     terminalView.println("  probe");
     terminalView.println("  spoof sta <mac>");
