@@ -17,7 +17,6 @@ enum ping_rc_t {
     ping_error
 };
 
-
 class ICMPService {
 public:
     ICMPService();
@@ -27,16 +26,18 @@ public:
     void startPingTask(const std::string& host, int count = 5, int timeout_ms = 1000, int interval_ms = 200);
     // Discovery of devices
     void startDiscoveryTask(const std::string deviceIP);
+    static void discoveryTask(void* params);
 
     // Results
-    bool isReady() const { return ready; }
+    bool isPingReady() const { return pingReady; }
     ping_rc_t lastRc() const { return pingRC; }
     int lastMedianMs() const { return pingMedianMs; }
     int lastSent() const { return pingTX; }
     int lastRecv() const { return pingRX; }
     const std::string& getReport() const { return report; }
     std::string getPingHelp() const;
-    
+    bool isDiscoveryReady() const { return discoveryReady; }
+
     // Task entry
     static void pingAPI(void *pvParams);
 
@@ -44,14 +45,16 @@ public:
     std::vector<std::string> fetchICMPLog();
     static void clearICMPLogging();
     static void stopICMPService();
+    void clearDiscoveryFlag() { discoveryReady = false; }
 
 private:
-    bool ready = false;
+    bool pingReady = false;
     int  pingMedianMs = -1;
     int  pingTX = 0;
     int  pingRX = 0;
     std::string report;
     ping_rc_t pingRC = ping_rc_t::ping_error;
+    bool discoveryReady = false;
 
     // Log buffer thread safe
     static portMUX_TYPE icmpMux;

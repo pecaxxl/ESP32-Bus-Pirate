@@ -81,7 +81,7 @@ void ANetworkController::handlePing(const TerminalCommand &cmd)
     }
 
     icmpService.startPingTask(host, pingCount, pingTimeout, pingInterval);
-    while (!icmpService.isReady())
+    while (!icmpService.isPingReady())
         vTaskDelay(pdMS_TO_TICKS(50));
 
     terminalView.print(icmpService.getReport());
@@ -126,8 +126,7 @@ void ANetworkController::handleDiscovery(const TerminalCommand &cmd)
     const std::string deviceIP = phy_interface == phy_interface_t::phy_wifi ? wifiService.getLocalIP() : ethernetService.getLocalIP();
     icmpService.startDiscoveryTask(deviceIP);
 
-    while (!icmpService.isReady()) {
-        terminalView.print("HERE");
+    while (!icmpService.isDiscoveryReady()) {
         // Display logs
         auto batch = icmpService.fetchICMPLog();
         for (auto& ln : batch) {
@@ -155,6 +154,7 @@ void ANetworkController::handleDiscovery(const TerminalCommand &cmd)
     }
 
     ICMPService::clearICMPLogging();
+    icmpService.clearDiscoveryFlag();
     //terminalView.println(icmpService.getReport());
 }
 

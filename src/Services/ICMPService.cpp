@@ -27,6 +27,12 @@ struct ICMPTaskParams
     ICMPService *service;
 };
 
+struct DiscoveryTaskParams
+{
+    std::string deviceIP;
+    ICMPService *service;
+};
+
 ICMPService::ICMPService() {}
 
 ICMPService::~ICMPService()
@@ -37,7 +43,7 @@ ICMPService::~ICMPService()
 void ICMPService::cleanupICMPService()
 {
     // Reset last results
-    ready = false;
+    pingReady = false;
     pingRC = ping_rc_t::ping_error;
     pingMedianMs = -1;
     pingTX = 0;
@@ -86,20 +92,18 @@ static int median_ms(std::vector<uint32_t> &v)
     return (int)((v[n / 2 - 1] + v[n / 2] + 1) / 2);
 }
 
-void ICMPService::startDiscoveryTask(const std::string deviceIP)
-{
-    std::string deviceDiscoveryReport = "Discovery: scanning network for devices...\r\n";
-    std::string deviceIPcopy = deviceIP;
+void ICMPService::discoveryTask(void* params){
+    auto* taskParams = static_cast<DiscoveryTaskParams*>(params);
+    std::string deviceIP = taskParams->deviceIP;
+    ICMPService* service = taskParams->service;
     ip4_addr_t targetIP;
-    TaskHandle_t pingTaskHandle = nullptr;
     uint32_t targetsResponded = 0;
 
-    pushICMPLog("Discovery: scanning network for devices...");
+    pushICMPLog("Discovery: Scanning network for devices...");
 
-    if (!ip4addr_aton(deviceIPcopy.c_str(), &targetIP))
+    if (!ip4addr_aton(deviceIP.c_str(), &targetIP))
     {
         pushICMPLog("Discovery: failed to parse IP address " + deviceIP);
-        report = "Discovery: failed to parse IP address " + deviceIP + "\r\n";
         return;
     }
 
@@ -114,7 +118,6 @@ void ICMPService::startDiscoveryTask(const std::string deviceIP)
         if (ICMPService::getICMPServiceStatus() == true)
         {
             pushICMPLog("Discovery: stopped by user");
-            report = "Discovery: stopped by user\r\n";
             return;
         }
 
@@ -129,31 +132,38 @@ void ICMPService::startDiscoveryTask(const std::string deviceIP)
         ip4addr_ntoa_r(&targetIP, targetIPCStr, sizeof(targetIPCStr));
         std::string targetIPStr(targetIPCStr);
 
-        this->cleanupICMPService();
-        auto *params = new ICMPTaskParams{targetIPStr, 1, 100, 100, this};
-        xTaskCreatePinnedToCore(pingAPI, "ICMPPing", 4096, params, 1, &pingTaskHandle, 1);
+        service->cleanupICMPService();
+        auto *params = new ICMPTaskParams{targetIPStr, 2, 150, 100, service};
+        xTaskCreatePinnedToCore(pingAPI, "ICMPPing", 4096, params, 1, nullptr, 1);
 
-        while (!this->ready)
+        while (!service->pingReady)
         {
             vTaskDelay(pdMS_TO_TICKS(10));
         }
-        if (this->pingRC == ping_rc_t::ping_ok){
+        if (service->pingRC == ping_rc_t::ping_ok){
             pushICMPLog("Device found: " + targetIPStr);
-            deviceDiscoveryReport += "Device found: " + targetIPStr + "\r\n";
             targetsResponded++;
         }
-        deviceDiscoveryReport.append(report);
     }
 
     pushICMPLog(std::to_string(targetsResponded) + " devices up, pinged " + 
         std::to_string(254 - targetsResponded) + " devices down");
 
-    deviceDiscoveryReport += std::to_string(targetsResponded) + " devices up, pinged " + 
-        std::to_string(254 - targetsResponded) + " devices down\r\n";
-    
-    // Put all the results here, can be called with getReport
-    report = std::move(deviceDiscoveryReport);
-    ready = true;
+    service->discoveryReady = true;
+
+    delete taskParams;
+    vTaskDelete(nullptr);
+}
+
+void ICMPService::startDiscoveryTask(const std::string deviceIP)
+{
+    report.clear();
+    discoveryReady = false;
+    stopICMPFlag = false;
+
+    // Start job
+    auto* p = new DiscoveryTaskParams{deviceIP, this};
+    xTaskCreatePinnedToCore(discoveryTask, "ICMPDiscover", 8192, p, 1, nullptr, 0);
 }
 
 void ICMPService::startPingTask(const std::string &targetIP, int count, int timeout_ms, int interval_ms)
@@ -168,7 +178,7 @@ void ICMPService::startPingTask(const std::string &targetIP, int count, int time
                                       this};
     xTaskCreatePinnedToCore(pingAPI, "ICMPPing", 4096, params, 1, nullptr, 1);
 
-    while(!this->ready)
+    while(!this->pingReady)
         vTaskDelay(pdMS_TO_TICKS(10));
 
     // Prepare the report
@@ -198,7 +208,7 @@ void ICMPService::pingAPI(void *pvParams)
     if (!resolve_ipv4_to_ip_addr(params->targetIP, target))
     {
         service->pingRC = ping_rc_t::ping_resolve_fail;
-        service->ready = true;
+        service->pingReady = true;
         delete params;
         vTaskDelete(nullptr);
         return;
@@ -241,7 +251,7 @@ void ICMPService::pingAPI(void *pvParams)
     if (esp_ping_new_session(&config, &cbs, &h) != ESP_OK)
     {
         service->pingRC = ping_rc_t::ping_session_fail;
-        service->ready = true;
+        service->pingReady = true;
         delete params;
         vTaskDelete(nullptr);
         return;
@@ -271,7 +281,7 @@ void ICMPService::pingAPI(void *pvParams)
     else if (service->pingRX == 0)
         service->pingRC = ping_rc_t::ping_timeout;
 
-    service->ready = true;
+    service->pingReady = true;
 
     delete params;
     vTaskDelete(nullptr);
