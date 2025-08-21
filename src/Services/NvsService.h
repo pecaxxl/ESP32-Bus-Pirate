@@ -12,6 +12,7 @@ public:
     // Open/Close namespace
     void open();
     void close();
+    bool hasKey(const std::string& key);
 
     // Read/write string
     void saveString(const std::string& key, const std::string& value);
