@@ -455,6 +455,7 @@ void WifiController::handleHelp()
     terminalView.println("  scan");
     terminalView.println("  connect");
     terminalView.println("  ping <host>");
+    terminalView.println("  discovery [wifi|eth]");
     terminalView.println("  sniff");
     terminalView.println("  probe");
     terminalView.println("  spoof sta <mac>");

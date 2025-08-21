@@ -420,6 +420,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  scan                 - List Wi-Fi networks");
     terminalView.println("  connect              - Connect to a network");
     terminalView.println("  ping <host>          - Ping a remote host");
+    terminalView.println("  discovery [wifi|eth] - Discover devices on network");
     terminalView.println("  sniff                - Monitor Wi-Fi packets");
     terminalView.println("  probe                - Search for net access");
     terminalView.println("  spoof ap <mac>       - Spoof AP MAC");
@@ -462,6 +463,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  connect              - Connect using DHCP");
     terminalView.println("  status               - Show ETH status");
     terminalView.println("  ping <host>          - Ping a remote host");
+    terminalView.println("  discovery [wifi|eth] - Discover devices on network");
     terminalView.println("  ssh <h> <u> <p> [p]  - Open SSH session");
     terminalView.println("  nc <host> <port>     - Open netcat session");
     terminalView.println("  nmap <h> [-p ports]  - Scan host ports");
