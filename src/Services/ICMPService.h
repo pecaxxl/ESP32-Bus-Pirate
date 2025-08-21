@@ -33,7 +33,8 @@ public:
     int lastSent() const { return pingTX; }
     int lastRecv() const { return pingRX; }
     const std::string& getReport() const { return report; }
-
+    std::string getPingHelp() const;
+    
     // Task entry
     static void pingAPI(void *pvParams);
 

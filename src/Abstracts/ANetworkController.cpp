@@ -42,13 +42,46 @@ void ANetworkController::handlePing(const TerminalCommand &cmd)
     }
 
     const std::string host = cmd.getSubcommand();
-    if (host.empty()) {
-        terminalView.println("Usage: ping <host|ip>");
+    if (host.empty() || host == "-h" || host == "--help") {
+        terminalView.println(icmpService.getPingHelp());
         return;
+    }   
+
+    auto args = argTransformer.splitArgs(cmd.getArgs());
+    int pingCount = 5, pingTimeout = 1000, pingInterval = 200;
+
+    for (int i=0;i<args.size();i++) {
+        if (args[i].empty()) continue; // Skip empty args
+        auto argument = args[i];
+        if (argument == "-h" || argument == "--help") {
+            terminalView.println(icmpService.getPingHelp());
+            return;
+        } else if (argument == "-c") {
+            if (++i < args.size()) {
+                if (!argTransformer.parseInt(args[i], pingCount) || args[i].empty()) {
+                    terminalView.println("Invalid count value.");
+                    return;
+                }
+            }
+        } else if (argument == "-t") {
+            if (++i < args.size()) {
+                if (!argTransformer.parseInt(args[i], pingTimeout) || args[i].empty()) {
+                    terminalView.println("Invalid timeout value.");
+                    return;
+                }
+            }
+        } else if (argument == "-i") {
+            if (++i < args.size()) {
+                if (!argTransformer.parseInt(args[i], pingInterval) || args[i].empty()) {
+                    terminalView.println("Invalid interval value.");
+                    return;
+                }
+            }
+        }
     }
 
-    icmpService.startPingTask(host, 5, 1000, 200);
-    while (!icmpService.isReady()) 
+    icmpService.startPingTask(host, pingCount, pingTimeout, pingInterval);
+    while (!icmpService.isReady())
         vTaskDelay(pdMS_TO_TICKS(50));
 
     terminalView.print(icmpService.getReport());

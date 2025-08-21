@@ -41,6 +41,14 @@ void ICMPService::cleanupICMPService()
     report.clear();
 }
 
+std::string ICMPService::getPingHelp() const{
+    std::string helpMenu = std::string("Usage: ping <host> [-c <count>] [-t <timeout>] [-i <interval>]\r\nOptions:\r\n ") + 
+        "\t-c <count>    Number of pings (default: 5)\r\n " +
+        "\t-t <timeout>  Timeout in milliseconds (default: 1000)\r\n" +
+        "\t-i <interval> Interval between pings in milliseconds (default: 200)";
+    return helpMenu;
+}
+
 static bool resolve_ipv4_to_ip_addr(const std::string &targetIP, ip_addr_t &out)
 {
     // literal first
@@ -150,7 +158,7 @@ void ICMPService::startPingTask(const std::string &targetIP, int count, int time
         this->report = "--- " + targetIP + " ping statistics ---\r\n";
         this->report += std::to_string(this->pingTX) + " packets transmitted, ";
         this->report += std::to_string(this->pingRX) + " received, ";
-        this->report += std::to_string(this->pingRX * 100 / this->pingTX) + "\% packet loss,";
+        this->report += std::to_string(100 - this->pingRX * 100 / this->pingTX) + "\% packet loss,";
         this->report += " time " + std::to_string(this->pingMedianMs) + " ms\r\n";
     } else if (this->pingRC == ping_rc_t::ping_resolve_fail) {
         this->report = "Failed to resolve \"" + targetIP + "\"\r\n";
