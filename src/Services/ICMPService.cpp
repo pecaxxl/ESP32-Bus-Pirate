@@ -4,6 +4,7 @@
 #include <freertos/task.h>
 #include <vector>
 #include <algorithm>
+#include <ESP32Ping.h>
 
 #include "lwip/inet.h"
 #include "lwip/netdb.h"
@@ -99,7 +100,7 @@ void ICMPService::discoveryTask(void* params){
     ip4_addr_t targetIP;
     uint32_t targetsResponded = 0;
 
-    pushICMPLog("Discovery: Scanning network for devices...");
+    pushICMPLog("Discovery: Scanning network for devices... Press [ENTER] to stop.");
 
     if (!ip4addr_aton(deviceIP.c_str(), &targetIP))
     {
@@ -138,6 +139,9 @@ void ICMPService::discoveryTask(void* params){
 
         service->cleanupICMPService();
         auto *params = new ICMPTaskParams{targetIPStr, 2, 150, 100, service};
+
+        #ifndef DEVICE_M5STICK
+
         xTaskCreatePinnedToCore(pingAPI, "ICMPPing", 4096, params, 1, nullptr, 1);
 
         while (!service->pingReady)
@@ -148,6 +152,23 @@ void ICMPService::discoveryTask(void* params){
             pushICMPLog("Device found: " + targetIPStr);
             targetsResponded++;
         }
+
+        #else
+        // Using ESP32Ping library to avoid IRAM overflow
+        // Can't set timeout response for ping with the Ping lib
+        // This is quite unusable since it takes 5sec per ping
+        // TODO: find a better way
+        const unsigned long t0 = millis();
+        const bool ok = Ping.ping(targetIPStr.c_str());
+        const unsigned long t1 = millis();
+        if (ok) {
+            pushICMPLog("Device found: " + targetIPStr);
+            targetsResponded++;
+        } else {
+            pushICMPLog("Device not found: " + targetIPStr);
+        }
+
+        #endif
     }
 
     pushICMPLog(std::to_string(targetsResponded) + " devices up, pinged " + 

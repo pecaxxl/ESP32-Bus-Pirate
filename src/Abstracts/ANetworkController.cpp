@@ -47,6 +47,8 @@ void ANetworkController::handlePing(const TerminalCommand &cmd)
         return;
     }   
 
+    #ifndef DEVICE_M5STICK
+
     auto args = argTransformer.splitArgs(cmd.getArgs());
     int pingCount = 5, pingTimeout = 1000, pingInterval = 200;
 
@@ -85,6 +87,20 @@ void ANetworkController::handlePing(const TerminalCommand &cmd)
         vTaskDelay(pdMS_TO_TICKS(50));
 
     terminalView.print(icmpService.getReport());
+
+
+    #else  
+
+    const unsigned long t0 = millis();
+    const bool ok = Ping.ping(host.c_str(), 1);
+    const unsigned long t1 = millis();
+    if (ok) {
+        terminalView.println("Ping: " + host + " successful, " + std::to_string(t1 - t0) + " ms");
+    } else {
+        terminalView.println("Ping: " + host + " failed.");
+    }
+
+    #endif
 }
 
 void ANetworkController::handleDiscovery(const TerminalCommand &cmd)

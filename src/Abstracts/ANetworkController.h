@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <string>
+#include <ESP32Ping.h>
 #include "Interfaces/ITerminalView.h"
 #include "Interfaces/IInput.h"
 #include "Services/WifiService.h"
