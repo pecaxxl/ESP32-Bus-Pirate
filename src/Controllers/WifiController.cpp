@@ -38,13 +38,31 @@ void WifiController::handleConnect(const TerminalCommand &cmd)
 
     // No args provided, we need to scan and select networks
     if (cmd.getSubcommand().empty()) {
-        terminalView.println("Wifi: Scanning for available networks...");
-        auto networks = wifiService.scanNetworks();
-        int selectedIndex = userInputManager.readValidatedChoiceIndex("\nSelect Wi-Fi network", networks, 0);
-        ssid = networks[selectedIndex];
-        terminalView.println("Selected SSID: " + ssid);
-        terminalView.print("Password: ");
-        password = userInputManager.getLine();
+
+        // Check saved creds
+        nvsService.open();
+        ssid = nvsService.getString(state.getNvsSsidField());
+        password = nvsService.getString(state.getNvsPasswordField());
+        nvsService.close();
+        auto confirmation = false;
+
+        // Creds found
+        if (!ssid.empty() && !password.empty()) {
+            confirmation = userInputManager.readYesNo(
+                "WiFi: Use saved credentials for " + ssid + "? (Y/n)", true
+            );
+        } 
+
+        // Select network if no creds or not confirmed
+        if (!confirmation) {
+            terminalView.println("Wifi: Scanning for available networks...");
+            auto networks = wifiService.scanNetworks();
+            int selectedIndex = userInputManager.readValidatedChoiceIndex("\nSelect Wi-Fi network", networks, 0);
+            ssid = networks[selectedIndex];
+            terminalView.println("Selected SSID: " + ssid);
+            terminalView.print("Password: ");
+            password = userInputManager.getLine();
+        }
 
     // Args provided
     } else  {

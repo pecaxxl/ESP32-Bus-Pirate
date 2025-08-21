@@ -46,7 +46,7 @@ void ANetworkController::handlePing(const TerminalCommand &cmd)
         terminalView.println(icmpService.getPingHelp());
         return;
     }   
-
+    
     #ifndef DEVICE_M5STICK
 
     auto args = argTransformer.splitArgs(cmd.getArgs());
@@ -90,6 +90,8 @@ void ANetworkController::handlePing(const TerminalCommand &cmd)
 
 
     #else  
+
+    // Using ESP32Ping library to avoid IRAM overflow
 
     const unsigned long t0 = millis();
     const bool ok = Ping.ping(host.c_str(), 1);
