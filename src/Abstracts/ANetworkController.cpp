@@ -129,8 +129,8 @@ void ANetworkController::handleDiscovery(const TerminalCommand &cmd)
     while (!icmpService.isDiscoveryReady()) {
         // Display logs
         auto batch = icmpService.fetchICMPLog();
-        for (auto& ln : batch) {
-            terminalView.println(ln);
+        for (auto& line : batch) {
+            terminalView.println(line);
         }
 
         // Enter Press to stop
@@ -148,9 +148,10 @@ void ANetworkController::handleDiscovery(const TerminalCommand &cmd)
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 
+    delay(500);
     // Flush final logs
-    for (auto& ln : icmpService.fetchICMPLog()) {
-        terminalView.println(ln);
+    for (auto& line : icmpService.fetchICMPLog()) {
+        terminalView.println(line);
     }
 
     ICMPService::clearICMPLogging();

@@ -104,6 +104,8 @@ void ICMPService::discoveryTask(void* params){
     if (!ip4addr_aton(deviceIP.c_str(), &targetIP))
     {
         pushICMPLog("Discovery: failed to parse IP address " + deviceIP);
+        delete taskParams;
+        vTaskDelete(nullptr);
         return;
     }
 
@@ -118,6 +120,8 @@ void ICMPService::discoveryTask(void* params){
         if (ICMPService::getICMPServiceStatus() == true)
         {
             pushICMPLog("Discovery: stopped by user");
+            delete taskParams;
+            vTaskDelete(nullptr);
             return;
         }
 
