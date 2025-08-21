@@ -100,7 +100,7 @@ void ICMPService::discoveryTask(void* params){
     ip4_addr_t targetIP;
     uint32_t targetsResponded = 0;
 
-    pushICMPLog("Discovery: Scanning network for devices... Press [ENTER] to stop.");
+    pushICMPLog("Discovery: Scanning network for devices... Press [ENTER] to stop.\r\n");
 
     if (!ip4addr_aton(deviceIP.c_str(), &targetIP))
     {
@@ -120,7 +120,7 @@ void ICMPService::discoveryTask(void* params){
     {
         if (ICMPService::getICMPServiceStatus() == true)
         {
-            pushICMPLog("Discovery: stopped by user");
+            pushICMPLog("Discovery: Stopped by user\r\n");
             delete taskParams;
             vTaskDelete(nullptr);
             return;
