@@ -1,4 +1,5 @@
 #include "Controllers/WifiController.h"
+#include "Vendors/wifi_atks.h"
 
 /*
 Entry point for command
@@ -151,10 +152,25 @@ void WifiController::handleAp(const TerminalCommand &cmd)
     if (ssid.empty())
     {
         terminalView.println("Usage: ap <ssid> <password>");
+        terminalView.println("       ap spam");
         return;
     }
 
-    std::string password = cmd.getArgs();
+    if (ssid == "spam") {
+        handleApSpam();
+        return;
+    }
+
+    auto full = cmd.getSubcommand() + " " + cmd.getArgs();
+
+    // Find the last space to separate SSID and password
+    size_t pos = full.find_last_of(' ');
+    if (pos == std::string::npos || pos == full.size() - 1) {
+        terminalView.println("Usage: connect <ssid> <password>");
+        return;
+    }
+    ssid = full.substr(0, pos);
+    auto password = full.substr(pos + 1);
 
     // Already connected, mode AP+STA
     if (wifiService.isConnected())
@@ -191,6 +207,25 @@ void WifiController::handleAp(const TerminalCommand &cmd)
     {
         terminalView.println("WiFi: Failed to start Access Point.");
     }
+}
+
+/*
+AP Spam
+*/
+void WifiController::handleApSpam()
+{
+    terminalView.println("WiFi: Starting beacon spam... Press [ENTER] to stop.");
+    while (true)
+    {
+        beaconCreate(); // func from Vendors/wifi_atks.h
+
+        // Enter press to stop
+        char key = terminalInput.readChar();
+        if (key == '\r' || key == '\n') break;
+        delay(10);
+    }
+
+    terminalView.println("WiFi: Beacon spam stopped.\n");
 }
 
 /*
@@ -427,6 +462,7 @@ void WifiController::handleHelp()
     terminalView.println("  status");
     terminalView.println("  disconnect");
     terminalView.println("  ap <ssid> <password>");
+    terminalView.println("  ap spam");
     terminalView.println("  ssh <host> <username> <password> [port]");
     terminalView.println("  nc <host> <port>");
     terminalView.println("  nmap <host> [port]");

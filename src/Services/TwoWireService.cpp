@@ -397,3 +397,168 @@ bool TwoWireService::unlockSmartCard(const uint8_t psc[3]) {
 
     return true;
 }
+
+// ================== SNIFFER: helpers ==================
+
+inline void IRAM_ATTR TwoWireService::pushEvent(uint8_t type, uint8_t data) {
+    uint16_t next = (sn_qHead + 1) % SNIFF_Q_SIZE;
+    if (next == sn_qTail) return; // overflow
+
+    // Write fields from the volatile element
+    sn_q[sn_qHead].type = type;
+    sn_q[sn_qHead].data = data;
+
+    sn_qHead = next;
+}
+
+bool TwoWireService::popEvent(uint8_t& type, uint8_t& data) {
+    if (sn_qTail == sn_qHead) return false;
+
+    portENTER_CRITICAL(&sn_mux);
+    if (sn_qTail == sn_qHead) { portEXIT_CRITICAL(&sn_mux); return false; }
+
+    // Read fields from the volatile element
+    type = sn_q[sn_qTail].type;
+    data = sn_q[sn_qTail].data;
+
+    sn_qTail = (sn_qTail + 1) % SNIFF_Q_SIZE;
+    portEXIT_CRITICAL(&sn_mux);
+    return true;
+}
+
+// ================== SNIFFER ==================
+
+void IRAM_ATTR TwoWireService::clk_isr_thunk(void* arg) {
+    reinterpret_cast<TwoWireService*>(arg)->onClkRisingISR();
+}
+
+void IRAM_ATTR TwoWireService::io_isr_thunk(void* arg) {
+    reinterpret_cast<TwoWireService*>(arg)->onIoChangeISR();
+}
+
+void IRAM_ATTR TwoWireService::onClkRisingISR() {
+    if (!sn_active) return;
+
+    // Validate START condition
+    if (sn_startPending) {
+        sn_startPending = false;
+        sn_inFrame = true;
+        pushEvent(/*START=*/1, 0);
+    }
+
+    if (!sn_inFrame) return;  // Ignore bits outside of a frame
+
+    int io = gpio_get_level((gpio_num_t)ioPin);
+    if (io) sn_currentByte |= (1u << sn_bitIndex);
+    sn_bitIndex++;
+    if (sn_bitIndex >= 8) {
+        pushEvent(/*DATA=*/3, sn_currentByte);
+        sn_bitIndex = 0;
+        sn_currentByte = 0;
+    }
+}
+
+void IRAM_ATTR TwoWireService::onIoChangeISR() {
+    if (!sn_active) return;
+
+    int clk = gpio_get_level((gpio_num_t)clkPin);
+    int io  = gpio_get_level((gpio_num_t)ioPin);
+
+    if (clk) {
+        // START we wait for the first CLK
+        if (sn_lastIO == 1 && io == 0) {
+            if (!sn_inFrame && !sn_startPending) {
+                sn_bitIndex = 0;
+                sn_currentByte = 0;
+                sn_startPending = true;   // START pending
+            }
+        }
+        // STOP
+        else if (sn_lastIO == 0 && io == 1) {
+            if (sn_inFrame) {
+                sn_inFrame = false;
+                sn_bitIndex = 0;
+                sn_currentByte = 0;
+                pushEvent(/*STOP=*/2, 0);
+            } else if (sn_startPending) {
+                // START cancelled (no bits arrived)
+                sn_startPending = false;
+            }
+        }
+    }
+    sn_lastIO = (uint8_t)io;
+}
+
+bool TwoWireService::startSniffer() {
+    if (clkPin == 0xFF || ioPin == 0xFF) return false;
+
+    // Install ISR service
+    static bool isr_service_installed = false;
+    if (!isr_service_installed) {
+        esp_err_t err = gpio_install_isr_service(ESP_INTR_FLAG_IRAM);
+        if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
+            return false;
+        }
+        isr_service_installed = true;
+    }
+
+    // Set CLK/IO as input non intrusive
+    gpio_set_direction((gpio_num_t)clkPin, GPIO_MODE_INPUT);
+    gpio_set_pull_mode((gpio_num_t)clkPin, GPIO_FLOATING);
+
+    gpio_set_direction((gpio_num_t)ioPin,  GPIO_MODE_INPUT);
+    gpio_set_pull_mode((gpio_num_t)ioPin,  GPIO_PULLUP_ONLY); 
+
+    // Init
+    sn_active = false;
+    sn_inFrame      = false;
+    sn_startPending = false;
+    sn_bitIndex = 0;
+    sn_currentByte = 0;
+    sn_lastIO = (uint8_t)gpio_get_level((gpio_num_t)ioPin);
+    sn_qHead = sn_qTail = 0;
+
+    // Interrupt types
+    gpio_set_intr_type((gpio_num_t)clkPin,
+        SNIFF_SAMPLE_ON_NEGEDGE ? GPIO_INTR_NEGEDGE : GPIO_INTR_POSEDGE);
+    gpio_set_intr_type((gpio_num_t)ioPin,  GPIO_INTR_ANYEDGE);
+
+    // Handlers
+    gpio_isr_handler_add((gpio_num_t)clkPin, &TwoWireService::clk_isr_thunk, this);
+    gpio_isr_handler_add((gpio_num_t)ioPin,  &TwoWireService::io_isr_thunk,  this);
+
+    gpio_intr_enable((gpio_num_t)clkPin);
+    gpio_intr_enable((gpio_num_t)ioPin);
+
+    sn_active = true;
+    return true;
+}
+
+void TwoWireService::stopSniffer() {
+    if (!sn_active) return;
+    sn_active = false;
+
+    // Detach ISRs
+    gpio_isr_handler_remove((gpio_num_t)clkPin);
+    gpio_isr_handler_remove((gpio_num_t)ioPin);
+
+    // Reset pins to idle state
+    gpio_set_direction((gpio_num_t)clkPin, GPIO_MODE_INPUT);
+    gpio_set_pull_mode((gpio_num_t)clkPin, GPIO_FLOATING);
+    gpio_set_direction((gpio_num_t)ioPin, GPIO_MODE_INPUT);
+    gpio_set_pull_mode((gpio_num_t)ioPin, GPIO_FLOATING);
+}
+
+bool TwoWireService::getNextSniffEvent(uint8_t& type, uint8_t& data) {
+    return popEvent(type, data);
+}
+
+void TwoWireService::printSniffOnce(Stream& out) {
+    uint8_t t, d;
+    while (getNextSniffEvent(t, d)) {
+        if (t == 1)      { out.print('['); }
+        else if (t == 2) { out.println(']'); }
+        else if (t == 3) { char buf[6]; sprintf(buf, " 0x%02X", d); out.print(buf); }
+        else             { out.println("U"); }
+    }
+}

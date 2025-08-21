@@ -43,6 +43,9 @@ private:
     // Configure and start Access Point mode
     void handleAp(const TerminalCommand& cmd);
 
+    // Spam random acccess point
+    void handleApSpam();
+
     // Perform Wi-Fi network scan
     void handleScan(const TerminalCommand& cmd);
 

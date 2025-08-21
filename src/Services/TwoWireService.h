@@ -55,8 +55,50 @@ public:
     bool updateSmartCardPSC(const uint8_t psc[3]);
     bool getSmartCardPSC(uint8_t out_psc[3]);
 
+    // Start sniffing
+    bool startSniffer();
+
+    // Stop sniffing and restore pins to idle state.
+    void stopSniffer();
+
+    bool getNextSniffEvent(uint8_t& type, uint8_t& data);
+
+    // Print all available events
+    void printSniffOnce(Stream& out);
+
+
 private:
     uint8_t clkPin;
     uint8_t ioPin;
     uint8_t rstPin;
+
+    // Sniffer
+    static void IRAM_ATTR clk_isr_thunk(void* arg);
+    static void IRAM_ATTR io_isr_thunk(void* arg);
+    void IRAM_ATTR onClkRisingISR();
+    void IRAM_ATTR onIoChangeISR();
+    inline void IRAM_ATTR pushEvent(uint8_t type, uint8_t data);
+    bool popEvent(uint8_t& type, uint8_t& data);
+
+    // Sniffer state
+    volatile bool sn_active = false;
+    volatile uint8_t sn_bitIndex = 0;
+    volatile uint8_t sn_currentByte = 0;
+    volatile uint8_t sn_lastIO = 1;
+
+    // Ring buffer
+    struct SniffEvent { uint8_t type; uint8_t data; };
+    static constexpr uint16_t SNIFF_Q_SIZE = 1024;
+    volatile SniffEvent sn_q[SNIFF_Q_SIZE];
+    volatile uint16_t sn_qHead = 0; // written by isrs
+    volatile uint16_t sn_qTail = 0; // read by task
+    volatile bool sn_inFrame = false;
+    volatile bool sn_startPending = false;
+    volatile uint32_t sn_dbgOverflow = 0;
+
+    // Sample on negative edge if needed
+    static constexpr bool SNIFF_SAMPLE_ON_NEGEDGE = false;
+
+    // Mutex for synchronizing access to the sniffing buffer
+    portMUX_TYPE sn_mux = portMUX_INITIALIZER_UNLOCKED;
 };
