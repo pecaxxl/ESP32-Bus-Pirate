@@ -9,6 +9,7 @@
 #include "vector"
 #include <Arduino.h>
 
+
 void generateRandomWiFiMac(uint8_t *mac) {
     for (int i = 1; i < 6; i++) { mac[i] = random(0, 255); }
 }
@@ -83,6 +84,7 @@ void nextChannel() {
     }
 }
 void beaconCreate(const char* ssid) {
+
     // beacon frame definition
     uint8_t beaconPacket[109] = {/*  0 - 3  */ 0x80,
                                  0x00,

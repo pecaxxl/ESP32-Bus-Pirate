@@ -36,7 +36,7 @@ void WifiController::handleConnect(const TerminalCommand &cmd)
     std::string password;
     auto args = argTransformer.splitArgs(cmd.getSubcommand());
 
-    // No args provided, we need to scan and select networks
+    // No args provided, we need to check saved creds or scan and select networks
     if (cmd.getSubcommand().empty()) {
 
         // Check saved creds
