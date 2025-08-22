@@ -21,6 +21,7 @@ void WifiController::handleCommand(const TerminalCommand &cmd)
     else if (root == "ssh") handleSsh(cmd);
     else if (root == "nc") handleNetcat(cmd);
     else if (root == "nmap") handleNmap(cmd);
+    else if (root == "http") handleHttp(cmd);
     else if (root == "discovery") handleDiscovery(cmd);
     else if (root == "reset") handleReset();
     else if (root == "deauth") handleDeauth(cmd);
@@ -485,6 +486,7 @@ void WifiController::handleHelp()
     terminalView.println("  ssh <host> <username> <password> [port]");
     terminalView.println("  nc <host> <port>");
     terminalView.println("  nmap <host> [port]");
+    terminalView.println("  http <get|post|put|delete> <url>");
     terminalView.println("  webui");
     terminalView.println("  reset");
     terminalView.println("  deauth <ssid>");

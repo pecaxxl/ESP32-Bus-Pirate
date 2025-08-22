@@ -168,7 +168,7 @@ void BluetoothController::handleKeyboard(const TerminalCommand& cmd) {
         return;
     }
 
-    // if spaces in text, use cmd.getArgs()
+    // if spaces in text, cmd.getArgs() is not empty
     auto full = cmd.getArgs().empty() ? 
                         cmd.getSubcommand() : 
                         cmd.getSubcommand() + " " + cmd.getArgs();
