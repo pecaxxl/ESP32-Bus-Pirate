@@ -79,7 +79,7 @@ function sendCommand() {
   if (socket.readyState !== WebSocket.OPEN) return;
 
   // Bridge mode start
-  if (cmd === "bridge") {
+  if (cmd === "bridge" || cmd === "keyboard") {
     bridgeMode = true;
     clearTimeout(responseTimeout);
     hideWsLostPopup();
