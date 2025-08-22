@@ -395,9 +395,10 @@ void UtilityController::handleHelp() {
     terminalView.println("");
     terminalView.println(" 12. USB:");
     terminalView.println("  stick                - Mount SD as USB");
-    terminalView.println("  keyboard <text>      - Type over USB");
+    terminalView.println("  keyboard             - Start keyboard bridge");
     terminalView.println("  mouse <x> <y>        - Move mouse cursor");
     terminalView.println("  mouse click          - Left click");
+    terminalView.println("  mouse jiggle [ms]    - Random mouse moves");
     terminalView.println("  gamepad <key>        - Press button");
     terminalView.println("  reset                - Reset interface");
     terminalView.println("  config               - Configure settings");
@@ -410,9 +411,10 @@ void UtilityController::handleHelp() {
     terminalView.println("  spoof <mac>          - Spoof mac address");
     terminalView.println("  status               - Show current status");
     terminalView.println("  server               - Create an HID server");
-    terminalView.println("  keyboard <text>      - Type over Bluetooth");
+    terminalView.println("  keyboard             - Start keyboard bridge");
     terminalView.println("  mouse <x> <y>        - Move mouse cursor");
     terminalView.println("  mouse click          - Mouse click");
+    terminalView.println("  mouse jiggle [ms]    - Random mouse moves");
     terminalView.println("  reset                - Reset interface");
 
     terminalView.println("");
