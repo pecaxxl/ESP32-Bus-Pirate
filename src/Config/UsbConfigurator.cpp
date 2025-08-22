@@ -10,7 +10,7 @@
 #endif
 
 
-UsbComponents UsbConfigurator::configure(ITerminalView& terminalView, IInput& terminalInput) {
+UsbComponents UsbConfigurator::configure(ITerminalView& terminalView, IInput& terminalInput, IInput& deviceInput) {
 #if defined(DEVICE_M5STICK)
     static ArgTransformer argTransformer;
     static UserInputManager userInputManager(terminalView, terminalInput, argTransformer);
@@ -27,7 +27,7 @@ UsbComponents UsbConfigurator::configure(ITerminalView& terminalView, IInput& te
     static ArgTransformer argTransformer;
     static UserInputManager userInputManager(terminalView, terminalInput, argTransformer);
     static UsbS3Service usbService;
-    static UsbS3Controller usbController(terminalView, terminalInput, usbService, argTransformer, userInputManager);
+    static UsbS3Controller usbController(terminalView, terminalInput, deviceInput, usbService, argTransformer, userInputManager);
 
     return UsbComponents{
         argTransformer,

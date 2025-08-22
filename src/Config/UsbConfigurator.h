@@ -16,5 +16,5 @@ struct UsbComponents {
 
 class UsbConfigurator {
 public:
-    static UsbComponents configure(ITerminalView& terminalView, IInput& terminalInput);
+    static UsbComponents configure(ITerminalView& terminalView, IInput& terminalInput, IInput& deviceInput);
 };
