@@ -17,7 +17,14 @@
 class UsbS3Controller: public IUsbController {
 public:
     // Constructor
-    UsbS3Controller(ITerminalView& terminalView, IInput& terminalInput, IUsbService& usbService, ArgTransformer& argTransformer, UserInputManager& userInputManager);
+    UsbS3Controller(
+        ITerminalView& terminalView, 
+        IInput& terminalInput, 
+        IInput& deviceInput,
+        IUsbService& usbService, 
+        ArgTransformer& argTransformer, 
+        UserInputManager& userInputManager
+    );
 
     // Entry point for handle raw terminal command
     void handleCommand(const TerminalCommand& cmd);
@@ -29,8 +36,6 @@ private:
     // Simulate USB mass storage mount
     void handleUsbStick();
 
-    // Send keyboard input via HID
-    void handleKeyboardSend(const TerminalCommand& cmd);
 
     // Move the HID mouse cursor
     void handleMouseMove(const TerminalCommand& cmd);
@@ -38,11 +43,23 @@ private:
     // Perform HID mouse click
     void handleMouseClick();
 
+    // Moove the mouse cursor until ENTER is pressed
+    void handleMouseJiggle(const TerminalCommand& cmd);
+
     // High-level mouse handler
     void handleMouse(const TerminalCommand& cmd);
 
     // Emulate gamepad events
     void handleGamepad(const TerminalCommand& cmd);
+
+    // Handle keyboard events
+    void handleKeyboard(const TerminalCommand& cmd);
+
+    // Bridge keyboard input to USB HID
+    void handleKeyboardBridge();
+
+    // Send keyboard input via HID
+    void handleKeyboardSend(const TerminalCommand& cmd);
 
     // Reset all USB states
     void handleReset();
@@ -56,6 +73,7 @@ private:
     bool configured = false;
     ITerminalView& terminalView;
     IInput& terminalInput;
+    IInput& deviceInput;
     IUsbService& usbService;
     ArgTransformer& argTransformer;
     GlobalState& state = GlobalState::getInstance();
