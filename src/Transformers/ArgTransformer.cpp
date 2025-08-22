@@ -352,3 +352,23 @@ bool ArgTransformer::parseMac(const std::string& s, std::array<uint8_t,6>& out) 
     }
     return true;
 }
+
+std::string ArgTransformer::ensureHttpScheme(std::string u) {
+    if (u.rfind("http://", 0) != 0 && u.rfind("https://", 0) != 0) {
+        u = "https://" + u;   // defaut https
+    }
+    return u;
+}
+
+std::string ArgTransformer::normalizeLines(const std::string& in) {
+    std::string out;
+    out.reserve(in.size() * 2);  // pire cas : tout '\n' doublé
+    for (size_t i = 0; i < in.size(); i++) {
+        if (in[i] == '\n') {
+            out += "\r\n";
+        } else {
+            out += in[i];
+        }
+    }
+    return out;
+}
