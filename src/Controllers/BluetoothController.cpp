@@ -6,12 +6,16 @@ Constructor
 BluetoothController::BluetoothController(
     ITerminalView& terminalView,
     IInput& terminalInput,
+    IInput& deviceInput,
     BluetoothService& bluetoothService,
-    ArgTransformer& argTransformer
+    ArgTransformer& argTransformer,
+    UserInputManager& userInputManager
 ) : terminalView(terminalView),
     terminalInput(terminalInput),
+    deviceInput(deviceInput),
     bluetoothService(bluetoothService),
-    argTransformer(argTransformer) {}
+    argTransformer(argTransformer),
+    userInputManager(userInputManager) {}
 
 /*
 Entry point for BT command
@@ -158,14 +162,54 @@ void BluetoothController::handleKeyboard(const TerminalCommand& cmd) {
         return;
     }
 
-    auto text = cmd.getSubcommand();
-    if (text.empty()) {
-        terminalView.println("Usage: keyboard <text>");
+    auto sub = cmd.getSubcommand();
+    if (sub.empty() || sub == "bridge") {
+        handleKeyboardBridge();
         return;
     }
 
-    bluetoothService.sendKeyboardText(text);
+    // if spaces in text, use cmd.getArgs()
+    auto full = cmd.getArgs().empty() ? 
+                        cmd.getSubcommand() : 
+                        cmd.getSubcommand() + " " + cmd.getArgs();
+
+    bluetoothService.sendKeyboardText(full);
     terminalView.println("Bluetooth Keyboard: String sent.");
+}
+
+/*
+Keyboard Bridge
+*/
+void BluetoothController::handleKeyboardBridge() {
+    terminalView.println("Bluetooth Keyboard Bridge: Sending all keys to BLE HID.");
+
+    terminalView.println("\n[WARNING] If the BLE device is plugged on the same host as");
+    terminalView.println("          the terminal, it may cause looping issues with ENTER.");
+    terminalView.println("          (That makes no sense to bridge your keyboard on the same host)\n");
+
+    const bool sameHost = userInputManager.readYesNo("Are you connected on the same host? (y/n)", true);
+    if (sameHost) {
+        terminalView.println("Same host, ENTER key will not be sent to BLE HID.");
+    }
+
+    terminalView.println("Bluetooth Keyboard: Bridge started.. Press [ANY ESP32 BUTTON] to stop.");
+
+    while (true) {
+        // Stop if any esp32 button pressed
+        char k = deviceInput.readChar();
+        if (k != KEY_NONE) {
+            terminalView.println("\r\nBluetooth Keyboard Bridge: Stopped by user.");
+            break;
+        }
+
+        // Relay terminal -> BLE HID
+        char c = terminalInput.readChar();
+        if (c != KEY_NONE) {
+            if (c == '\n' && sameHost) continue;
+            bluetoothService.sendKeyboardText(std::string(1, c));
+            delay(20); 
+        }
+    }
 }
 
 /*
@@ -181,6 +225,12 @@ void BluetoothController::handleMouse(const TerminalCommand& cmd) {
     if (cmd.getSubcommand() == "click") {
         bluetoothService.clickMouse();
         terminalView.println("Bluetooth Mouse: Click sent.");
+        return;
+    }
+
+    // mouse jiggle
+    if (cmd.getSubcommand() == "jiggle") {
+        handleMouseJiggle(cmd);
         return;
     }
 
@@ -212,6 +262,45 @@ void BluetoothController::handleMouse(const TerminalCommand& cmd) {
 
     bluetoothService.mouseMove(x, y);
     terminalView.println("Bluetooth Mouse: Moved by (" + std::to_string(x) + ", " + std::to_string(y) + ")");
+}
+
+/*
+Mouse Jiggle
+*/
+void BluetoothController::handleMouseJiggle(const TerminalCommand& cmd) {
+    int intervalMs = 1000; // default
+
+    // Optional interval arg
+    const std::string& arg = cmd.getArgs();
+    if (!arg.empty() && argTransformer.isValidNumber(arg)) {
+        intervalMs = argTransformer.parseHexOrDec32(arg);
+    }
+
+    terminalView.println(
+        "Bluetooth Mouse: Jiggle started (" + std::to_string(intervalMs) +
+        " ms)... Press [ENTER] to stop."
+    );
+
+    while (true) {
+        // Random move
+        int8_t dx = (int8_t)random(-127, 127);
+        int8_t dy = (int8_t)random(-127, 127);
+        if (dx == 0 && dy == 0) dx = 1;
+
+        bluetoothService.mouseMove(dx, dy);
+        delay(30);
+
+        // Wait for interval while listening for ENTER
+        unsigned long t0 = millis();
+        while ((millis() - t0) < (unsigned long)intervalMs) {
+            int c = terminalInput.readChar();
+            if (c == '\r' || c == '\n') {
+                terminalView.println("Bluetooth Mouse: Jiggle stopped.\n");
+                return;
+            }
+            delay(10);
+        }
+    }
 }
 
 /*
@@ -265,9 +354,11 @@ void BluetoothController::handleHelp() {
     terminalView.println("  sniff");
     terminalView.println("  status");
     terminalView.println("  server");
+    terminalView.println("  keyboard");
     terminalView.println("  keyboard <text>");
     terminalView.println("  mouse <x> <y>");
     terminalView.println("  mouse click");
+    terminalView.println("  mouse jiggle [ms]");
     terminalView.println("  reset");
 }
 
