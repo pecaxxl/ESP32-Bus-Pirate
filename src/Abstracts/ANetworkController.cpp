@@ -11,7 +11,8 @@ ANetworkController::ANetworkController(
     NetcatService& netcatService,
     NmapService& nmapService,
     ICMPService& icmpService,
-    NvsService& nvsService, 
+    NvsService& nvsService,
+    HttpService& httpService,
     ArgTransformer& argTransformer,
     UserInputManager& userInputManager
 )
@@ -26,6 +27,7 @@ ANetworkController::ANetworkController(
   nmapService(nmapService),
   icmpService(icmpService),
   nvsService(nvsService),
+  httpService(httpService),
   argTransformer(argTransformer),
   userInputManager(userInputManager)
 {
@@ -390,4 +392,79 @@ void ANetworkController::handleSsh(const TerminalCommand &cmd)
     // Close SSH
     sshService.close();
     terminalView.println("\r\n\nSSH: Session closed.");
+}
+
+/*
+HTTP
+*/
+void ANetworkController::handleHttp(const TerminalCommand &cmd)
+{
+    #ifndef DEVICE_M5STICK
+
+    // Check connection
+    if (!wifiService.isConnected() && !ethernetService.isConnected())
+    {
+        terminalView.println("HTTP: You must be connected to Wi-Fi or Ethernet. Use 'connect' first.");
+        return;
+    }
+
+    const auto sub = cmd.getSubcommand();
+
+    // http get <url>
+    if (sub == "get" && !cmd.getArgs().empty()) {
+        handleHttpGet(cmd);
+        return;
+    // PH for POST, PUT, DELETE
+    } else if (sub == "post" || sub == "put" || sub == "delete") {
+        terminalView.println("HTTP: Only GET implemented for now.");
+        return;
+    // http <url>
+    } else if (!sub.empty() && cmd.getArgs().empty()) {
+        handleHttpGet(cmd);
+        return;
+    } else {
+        terminalView.println("Usage: http <get|post|put|delete> <url>");
+    }
+
+    #else
+
+    terminalView.println("HTTP: M5Stick is not supported.");
+
+    #endif
+}
+
+/*
+HTTP GET
+*/
+void ANetworkController::handleHttpGet(const TerminalCommand &cmd)
+{
+    if (cmd.getSubcommand() == "get" && cmd.getArgs().empty())
+    {
+        terminalView.println("Usage: http get <url>");
+        return;
+    }
+
+    // Support for http <url> or http get <url>
+    auto arg = cmd.getArgs().empty() ? cmd.getSubcommand() : cmd.getArgs();
+    std::string url = argTransformer.ensureHttpScheme(arg);
+
+    terminalView.println("HTTP: Sending GET request to " + url + "...");
+
+    httpService.startGetTask(url, 5000, 8192, true);
+
+    // Wait until timeout or response is ready
+    const unsigned long deadline = millis() + 5000;
+    while (!httpService.isResponseReady() && millis() < deadline) {
+        delay(50);
+    }
+
+    if (httpService.isResponseReady()) {
+        terminalView.println("\n========== HTTP GET =============");
+        auto formatted = argTransformer.normalizeLines(httpService.lastResponse());
+        terminalView.println(formatted);
+        terminalView.println("=================================\n");
+
+    } else {
+        terminalView.println("\nHTTP: Error, request timed out");
+    }
 }
