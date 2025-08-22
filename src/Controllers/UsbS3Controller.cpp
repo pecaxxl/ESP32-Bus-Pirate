@@ -152,7 +152,7 @@ Mouse Jiggle
 void UsbS3Controller::handleMouseJiggle(const TerminalCommand& cmd) {
     int intervalMs = 1000; // defaut
 
-    if (cmd.getArgs().empty() && argTransformer.isValidNumber(cmd.getArgs())) {
+    if (!cmd.getArgs().empty() && argTransformer.isValidNumber(cmd.getArgs())) {
         auto intervalMs = argTransformer.parseHexOrDec32(cmd.getArgs());
     }
 
