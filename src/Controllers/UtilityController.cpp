@@ -434,8 +434,9 @@ void UtilityController::handleHelp() {
     terminalView.println("  ssh <h> <u> <p> [p]  - Open SSH session");
     terminalView.println("  nc <host> <port>     - Open netcat session");
     terminalView.println("  nmap <h> [-p ports]  - Scan host ports");
-    terminalView.println("  webui                - Show the web UI IP");
+    terminalView.println("  http get <url>       - HTTP(s) GET request");
     terminalView.println("  deauth <ssid>        - Deauthenticate hosts");
+    terminalView.println("  webui                - Show the web UI IP");
     terminalView.println("  reset                - Reset interface");
 
     terminalView.println("");
@@ -469,6 +470,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  ssh <h> <u> <p> [p]  - Open SSH session");
     terminalView.println("  nc <host> <port>     - Open netcat session");
     terminalView.println("  nmap <h> [-p ports]  - Scan host ports");
+    terminalView.println("  http get <url>       - HTTP(s) GET request");
     terminalView.println("  reset                - Reset interface");
     terminalView.println("  config               - Configure settings");
 
