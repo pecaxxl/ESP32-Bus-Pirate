@@ -450,7 +450,7 @@ void ANetworkController::handleHttpGet(const TerminalCommand &cmd)
 
     terminalView.println("HTTP: Sending GET request to " + url + "...");
 
-    httpService.startGetTask(url, 5000, 8192, true);
+    httpService.startGetTask(url, 5000, 8192, true, 20000);
 
     // Wait until timeout or response is ready
     const unsigned long deadline = millis() + 5000;
@@ -467,4 +467,6 @@ void ANetworkController::handleHttpGet(const TerminalCommand &cmd)
     } else {
         terminalView.println("\nHTTP: Error, request timed out");
     }
+
+    httpService.reset();
 }
