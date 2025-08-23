@@ -8,12 +8,44 @@ struct HttpGetParams {
     HttpService* self;
 };
 
+void HttpService::ensureClient(bool https, bool insecure, int timeout_s)
+{
+    // Recreate the client if not initialized or if the type changes
+    if (!client_inited_ || client_https_ != https) {
+        client_.reset(); // destroy the old one properly
+        if (https) {
+            auto* c = new WiFiClientSecure();
+            if (insecure) static_cast<WiFiClientSecure*>(c)->setInsecure();
+            client_.reset(c);
+        } else {
+            auto* c = new WiFiClient();
+            client_.reset(c);
+        }
+        client_https_ = https;
+        client_inited_ = true;
+    } else {
+        // Reuse
+        if (https) {
+            auto* c = static_cast<WiFiClientSecure*>(client_.get());
+            if (insecure) c->setInsecure();
+        }
+    }
+}
+
+bool HttpService::beginHttp(const std::string& url, int timeout_ms)
+{
+    http_.setTimeout(timeout_ms);
+    http_.setReuse(false);
+
+    return http_.begin(*client_, url.c_str());
+}
+
 void HttpService::startGetTask(const std::string& url, int timeout_ms, int bodyMaxBytes, bool insecure,
                                int stack_bytes, int core)
 {
     ready = false;
     auto* p = new HttpGetParams{url, timeout_ms, bodyMaxBytes, insecure, this};
-    xTaskCreatePinnedToCore(&HttpService::getTask, "HttpGet", stack_bytes/sizeof(StackType_t),
+    xTaskCreatePinnedToCore(&HttpService::getTask, "HttpGet", stack_bytes,
                             p, 1, nullptr, core);
 }
 
@@ -21,122 +53,97 @@ void HttpService::getTask(void* pv)
 {
     auto* p = static_cast<HttpGetParams*>(pv);
     auto* self = p->self;
+    self->ready.store(false, std::memory_order_relaxed);
 
-    bool isHttps = (p->url.rfind("https://",0)==0);
+    // Determine if the request is HTTPS
+    const bool isHttps = (p->url.rfind("https://", 0) == 0);
 
-    // Guard to prevent concurrent requests
-    bool expected = false;
-    if (!self->inFlight.compare_exchange_strong(expected, true, std::memory_order_acq_rel)) {
-        return; // already in flight
-    }
-
-    // Mark as not ready
-    self->ready.store(false, std::memory_order_release);
-
-    std::unique_ptr<WiFiClient> client;
-    if (isHttps) {
-        auto *c = new WiFiClientSecure();
-        if (p->insecure) c->setInsecure();
-        c->setTimeout(p->timeout_ms / 1000);
-        client.reset(c);
-    } else {
-        auto *c = new WiFiClient();
-        c->setTimeout(p->timeout_ms / 1000);
-        client.reset(c);
-    }
-
-    HTTPClient http;
-    http.setTimeout(p->timeout_ms);
-
+    // Reuse client
+    self->ensureClient(isHttps, p->insecure, p->timeout_ms / 1000);
     std::string result;
 
-    if (!http.begin(*client, p->url.c_str())) {
+    // Start HTTP
+    if (!self->beginHttp(p->url, p->timeout_ms)) {
         result = "ERROR: begin failed";
-    } else {
-        http.collectHeaders(HttpService::headerKeys,
-                        sizeof(HttpService::headerKeys) / sizeof(HttpService::headerKeys[0]));
-
-        // GET
-        http.addHeader("Accept-Encoding", "identity");  // no gzip
-        http.addHeader("Connection", "close"); // close socket
-        int code = http.GET();
-
-        // Check response code
-        if (code > 0) {
-
-            // Construct headers
-            result = "HTTP/1.1 " + std::to_string(code) + "\r\n";
-            int n = http.headers();
-            for (int i=0; i<n; i++) {
-                result += http.headerName(i).c_str();
-                result += ": ";
-                result += http.header(i).c_str();
-                result += "\r\n";
-            }
-
-            // Json content type
-            String ct = http.header("Content-Type");
-            bool isJson = ct.length() && (ct.indexOf("json") >= 0);
-
-            // If json, get the body
-            if (isJson) {
-                result += "\r\nJSON BODY:\n";
-                result += HttpService::getJsonBody(http, p->bodyMaxBytes);
-            }
-
-        } else {
-            result = "ERROR: " + std::string(http.errorToString(code).c_str());
-        }
-        http.getStream().stop();
-        http.end();
-        vTaskDelay(pdMS_TO_TICKS(50));
+        self->http_.getStream().stop();
+        self->http_.end();
+        delete p;
+        vTaskDelete(nullptr);
+        return;
     }
 
-    // Ready to fetch the response
-    self->response = result;
+    // Headers
+    self->http_.collectHeaders(HttpService::headerKeys,
+                               sizeof(HttpService::headerKeys) / sizeof(HttpService::headerKeys[0]));
+    self->http_.addHeader("Accept-Encoding", "identity");
+    self->http_.addHeader("Connection", "close");
+
+    // Send GET request
+    const int code = self->http_.GET();
+    if (code > 0) {
+        // Response headers
+        result = "HTTP/1.1 " + std::to_string(code) + "\r\n";
+        const int n = self->http_.headers();
+        for (int i = 0; i < n; i++) {
+            result += self->http_.headerName(i).c_str();
+            result += ": ";
+            result += self->http_.header(i).c_str();
+            result += "\r\n";
+        }
+
+        // Json body if content type is json
+        const String ct = self->http_.header("Content-Type");
+        const bool isJson = ct.length() && (ct.indexOf("json") >= 0);
+        if (isJson) {
+            result += "\r\nJSON BODY:\n";
+            result += HttpService::getJsonBody(self->http_, p->bodyMaxBytes);
+        } 
+    } else {
+        result = "ERROR: ";
+        result += self->http_.errorToString(code).c_str();
+    }
+
+    // Clean HTTP
+    self->http_.getStream().stop();
+    self->http_.end();
+    vTaskDelay(pdMS_TO_TICKS(10));
+
+    // Ready to get response
+    self->response = std::move(result);
     self->ready.store(true, std::memory_order_release);
-    self->inFlight.store(false, std::memory_order_release);
+
     delete p;
     vTaskDelete(nullptr);
 }
 
-std::string HttpService::getJsonBody(HTTPClient& http, int bodyMaxBytes) {
+std::string HttpService::getJsonBody(HTTPClient& http, int bodyMaxBytes)
+{
     std::string out;
-    if (bodyMaxBytes <= 0) return out; // no length
+    if (bodyMaxBytes <= 0) return out;
 
     WiFiClient* stream = http.getStreamPtr();
-
-    // Max bytes to read
     size_t budget = static_cast<size_t>(bodyMaxBytes);
 
-    // Expected size if known, -1 if chunked/unknown
     int size = http.getSize();
     size_t target = (size > 0) ? (size_t)size : budget;
     if (size > 0 && target > budget) target = budget;
 
-    // Small chunks to limit RAM spikes
     static constexpr size_t CHUNK = 256;
     uint8_t buf[CHUNK];
 
-    // Small initial reserve (limits reallocs)
     out.reserve(std::min(target, (size_t)128));
 
     const unsigned long IDLE_TIMEOUT_MS = 1200;
     unsigned long lastDataMs = millis();
     size_t readTotal = 0;
-    
-    // Read condition
+
     auto canContinue = [&]() -> bool {
-        // Continue as long as there is budget left and the socket is alive
         if (budget == 0) return false;
         if (stream->available() > 0) return true;
-        // if content length is known, we can wait until everything is read
         if ((size < 0) && !stream->connected() && stream->available() == 0) return false;
-        // idle timeout
         return (millis() - lastDataMs) < IDLE_TIMEOUT_MS;
     };
-    
-    // Read loop
+
     while (canContinue()) {
         int avail = stream->available();
         if (avail <= 0) { delay(1); continue; }
@@ -156,11 +163,23 @@ std::string HttpService::getJsonBody(HTTPClient& http, int bodyMaxBytes) {
         budget    -= (size_t)n;
         lastDataMs = millis();
 
-        if (size > 0 && readTotal >= (size_t)size) break; // all received
+        if (size > 0 && readTotal >= (size_t)size) break;
         if (budget == 0) {
             out += "...[TRUNCATED]";
-            break; // budget exceeded
+            break;
         }
     }
     return out;
+}
+
+std::string HttpService::lastResponse()
+{
+    std::string out;
+    response.swap(out);
+    ready.store(false, std::memory_order_release);
+    return out;
+}
+
+bool HttpService::isResponseReady() const noexcept {
+    return ready.load(std::memory_order_acquire);
 }

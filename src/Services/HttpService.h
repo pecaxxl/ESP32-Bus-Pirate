@@ -1,6 +1,8 @@
 #pragma once
-#undef INADDR_NONE
+
+#undef INADDR_NONE // conflicting
 #undef IPADDR_NONE
+
 #include <HTTPClient.h>
 #include <vector>
 #include <string>
@@ -10,7 +12,7 @@ class HttpService {
 public:
     // ============ GET ================
 
-    // Http get task on url
+    // Http(s) get task on url
     void startGetTask(const std::string& url,
                       int timeout_ms,
                       int bodyMaxBytes,
@@ -18,24 +20,32 @@ public:
                       int stack_bytes = 24 * 1024,
                       int core = 1);
 
-    // Verify if the response is ready
-    bool isResponseReady() const { return ready; }
+    // ===================================
 
-    // Get last HTTP response (status + headers)
-    const std::string& lastResponse() const { return response; }
+    // Verify if the response is ready
+    bool isResponseReady() const noexcept;
+
+    // Get last HTTP response, status + headers + (json body)
+    std::string lastResponse();
 
     // Resets the internal state
     void reset() { response.clear(); ready = false; }
 
-    // ===================================
-
 private:
     static void getTask(void* pv);
     static std::string getJsonBody(HTTPClient& http, int bodyMaxBytes);
+    void ensureClient(bool https, bool insecure, int timeout_s);
+    bool beginHttp(const std::string& url, int timeout_ms);
 
+    // Response
     std::atomic<bool> ready{false}; // response is ready
-    std::atomic<bool> inFlight{false}; // avoid double requests
     std::string response; // http response
+
+    // HTTP client
+    std::unique_ptr<WiFiClient> client_;
+    bool client_https_ = false;
+    bool client_inited_ = false;
+    HTTPClient http_;
 
     inline static const char* headerKeys[] = {
       // General
