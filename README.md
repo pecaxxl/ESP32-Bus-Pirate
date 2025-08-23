@@ -4,7 +4,7 @@
 
 It supports sniffing, sending, scripting, and interacting with various digital protocols (I2C, UART, 1-Wire, SPI, etc.) via a serial terminal or web-based CLI.
 
-![Demo showing the different mode of the ESP32 Bus Pirate](images/demo.gif)
+![Demo showing the different mode of the ESP32 Bus Pirate](images/demo12.gif)
 
 ## Features
 
@@ -20,15 +20,16 @@ It supports sniffing, sending, scripting, and interacting with various digital p
   - Infrared (device-b-gone, send and receive)
   - USB (HID, mouse, keyboard, gamepad, storage)
   - Bluetooth (BLE HID, scan, spoofing, sniffing)
-  - Wi-Fi / Ethernet (scan, sniff, deauth, nmap, netcat)
+  - Wi-Fi / Ethernet (sniff, deauth, nmap, netcat)
   - JTAG (scan pinout, SWD)
   - LED control (animations, set LEDs)
   - I2S (test speakers, mic, play sound)
-  - CAN (sniff, read and receive frames)
+  - CAN (sniff, send and receive frames)
 
 - **Protocol sniffers** for I2C, Wi-Fi, Bluetooth, 1Wire, 2wire, CAN.
 - Baudrate **auto-detection**, AT commands and various tools for UART.
 - Registers manipulation, eeprom dump tools, identify devices for I2C.
+- Read all sort of EEPROM, Flash and various others tools for SPI.
 - Scripting using **Bus Pirate-style bytecode** instructions.
 - Device-B-Gone command with more than 80 supported INFRARED protocols.
 - Direct I/O management, PWM, pin state.
