@@ -6,14 +6,17 @@
 #include "Services/BluetoothService.h"
 #include "Transformers/ArgTransformer.h"
 #include "Models/TerminalCommand.h"
+#include "Managers/UserInputManager.h"
 
 class BluetoothController {
 public:
     BluetoothController(
         ITerminalView& terminalView,
         IInput& terminalInput,
+        IInput& deviceInput,
         BluetoothService& bluetoothService,
-        ArgTransformer& argTransformer
+        ArgTransformer& argTransformer,
+        UserInputManager& userInputManager
     );
 
     // Entry point for BT command
@@ -25,8 +28,10 @@ public:
 private:
     ITerminalView& terminalView;
     IInput& terminalInput;
+    IInput& deviceInput;
     BluetoothService& bluetoothService;
     ArgTransformer& argTransformer;
+    UserInputManager& userInputManager;
     bool configured = false;
     
     // Scan for BT devices
@@ -47,8 +52,14 @@ private:
     // Handle KB action
     void handleKeyboard(const TerminalCommand& cmd);
 
+    // Handle keyboard bridge
+    void handleKeyboardBridge();
+
     // Handle mouse action
     void handleMouse(const TerminalCommand& cmd);
+
+    // Handle mouse jiggle until enter is pressed
+    void handleMouseJiggle(const TerminalCommand& cmd);
 
     // Sniff BT server I/O
     void handleSniff(const TerminalCommand& cmd);

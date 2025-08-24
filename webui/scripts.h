@@ -79,7 +79,7 @@ function sendCommand() {
   if (socket.readyState !== WebSocket.OPEN) return;
 
   // Bridge mode start
-  if (cmd === "bridge") {
+  if (cmd === "bridge" || cmd === "keyboard") {
     bridgeMode = true;
     clearTimeout(responseTimeout);
     hideWsLostPopup();
@@ -126,7 +126,7 @@ window.addEventListener("DOMContentLoaded", function () {
  | |_) | |_| \\__ \\ | |_) | | | | (_| | ||  __/
  |____/ \\__,_|___/ | .__/|_|_|  \\__,_|\\__\\___|
                    |_|                        
-     Version 0.6           Ready to board
+     Version 0.7           Ready to board
 
  Type 'mode' to start or 'help' for commands
 

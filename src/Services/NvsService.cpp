@@ -13,12 +13,19 @@ void NvsService::close() {
     preferences.end(); // Close namespace
 }
 
+bool NvsService::hasKey(const std::string& key) {
+    return preferences.isKey(key.c_str());
+}
+
 void NvsService::saveString(const std::string& key, const std::string& value) {
     preferences.putString(key.c_str(), value.c_str());
 }
 
 std::string NvsService::getString(const std::string& key, const std::string& defaultValue) {
-    return preferences.getString(key.c_str(), defaultValue.c_str()).c_str();
+    if (hasKey(key)) {
+        return preferences.getString(key.c_str(), defaultValue.c_str()).c_str();
+    }
+    return defaultValue;
 }
 
 void NvsService::saveInt(const std::string& key, int value) {

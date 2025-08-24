@@ -21,6 +21,8 @@ void WifiController::handleCommand(const TerminalCommand &cmd)
     else if (root == "ssh") handleSsh(cmd);
     else if (root == "nc") handleNetcat(cmd);
     else if (root == "nmap") handleNmap(cmd);
+    else if (root == "http") handleHttp(cmd);
+    else if (root == "discovery") handleDiscovery(cmd);
     else if (root == "reset") handleReset();
     else if (root == "deauth") handleDeauth(cmd);
     else handleHelp();
@@ -35,15 +37,33 @@ void WifiController::handleConnect(const TerminalCommand &cmd)
     std::string password;
     auto args = argTransformer.splitArgs(cmd.getSubcommand());
 
-    // No args provided, we need to scan and select networks
+    // No args provided, we need to check saved creds or scan and select networks
     if (cmd.getSubcommand().empty()) {
-        terminalView.println("Wifi: Scanning for available networks...");
-        auto networks = wifiService.scanNetworks();
-        int selectedIndex = userInputManager.readValidatedChoiceIndex("\nSelect Wi-Fi network", networks, 0);
-        ssid = networks[selectedIndex];
-        terminalView.println("Selected SSID: " + ssid);
-        terminalView.print("Password: ");
-        password = userInputManager.getLine();
+
+        // Check saved creds
+        nvsService.open();
+        ssid = nvsService.getString(state.getNvsSsidField());
+        password = nvsService.getString(state.getNvsPasswordField());
+        nvsService.close();
+        auto confirmation = false;
+
+        // Creds found
+        if (!ssid.empty() && !password.empty()) {
+            confirmation = userInputManager.readYesNo(
+                "WiFi: Use saved credentials for " + ssid + "? (Y/n)", true
+            );
+        } 
+
+        // Select network if no creds or not confirmed
+        if (!confirmation) {
+            terminalView.println("Wifi: Scanning for available networks...");
+            auto networks = wifiService.scanNetworks();
+            int selectedIndex = userInputManager.readValidatedChoiceIndex("\nSelect Wi-Fi network", networks, 0);
+            ssid = networks[selectedIndex];
+            terminalView.println("Selected SSID: " + ssid);
+            terminalView.print("Password: ");
+            password = userInputManager.getLine();
+        }
 
     // Args provided
     } else  {
@@ -454,6 +474,7 @@ void WifiController::handleHelp()
     terminalView.println("  scan");
     terminalView.println("  connect");
     terminalView.println("  ping <host>");
+    terminalView.println("  discovery [wifi|eth]");
     terminalView.println("  sniff");
     terminalView.println("  probe");
     terminalView.println("  spoof sta <mac>");
@@ -465,6 +486,7 @@ void WifiController::handleHelp()
     terminalView.println("  ssh <host> <username> <password> [port]");
     terminalView.println("  nc <host> <port>");
     terminalView.println("  nmap <host> [port]");
+    terminalView.println("  http <get|post|put|delete> <url>");
     terminalView.println("  webui");
     terminalView.println("  reset");
     terminalView.println("  deauth <ssid>");

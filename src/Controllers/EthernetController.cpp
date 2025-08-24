@@ -10,9 +10,11 @@ void EthernetController::handleCommand(const TerminalCommand& cmd) {
     else if (root == "connect")   handleConnect();
     else if (root == "nc")        handleNetcat(cmd);
     else if (root == "nmap")      handleNmap(cmd);
+    else if (root == "discovery") handleDiscovery(cmd);
     else if (root == "ping")      handlePing(cmd);
     else if (root == "ssh")       handleSsh(cmd);
     else if (root == "status")    handleStatus();
+    else if (root == "http")      handleHttp(cmd);
     else if (root == "reset")     handleReset();
     else                          handleHelp();
 }
@@ -175,9 +177,11 @@ void EthernetController::handleHelp() {
     terminalView.println("  status");
     terminalView.println("  connect");
     terminalView.println("  ping <host>");
+    terminalView.println("  discovery [wifi|eth]");
     terminalView.println("  ssh <host> <user> <password> [port]");
     terminalView.println("  nc <host> <port>");
     terminalView.println("  nmap <host> [port]");
+    terminalView.println("  http get <url>");
     terminalView.println("  reset");
     terminalView.println("  config");
 }

@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <string>
+#include <ESP32Ping.h>
 #include "Interfaces/ITerminalView.h"
 #include "Interfaces/IInput.h"
 #include "Services/WifiService.h"
@@ -16,6 +17,7 @@
 #include "Managers/UserInputManager.h"
 #include "States/GlobalState.h"
 #include "Models/TerminalCommand.h"
+#include "Services/HttpService.h"
 
 class ANetworkController {
 public:
@@ -31,7 +33,8 @@ public:
         NetcatService& netcatService,
         NmapService& nmapService,
         ICMPService& icmpService,
-        NvsService& nvsService, 
+        NvsService& nvsService,
+        HttpService& httpService,
         ArgTransformer& argTransformer,
         UserInputManager& userInputManager
     );
@@ -41,6 +44,9 @@ protected:
     void handleNmap(const TerminalCommand& cmd);
     void handleSsh(const TerminalCommand& cmd);
     void handlePing(const TerminalCommand& cmd);
+    void handleDiscovery(const TerminalCommand &cmd);
+    void handleHttp(const TerminalCommand &cmd);
+    void handleHttpGet(const TerminalCommand &cmd);
 
 protected:
     ITerminalView&     terminalView;
@@ -57,7 +63,8 @@ protected:
     NetcatService&     netcatService;
     NmapService&       nmapService;
     ICMPService&       icmpService;
-    
+    HttpService&      httpService;
+
     ArgTransformer&    argTransformer;
     UserInputManager&  userInputManager;
     GlobalState&       globalState = GlobalState::getInstance();

@@ -9,6 +9,7 @@
 #include <freertos/task.h>
 #include <Data/NmapUtils.h>
 #include <unordered_set>
+#include <ESP32Ping.h>
 
 extern "C" {
 #include <getopt.h>   // provides getopt_long
@@ -334,16 +335,32 @@ void NmapService::scanTarget(const std::string &host, const std::vector<uint16_t
     this->report.append("Nmap scan report for ").append(host).append(" (").append(ipStr).append(")\r\n");
     // TODO show if host is up + latency?
     if (icmpService != nullptr){
-        icmpService->startPingTask(host, 1, 1000, 200);
-        while (!icmpService->isReady()) 
+
+        #ifndef DEVICE_M5STICK
+
+        icmpService->startPingTask(host, 1, 1000, 200);   
+        while (!icmpService->isPingReady()) 
             vTaskDelay(pdMS_TO_TICKS(50));
-        if (icmpService->lastPingUp()) {
+        if (icmpService->lastRc() == ping_rc_t::ping_ok) {
             this->report.append("Host is up (").append(std::to_string(icmpService->lastMedianMs())).append("ms latency).\r\n");
         }
         else {
             this->report.append("Host is down.\r\n");
             return; // No point in scanning if host is down
         }
+        #else
+
+        // Using ESP32Ping library to avoid IRAM overflow
+        const unsigned long t0 = millis();
+        const bool ok = Ping.ping(host.c_str(), 1);
+        const unsigned long t1 = millis();
+        if (ok) {
+            this->report.append("Host is up (").append(std::to_string(t1 - t0)).append("ms latency).\r\n");
+        } else {
+            this->report.append("Host is down.\r\n");
+        }
+
+        #endif
     }
     else {
         // TODO what to do?

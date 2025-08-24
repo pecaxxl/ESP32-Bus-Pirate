@@ -11,7 +11,8 @@ ANetworkController::ANetworkController(
     NetcatService& netcatService,
     NmapService& nmapService,
     ICMPService& icmpService,
-    NvsService& nvsService, 
+    NvsService& nvsService,
+    HttpService& httpService,
     ArgTransformer& argTransformer,
     UserInputManager& userInputManager
 )
@@ -26,6 +27,7 @@ ANetworkController::ANetworkController(
   nmapService(nmapService),
   icmpService(icmpService),
   nvsService(nvsService),
+  httpService(httpService),
   argTransformer(argTransformer),
   userInputManager(userInputManager)
 {
@@ -42,22 +44,122 @@ void ANetworkController::handlePing(const TerminalCommand &cmd)
     }
 
     const std::string host = cmd.getSubcommand();
-    if (host.empty()) {
-        terminalView.println("Usage: ping <host|ip>");
+    if (host.empty() || host == "-h" || host == "--help") {
+        terminalView.println(icmpService.getPingHelp());
+        return;
+    }   
+    
+    #ifndef DEVICE_M5STICK
+
+    auto args = argTransformer.splitArgs(cmd.getArgs());
+    int pingCount = 5, pingTimeout = 1000, pingInterval = 200;
+
+    for (int i=0;i<args.size();i++) {
+        if (args[i].empty()) continue; // Skip empty args
+        auto argument = args[i];
+        if (argument == "-h" || argument == "--help") {
+            terminalView.println(icmpService.getPingHelp());
+            return;
+        } else if (argument == "-c") {
+            if (++i < args.size()) {
+                if (!argTransformer.parseInt(args[i], pingCount) || args[i].empty()) {
+                    terminalView.println("Invalid count value.");
+                    return;
+                }
+            }
+        } else if (argument == "-t") {
+            if (++i < args.size()) {
+                if (!argTransformer.parseInt(args[i], pingTimeout) || args[i].empty()) {
+                    terminalView.println("Invalid timeout value.");
+                    return;
+                }
+            }
+        } else if (argument == "-i") {
+            if (++i < args.size()) {
+                if (!argTransformer.parseInt(args[i], pingInterval) || args[i].empty()) {
+                    terminalView.println("Invalid interval value.");
+                    return;
+                }
+            }
+        }
+    }
+
+    icmpService.startPingTask(host, pingCount, pingTimeout, pingInterval);
+    while (!icmpService.isPingReady())
+        vTaskDelay(pdMS_TO_TICKS(50));
+
+    terminalView.print(icmpService.getReport());
+
+
+    #else  
+
+    // Using ESP32Ping library to avoid IRAM overflow
+
+    const unsigned long t0 = millis();
+    const bool ok = Ping.ping(host.c_str(), 1);
+    const unsigned long t1 = millis();
+    if (ok) {
+        terminalView.println("Ping: " + host + " successful, " + std::to_string(t1 - t0) + " ms");
+    } else {
+        terminalView.println("Ping: " + host + " failed.");
+    }
+
+    #endif
+}
+
+void ANetworkController::handleDiscovery(const TerminalCommand &cmd)
+{
+    bool wifiConnected = wifiService.isConnected();
+    bool ethConnected = ethernetService.isConnected();
+    phy_interface_t phy_interface = phy_interface_t::phy_none;
+
+    // Which interface to scan
+    auto mode = globalState.getCurrentMode();
+    if (wifiConnected && mode == ModeEnum::WiFi){
+        phy_interface = phy_interface_t::phy_wifi;
+    }
+    else if (ethConnected && mode == ModeEnum::ETHERNET) {
+        phy_interface = phy_interface_t::phy_eth;
+    }
+    else {
+        terminalView.println("Discovery: You must be connected to Wi-Fi or Ethernet. Use 'connect' first.");
         return;
     }
 
-    icmpService.startPingTask(host, 5, 1000, 200);
-    while (!icmpService.isReady()) 
-        vTaskDelay(pdMS_TO_TICKS(50));
+    const std::string deviceIP = phy_interface == phy_interface_t::phy_wifi ? wifiService.getLocalIP() : ethernetService.getLocalIP();
+    icmpService.startDiscoveryTask(deviceIP);
 
-    if (icmpService.lastPingUp()) {
-        terminalView.println("UP, median " + std::to_string(icmpService.lastMedianMs()) + " ms");
-    } else {
-        terminalView.println("DOWN");
+    while (!icmpService.isDiscoveryReady()) {
+        // Display logs
+        auto batch = icmpService.fetchICMPLog();
+        for (auto& line : batch) {
+            terminalView.println(line);
+        }
+
+        // Enter Press to stop
+        int terminalKey = terminalInput.readChar();
+        if (terminalKey == '\n' || terminalKey == '\r') {
+            icmpService.stopICMPService();
+            break;
+        }
+        char deviceKey = deviceInput.readChar();
+        if (deviceKey == KEY_OK) {
+            icmpService.stopICMPService();
+            break;
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 
-    terminalView.print(icmpService.getReport());
+    delay(500);
+    // Flush final logs
+    for (auto& line : icmpService.fetchICMPLog()) {
+        terminalView.println(line);
+    }
+
+    ICMPService::clearICMPLogging();
+    icmpService.clearDiscoveryFlag();
+    //terminalView.println(icmpService.getReport());
 }
 
 /*
@@ -290,4 +392,81 @@ void ANetworkController::handleSsh(const TerminalCommand &cmd)
     // Close SSH
     sshService.close();
     terminalView.println("\r\n\nSSH: Session closed.");
+}
+
+/*
+HTTP
+*/
+void ANetworkController::handleHttp(const TerminalCommand &cmd)
+{
+    #ifndef DEVICE_M5STICK
+
+    // Check connection
+    if (!wifiService.isConnected() && !ethernetService.isConnected())
+    {
+        terminalView.println("HTTP: You must be connected to Wi-Fi or Ethernet. Use 'connect' first.");
+        return;
+    }
+
+    const auto sub = cmd.getSubcommand();
+
+    // http get <url>
+    if (sub == "get" && !cmd.getArgs().empty()) {
+        handleHttpGet(cmd);
+        return;
+    // PH for POST, PUT, DELETE
+    } else if (sub == "post" || sub == "put" || sub == "delete") {
+        terminalView.println("HTTP: Only GET implemented for now.");
+        return;
+    // http <url>
+    } else if (!sub.empty() && cmd.getArgs().empty()) {
+        handleHttpGet(cmd);
+        return;
+    } else {
+        terminalView.println("Usage: http <get|post|put|delete> <url>");
+    }
+
+    #else
+
+    terminalView.println("HTTP: M5Stick is not supported.");
+
+    #endif
+}
+
+/*
+HTTP GET
+*/
+void ANetworkController::handleHttpGet(const TerminalCommand &cmd)
+{
+    if (cmd.getSubcommand() == "get" && cmd.getArgs().empty())
+    {
+        terminalView.println("Usage: http get <url>");
+        return;
+    }
+
+    // Support for http <url> or http get <url>
+    auto arg = cmd.getArgs().empty() ? cmd.getSubcommand() : cmd.getArgs();
+    std::string url = argTransformer.ensureHttpScheme(arg);
+
+    terminalView.println("HTTP: Sending GET request to " + url + "...");
+
+    httpService.startGetTask(url, 5000, 8192, true, 20000);
+
+    // Wait until timeout or response is ready
+    const unsigned long deadline = millis() + 5000;
+    while (!httpService.isResponseReady() && millis() < deadline) {
+        delay(50);
+    }
+
+    if (httpService.isResponseReady()) {
+        terminalView.println("\n========== HTTP GET =============");
+        auto formatted = argTransformer.normalizeLines(httpService.lastResponse());
+        terminalView.println(formatted);
+        terminalView.println("=================================\n");
+
+    } else {
+        terminalView.println("\nHTTP: Error, request timed out");
+    }
+
+    httpService.reset();
 }

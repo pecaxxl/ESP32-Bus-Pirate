@@ -16,10 +16,8 @@ void ActionDispatcher::setup(TerminalTypeEnum terminalType, std::string terminal
 
     if (terminalType == TerminalTypeEnum::Serial) {
         provider.getTerminalView().initialize();
-        #ifdef DEVICE_M5STICK // No serial buffer, we wait press for m5stick
-            provider.getTerminalView().waitPress();
-            provider.getTerminalInput().waitPress();
-        #endif
+        provider.getTerminalView().waitPress();
+        provider.getTerminalInput().waitPress();
         provider.getTerminalView().welcome(terminalType, terminalInfos);
     } else {
         provider.getTerminalView().initialize();

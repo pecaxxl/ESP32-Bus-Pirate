@@ -89,7 +89,7 @@ void setup() {
             serialView.setBaudrate(state.getSerialTerminalBaudRate());
 
             // Configure USB
-            auto usb = UsbConfigurator::configure(serialView, serialInput);
+            auto usb = UsbConfigurator::configure(serialView, serialInput, deviceInput);
 
             // Build the provider for serial type and run the dispatcher loop
             DependencyProvider provider(serialView, deviceView, serialInput, deviceInput, usb.usbService, usb.usbController);
@@ -120,7 +120,7 @@ void setup() {
             wsServer.setupRoutes();
 
             // Configure USB
-            auto usb = UsbConfigurator::configure(webView, webInput);
+            auto usb = UsbConfigurator::configure(webView, webInput, deviceInput);
 
             // Build the provider for webui type and run the dispatcher loop
             DependencyProvider provider(webView, deviceView, webInput, deviceInput, usb.usbService, usb.usbController);

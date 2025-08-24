@@ -395,9 +395,10 @@ void UtilityController::handleHelp() {
     terminalView.println("");
     terminalView.println(" 12. USB:");
     terminalView.println("  stick                - Mount SD as USB");
-    terminalView.println("  keyboard <text>      - Type over USB");
+    terminalView.println("  keyboard             - Start keyboard bridge");
     terminalView.println("  mouse <x> <y>        - Move mouse cursor");
     terminalView.println("  mouse click          - Left click");
+    terminalView.println("  mouse jiggle [ms]    - Random mouse moves");
     terminalView.println("  gamepad <key>        - Press button");
     terminalView.println("  reset                - Reset interface");
     terminalView.println("  config               - Configure settings");
@@ -410,9 +411,10 @@ void UtilityController::handleHelp() {
     terminalView.println("  spoof <mac>          - Spoof mac address");
     terminalView.println("  status               - Show current status");
     terminalView.println("  server               - Create an HID server");
-    terminalView.println("  keyboard <text>      - Type over Bluetooth");
+    terminalView.println("  keyboard             - Start keyboard bridge");
     terminalView.println("  mouse <x> <y>        - Move mouse cursor");
     terminalView.println("  mouse click          - Mouse click");
+    terminalView.println("  mouse jiggle [ms]    - Random mouse moves");
     terminalView.println("  reset                - Reset interface");
 
     terminalView.println("");
@@ -420,6 +422,7 @@ void UtilityController::handleHelp() {
     terminalView.println("  scan                 - List Wi-Fi networks");
     terminalView.println("  connect              - Connect to a network");
     terminalView.println("  ping <host>          - Ping a remote host");
+    terminalView.println("  discovery            - Discover network devices");
     terminalView.println("  sniff                - Monitor Wi-Fi packets");
     terminalView.println("  probe                - Search for net access");
     terminalView.println("  spoof ap <mac>       - Spoof AP MAC");
@@ -431,8 +434,9 @@ void UtilityController::handleHelp() {
     terminalView.println("  ssh <h> <u> <p> [p]  - Open SSH session");
     terminalView.println("  nc <host> <port>     - Open netcat session");
     terminalView.println("  nmap <h> [-p ports]  - Scan host ports");
-    terminalView.println("  webui                - Show the web UI IP");
+    terminalView.println("  http get <url>       - HTTP(s) GET request");
     terminalView.println("  deauth <ssid>        - Deauthenticate hosts");
+    terminalView.println("  webui                - Show the web UI IP");
     terminalView.println("  reset                - Reset interface");
 
     terminalView.println("");
@@ -462,9 +466,11 @@ void UtilityController::handleHelp() {
     terminalView.println("  connect              - Connect using DHCP");
     terminalView.println("  status               - Show ETH status");
     terminalView.println("  ping <host>          - Ping a remote host");
+    terminalView.println("  discovery            - Discover network devices");
     terminalView.println("  ssh <h> <u> <p> [p]  - Open SSH session");
     terminalView.println("  nc <host> <port>     - Open netcat session");
     terminalView.println("  nmap <h> [-p ports]  - Scan host ports");
+    terminalView.println("  http get <url>       - HTTP(s) GET request");
     terminalView.println("  reset                - Reset interface");
     terminalView.println("  config               - Configure settings");
 

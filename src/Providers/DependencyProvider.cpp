@@ -32,6 +32,7 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       systemService(),
       ethernetService(),
       cc1101Service(),
+      httpService(),
 
       // Transformers
       commandTransformer(),
@@ -75,11 +76,11 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       threeWireController(terminalView, terminalInput, userInputManager, threeWireService, argTransformer, threeWireEepromShell),
       dioController(terminalView, terminalInput, pinService, argTransformer),
       ledController(terminalView, terminalInput, ledService, argTransformer, userInputManager),
-      bluetoothController(terminalView, terminalInput, bluetoothService, argTransformer),
+      bluetoothController(terminalView, terminalInput, deviceInput, bluetoothService, argTransformer, userInputManager),
       i2sController(terminalView, terminalInput, i2sService, argTransformer, userInputManager),
-      wifiController(terminalView, terminalInput, deviceInput, wifiService, wifiScannerService, ethernetService, sshService, netcatService, nmapService, icmpService, nvsService, argTransformer, userInputManager),
+      wifiController(terminalView, terminalInput, deviceInput, wifiService, wifiScannerService, ethernetService, sshService, netcatService, nmapService, icmpService, nvsService, httpService, argTransformer, userInputManager),
       canController(terminalView, terminalInput, userInputManager, canService, argTransformer),
-      ethernetController(terminalView, terminalInput, deviceInput, wifiService, wifiScannerService, ethernetService, sshService, netcatService, nmapService, icmpService, nvsService, argTransformer, userInputManager),
+      ethernetController(terminalView, terminalInput, deviceInput, wifiService, wifiScannerService, ethernetService, sshService, netcatService, nmapService, icmpService, nvsService, httpService, argTransformer, userInputManager),
       cc1101Controller(terminalView, terminalInput, cc1101Service, argTransformer, userInputManager)
 {
 }
