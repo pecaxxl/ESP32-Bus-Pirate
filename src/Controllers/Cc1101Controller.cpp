@@ -13,15 +13,27 @@ CC1101Controller::CC1101Controller(ITerminalView& terminalView, IInput& terminal
 Entry point to handle a CC1101 commands
 */
 void CC1101Controller::handleCommand(const TerminalCommand& cmd) {
-    if (cmd.getRoot() == "sniff") ;//handleSniff(cmd);
-  
+    if (cmd.getRoot() == "sniff") {
+        handleRXraw(cmd);
+    }
     else if (cmd.getRoot() == "config") {
         handleConfig();
     } 
         else if (cmd.getRoot() == "send") {
         handleSend(cmd);
     } 
-    
+    else if (cmd.getRoot() == "rxraw") {
+        handleRXraw(cmd);
+    } 
+    else if (cmd.getRoot() == "txraw") {
+        handleTXraw(cmd);
+    } 
+    else if (cmd.getRoot() == "help") {
+        handleHelp();
+    } 
+    else if (cmd.getRoot().empty()) {
+        terminalView.println("No command provided. Type 'help' for available commands.");
+    }    
     else {
         handleHelp();
     }
@@ -78,6 +90,24 @@ void CC1101Controller::handleConfig() {
         state.getCC1101GDO2Pin(),
         1000000
     );
+}
+
+void CC1101Controller::handleRXraw(const TerminalCommand& cmd) {
+    ensureConfigured();
+    if (!cmd.getSubcommand().empty() && argTransformer.isValidNumber(cmd.getSubcommand())) {
+       std::uint32_t period = argTransformer.toUint32(cmd.getSubcommand());
+       if (period > 0) {
+            terminalView.println("CC1101 RX RAW mode activated. Waiting for data...");
+            cc1101Service.RXraw(period);
+       }  
+    } else {
+        terminalView.println("No valid period specified. Usage: rxraw <period>");
+        return;
+    }
+}
+
+void CC1101Controller::handleTXraw(const TerminalCommand& cmd) {
+
 }
 
 /*

@@ -34,6 +34,8 @@ private:
     // Read digital value from a pin
     void handleReadPin(const TerminalCommand& cmd);
     void handleSend(TerminalCommand cmd);
+    void handleRXraw(const TerminalCommand& cmd);
+    void handleTXraw(const TerminalCommand& cmd);
     
     // Available commands
     void handleHelp();
